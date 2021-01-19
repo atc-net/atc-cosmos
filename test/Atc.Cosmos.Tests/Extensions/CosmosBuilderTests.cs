@@ -1,0 +1,172 @@
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Atc.Cosmos.Extensions;
+using Atc.Cosmos.Internal;
+using Atc.Test;
+using AutoFixture.AutoNSubstitute;
+using AutoFixture.Xunit2;
+using FluentAssertions;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using NSubstitute;
+using Xunit;
+
+namespace Atc.Cosmos.Tests.Extensions
+{
+    public class CosmosBuilderTests
+    {
+        private class RecordInitializer : ICosmosContainerInitializer
+        {
+            public Task InitializeAsync(
+                Database database,
+                CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Calls_Builder_Method_With_Correct_ContainerBuilder(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name,
+            [Substitute] Action<ICosmosContainerBuilder> builder)
+        {
+            sut.AddContainer(name, builder);
+
+            builder
+                .Received(1)
+                .Invoke(Arg.Is<ICosmosContainerBuilder>(b
+                    => b.ContainerName == name
+                    && b.Services == services));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Of_Generic_Resource_Registers_NameProvider(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name)
+        {
+            sut.AddContainer<Record>(name);
+
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType
+                    == typeof(ICosmosContainerNameProvider)));
+
+            var nameProvider = services
+               .ReceivedCalls()
+               .SelectMany(c => c.GetArguments())
+               .OfType<ServiceDescriptor>()
+               .Where(s
+                   => s.ServiceType
+                   == typeof(ICosmosContainerNameProvider))
+               .Select(s => s.ImplementationInstance)
+               .OfType<ICosmosContainerNameProvider>()
+               .Single();
+
+            nameProvider.ContainerName
+                .Should()
+                .Be(name);
+            nameProvider.FromType
+                .Should()
+                .Be(typeof(Record));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Of_Generic_Initializer_Registers_Initializer(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name,
+            [Substitute] Action<ICosmosContainerBuilder> builder)
+        {
+            sut.AddContainer<RecordInitializer>(name, builder);
+
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType == typeof(ICosmosContainerInitializer)
+                    && s.ImplementationType == typeof(RecordInitializer)));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Of_Generic_Initializer_Calls_Builder_Method_With_Correct_ContainerBuilder(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name,
+            [Substitute] Action<ICosmosContainerBuilder> builder)
+        {
+            sut.AddContainer<RecordInitializer>(name, builder);
+
+            builder
+                .Received(1)
+                .Invoke(Arg.Is<ICosmosContainerBuilder>(b
+                    => b.ContainerName == name
+                    && b.Services == services));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Of_Generic_Initializer_And_Resource_Registers_Initializer(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name)
+        {
+            sut.AddContainer<RecordInitializer, Record>(name);
+
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType == typeof(ICosmosContainerInitializer)
+                    && s.ImplementationType == typeof(RecordInitializer)));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void AddContainer_Of_Generic_Initializer_And_Resource_Registers_NameProvider(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut,
+            string name)
+        {
+            sut.AddContainer<RecordInitializer, Record>(name);
+
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType
+                    == typeof(ICosmosContainerNameProvider)));
+
+            var nameProvider = services
+               .ReceivedCalls()
+               .SelectMany(c => c.GetArguments())
+               .OfType<ServiceDescriptor>()
+               .Where(s
+                   => s.ServiceType
+                   == typeof(ICosmosContainerNameProvider))
+               .Select(s => s.ImplementationInstance)
+               .OfType<ICosmosContainerNameProvider>()
+               .Single();
+
+            nameProvider.ContainerName
+                .Should()
+                .Be(name);
+            nameProvider.FromType
+                .Should()
+                .Be(typeof(Record));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void ConfigureCosmos_Adds_StartupInitializationJob(
+            [Frozen] IServiceCollection services,
+            CosmosBuilder sut)
+        {
+            sut.UseHostedService();
+
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType == typeof(IHostedService)
+                    && s.ImplementationType == typeof(StartupInitializationJob)));
+        }
+    }
+}
