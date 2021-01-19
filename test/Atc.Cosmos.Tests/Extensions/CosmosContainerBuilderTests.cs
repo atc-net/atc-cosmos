@@ -1,15 +1,18 @@
-﻿using System.Linq;
-using AutoFixture.Xunit2;
+using System.Linq;
 using Atc.Cosmos.Extensions;
 using Atc.Cosmos.Internal;
+using Atc.Test;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using Xunit;
 
 namespace Atc.Cosmos.Tests.Extensions
 {
     public class CosmosContainerBuilderTests
     {
+        [Theory, AutoNSubstituteData]
         public void AddResource_Registers_ICosmosConntainerNameProvider(
             [Frozen] string containerName,
             [Frozen] IServiceCollection services,

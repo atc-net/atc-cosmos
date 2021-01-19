@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Atc.Cosmos
@@ -24,7 +24,7 @@ namespace Atc.Cosmos
         string ICosmosResource.PartitionKey => GetPartitionKey();
 
         [JsonIgnore]
-        string ICosmosResource.ETag { get; set; }
+        string? ICosmosResource.ETag { get; set; }
 
         /// <summary>
         /// Method for getting the id used for the document.

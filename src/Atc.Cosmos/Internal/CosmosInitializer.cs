@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -30,22 +30,26 @@ namespace Atc.Cosmos.Internal
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            var database = await GetOrCreateDatabaseAsync(cancellationToken);
+            var database = await GetOrCreateDatabaseAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             var initializerTasks = initializers
                 .Select(init => init.InitializeAsync(database, cancellationToken));
 
-            await Task.WhenAll(initializerTasks);
+            await Task.WhenAll(initializerTasks)
+                .ConfigureAwait(false);
         }
 
         private async Task<Database> GetOrCreateDatabaseAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var response = await client.CreateDatabaseIfNotExistsAsync(
-                    options.DatabaseName,
-                    options.DatabaseThroughput,
-                    cancellationToken: cancellationToken);
+                var response = await client
+                    .CreateDatabaseIfNotExistsAsync(
+                        options.DatabaseName,
+                        options.DatabaseThroughput,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
 
                 return response.Database;
             }

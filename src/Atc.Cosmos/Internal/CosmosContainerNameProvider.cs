@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Atc.Cosmos.Internal
 {
@@ -12,6 +12,7 @@ namespace Atc.Cosmos.Internal
         }
 
         public Type FromType => typeof(T);
+
         public string ContainerName { get; }
     }
 }

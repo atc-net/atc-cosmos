@@ -46,3 +46,12 @@ dotnet_diagnostic.SA1133.severity = none            # https://github.com/atc-net
 ##########################################
 # Custom - Code Analyzers Rules
 ##########################################
+dotnet_diagnostic.CA1034.severity = none            # Allow nested types
+dotnet_diagnostic.SA1201.severity = none            # Allow nested types before other class members
+dotnet_diagnostic.MA0006.severity = none            # Test projects needs to be able to compare stirngs with "=="
+dotnet_diagnostic.CA2007.severity = none            # ConfigureAwait optimization is not necessary in tests
+dotnet_diagnostic.CA1062.severity = none            # Null checking input to test methods makes no sense
+dotnet_diagnostic.CA1812.severity = none            # Test classes used as generic arguments but not instantiated should be allowed.
+dotnet_diagnostic.SA1202.severity = none            # Private helper methods makes sense to keep at top of test classes, as tests are added to bottom.
+dotnet_diagnostic.CA2201.severity = none            # Instantiating Exceptions as test data should be allowed.
+

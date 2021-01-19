@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Atc.Cosmos.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,13 +6,13 @@ namespace Atc.Cosmos.Extensions
 {
     public class CosmosBuilder : ICosmosBuilder
     {
-        public IServiceCollection Services { get; }
-
         public CosmosBuilder(
             IServiceCollection services)
         {
             this.Services = services;
         }
+
+        public IServiceCollection Services { get; }
 
         public ICosmosBuilder AddContainer(
             string name,

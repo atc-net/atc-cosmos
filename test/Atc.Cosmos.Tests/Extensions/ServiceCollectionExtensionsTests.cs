@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Atc.Cosmos.Extensions;
 using Atc.Cosmos.Internal;
@@ -49,8 +49,7 @@ namespace Atc.Cosmos.Tests.Extensions
                 .ReceivedCalls()
                 .SelectMany(c => c.GetArguments())
                 .OfType<ServiceDescriptor>()
-                .Where(s => s.ServiceType == typeof(CosmosClient))
-                .Single()
+                .Single(s => s.ServiceType == typeof(CosmosClient))
                 .ImplementationFactory
                 .Invoke(provider);
 

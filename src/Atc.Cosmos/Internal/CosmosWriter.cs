@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
@@ -81,28 +81,31 @@ namespace Atc.Cosmos.Internal
             int retries = 0,
             CancellationToken cancellationToken = default)
         {
-            var retriesRemaining = retries;
-
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    var document = await reader.ReadAsync(
-                        documentId,
-                        partitionKey,
-                        cancellationToken);
+                    var document = await reader
+                        .ReadAsync(
+                            documentId,
+                            partitionKey,
+                            cancellationToken)
+                        .ConfigureAwait(false);
 
-                    await updateDocument(document);
+                    await updateDocument(document)
+                        .ConfigureAwait(false);
 
-                    return await ReplaceAsync(
-                        document,
-                        cancellationToken);
+                    return await
+                        ReplaceAsync(
+                            document,
+                            cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (CosmosException ex)
                  when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
                 {
-                    if (--retriesRemaining <= 0)
+                    if (--retries <= 0)
                     {
                         throw;
                     }
@@ -131,8 +134,6 @@ namespace Atc.Cosmos.Internal
             int retries = 0,
             CancellationToken cancellationToken = default)
         {
-            var retriesRemaining = retries;
-
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -148,32 +149,35 @@ namespace Atc.Cosmos.Internal
                             nameof(getDefaultDocument));
                     }
 
-                    var document = await reader.FindAsync(
-                        defaultDocument.DocumentId,
-                        defaultDocument.PartitionKey,
-                        cancellationToken)
+                    var document = await reader
+                        .FindAsync(
+                            defaultDocument.DocumentId,
+                            defaultDocument.PartitionKey,
+                            cancellationToken)
+                        .ConfigureAwait(false)
                         ?? defaultDocument;
 
-                    await updateDocument(document);
+                    await updateDocument(document)
+                        .ConfigureAwait(false);
 
                     if (document.ETag is null)
                     {
                         return await CreateAsync(
                             document,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         return await ReplaceAsync(
                             document,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (CosmosException ex)
                  when (ex.StatusCode == HttpStatusCode.PreconditionFailed ||
                        ex.StatusCode == HttpStatusCode.Conflict)
                 {
-                    if (--retriesRemaining <= 0)
+                    if (--retries <= 0)
                     {
                         throw;
                     }

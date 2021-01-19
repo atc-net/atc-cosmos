@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +25,8 @@ namespace Atc.Cosmos.Internal
                 .ReadItemAsync<T>(
                     documentId,
                     new PartitionKey(partitionKey),
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
             result.Resource.ETag = result.ETag;
 
@@ -42,7 +43,7 @@ namespace Atc.Cosmos.Internal
                 return await ReadAsync(
                     documentId,
                     partitionKey,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (CosmosException)
             {
@@ -64,7 +65,9 @@ namespace Atc.Cosmos.Internal
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
             {
-                var documents = await reader.ReadNextAsync(cancellationToken);
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 foreach (var document in documents)
                 {
                     yield return document;

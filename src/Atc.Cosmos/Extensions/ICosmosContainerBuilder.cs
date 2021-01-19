@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Atc.Cosmos.Extensions
 {
@@ -8,12 +8,12 @@ namespace Atc.Cosmos.Extensions
     public interface ICosmosContainerBuilder
     {
         /// <summary>
-        /// The service collection.
+        /// Gets the service collection.
         /// </summary>
         public IServiceCollection Services { get; }
 
         /// <summary>
-        /// The name of the container being built.
+        /// Gets the name of the container being built.
         /// </summary>
         public string ContainerName { get; }
 
@@ -25,6 +25,7 @@ namespace Atc.Cosmos.Extensions
         /// The <see cref="ICosmosResource"/> to be used for
         /// representing document resources in the container.
         /// </typeparam>
+        /// <returns>An <see cref="ICosmosContainerBuilder" /> for configuring the container.</returns>
         ICosmosContainerBuilder AddResource<T>()
             where T : ICosmosResource;
     }

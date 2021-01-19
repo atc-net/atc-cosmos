@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Atc.Cosmos.AutoIncrement
@@ -15,14 +15,16 @@ namespace Atc.Cosmos.AutoIncrement
 
         public async Task<int> GetNextAsync(string counterName, CancellationToken cancellationToken)
         {
-            var result = await writer.UpdateOrCreateAsync(
-                () => new AutoIncrementCounter
-                {
-                    CounterName = counterName,
-                },
-                d => d.Count++,
-                retries: 5,
-                cancellationToken);
+            var result = await writer
+                .UpdateOrCreateAsync(
+                    () => new AutoIncrementCounter
+                    {
+                        CounterName = counterName,
+                    },
+                    d => d.Count++,
+                    retries: 5,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             return result.Count;
         }

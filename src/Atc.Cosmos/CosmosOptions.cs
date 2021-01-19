@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace Atc.Cosmos
 {
@@ -8,17 +8,17 @@ namespace Atc.Cosmos
     public class CosmosOptions
     {
         /// <summary>
-        /// The Cosmos account endpoint URI.
+        /// Gets or sets the Cosmos account endpoint URI.
         /// </summary>
         /// <remarks>
         /// You can get this value from the Azure portal.
         /// Navigate to your Azure Cosmos account.
         /// Open the Overview pane and copy the URI value.
         /// </remarks>
-        public string AccountEndpoint { get; set; }
+        public string AccountEndpoint { get; set; } = default!;
 
         /// <summary>
-        /// The Cosmos account key.
+        /// Gets or sets the Cosmos account key.
         /// </summary>
         /// <remarks>
         /// You can get this value from the Azure portal.
@@ -26,15 +26,15 @@ namespace Atc.Cosmos
         /// Open the Connection Strings or Keys pane, and copy the
         /// "Password" or PRIMARY KEY value.
         /// </remarks>
-        public string AccountKey { get; set; }
+        public string AccountKey { get; set; } = default!;
 
         /// <summary>
-        /// The Cosmos database name.
+        /// Gets or sets the Cosmos database name.
         /// </summary>
-        public string DatabaseName { get; set; }
+        public string DatabaseName { get; set; } = default!;
 
         /// <summary>
-        /// The throughput provisioned for a database in measurement
+        /// Gets or sets the throughput provisioned for a database in measurement
         /// of Request Units per second in the Azure Cosmos DB service.
         /// </summary>
         /// <remarks>
@@ -43,8 +43,9 @@ namespace Atc.Cosmos
         public int DatabaseThroughput { get; set; } = 1000;
 
         /// <summary>
-        /// Options for controlling the json serializer.
+        /// Gets or sets the options for controlling the json serializer.
         /// </summary>
         public JsonSerializerOptions SerializerOptions { get; set; }
+            = new JsonSerializerOptions();
     }
 }

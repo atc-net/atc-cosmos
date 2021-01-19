@@ -1,5 +1,5 @@
-﻿using AutoFixture.Xunit2;
 using Atc.Cosmos.AutoIncrement;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Xunit;
 

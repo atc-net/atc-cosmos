@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 
@@ -20,7 +20,7 @@ namespace Atc.Cosmos.Internal
             this Task<ItemResponse<T>> responseTask)
             where T : ICosmosResource
             => GetResourceWithEtag<T>(
-                await responseTask);
+                await responseTask.ConfigureAwait(false));
 
         public static T GetResourceWithEtag<T>(
             this ItemResponse<object> response,
@@ -46,7 +46,7 @@ namespace Atc.Cosmos.Internal
             IJsonCosmosSerializer serializer)
             where T : ICosmosResource
             => GetResourceWithEtag<T>(
-                await responseTask,
+                await responseTask.ConfigureAwait(false),
                 serializer);
     }
 }

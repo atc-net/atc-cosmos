@@ -1,11 +1,11 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Atc.Cosmos.AutoIncrement
 {
     public class AutoIncrementCounter : CosmosResource
     {
         [JsonPropertyName("id")]
-        public string CounterName { get; set; }
+        public string CounterName { get; set; } = default!;
 
         public int Count { get; set; }
 

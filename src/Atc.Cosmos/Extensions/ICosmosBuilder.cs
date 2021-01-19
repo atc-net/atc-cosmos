@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -10,7 +10,7 @@ namespace Atc.Cosmos.Extensions
     public interface ICosmosBuilder
     {
         /// <summary>
-        /// The service collection.
+        /// Gets the service collection.
         /// </summary>
         IServiceCollection Services { get; }
 
@@ -23,6 +23,7 @@ namespace Atc.Cosmos.Extensions
         /// </typeparam>
         /// <param name="name">The name of the container.</param>
         /// <param name="builder">The builder method, for configuring the Cosmos container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
         ICosmosBuilder AddContainer<TInitializer>(
             string name,
             Action<ICosmosContainerBuilder> builder)
@@ -33,6 +34,7 @@ namespace Atc.Cosmos.Extensions
         /// </summary>
         /// <param name="name">The name of the container.</param>
         /// <param name="builder">The builder method, for configuring the Cosmos container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
         ICosmosBuilder AddContainer(
             string name,
             Action<ICosmosContainerBuilder> builder);
@@ -49,6 +51,7 @@ namespace Atc.Cosmos.Extensions
         /// representing document resources in the container.
         /// </typeparam>
         /// <param name="name">The name of the container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
         ICosmosBuilder AddContainer<TInitializer, TResource>(
             string name)
             where TInitializer : class, ICosmosContainerInitializer
@@ -62,6 +65,7 @@ namespace Atc.Cosmos.Extensions
         /// representing document resources in the container.
         /// </typeparam>
         /// <param name="name">The name of the container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
         ICosmosBuilder AddContainer<TResource>(
             string name)
             where TResource : class, ICosmosResource;
@@ -74,6 +78,7 @@ namespace Atc.Cosmos.Extensions
         /// This method should be called when the host is an AspNet service.
         /// For Azure Functions please use <see cref="ServiceCollectionExtensions.AzureFunctionInitializeCosmosDatabase(IServiceCollection)"/>.
         /// </remarks>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
         ICosmosBuilder UseHostedService();
     }
 }

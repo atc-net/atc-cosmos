@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using Atc.Cosmos;
 using Atc.Cosmos.Extensions;
@@ -17,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The service collection.</param>
         /// <param name="options">The <see cref="CosmosOptions"/> to be used.</param>
         /// <param name="builder">The builder method, for configuring Cosmos.</param>
+        /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
         public static IServiceCollection ConfigureCosmos(
            this IServiceCollection services,
            CosmosOptions options,
@@ -31,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The service collection.</param>
         /// <param name="optionsFactory">A factory method used to create the <see cref="CosmosOptions"/> instance.</param>
         /// <param name="builder">The builder method, for configuring Cosmos.</param>
+        /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
         public static IServiceCollection ConfigureCosmos(
            this IServiceCollection services,
            Func<IServiceProvider, CosmosOptions> optionsFactory,
@@ -47,6 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="builder">The builder method, for configuring Cosmos.</param>
+        /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
         public static IServiceCollection ConfigureCosmos(
            this IServiceCollection services,
            Action<ICosmosBuilder> builder)
@@ -62,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var options = s.GetRequiredService<IOptions<CosmosOptions>>().Value;
                 if (!options.IsValid())
                 {
-                    throw new ArgumentException(
+                    throw new InvalidOperationException(
                         $"Invalid configuration in {nameof(CosmosOptions)}.");
                 }
 
