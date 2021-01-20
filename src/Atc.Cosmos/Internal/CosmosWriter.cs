@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal

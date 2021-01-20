@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 
-namespace Atc.Cosmos.Internal
+namespace Atc.Cosmos.Serialization
 {
     /// <summary>
     /// Implementation used for serializing a stream to and from Json using the <seealso cref="System.Text.Json.JsonSerializer"/>

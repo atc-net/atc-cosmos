@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Atc.Cosmos.Internal
+namespace Atc.Cosmos.Serialization
 {
     public interface IJsonCosmosSerializer
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal

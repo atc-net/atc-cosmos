@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System.IO;
+using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal

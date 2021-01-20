@@ -3,6 +3,7 @@ using System.Threading;
 using Atc.Cosmos;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
+using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 

@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
-using Atc.Cosmos.Internal;
+using Atc.Cosmos.Serialization;
 using Atc.Test;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Xunit;
 using static FluentAssertions.FluentActions;
 
-namespace Atc.Cosmos.Tests.Internal
+namespace Atc.Cosmos.Tests.Serialization
 {
     public class JsonCosmosSerializerTests
     {
