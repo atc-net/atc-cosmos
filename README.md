@@ -1,3 +1,26 @@
+### General Project Info
+[![Github top language](https://img.shields.io/github/languages/top/atc-net/atc-cosmos)](https://github.com/atc-net/atc-cosmos)
+[![Github stars](https://img.shields.io/github/stars/atc-net/atc-cosmos)](https://github.com/atc-net/atc-cosmos)
+[![Github forks](https://img.shields.io/github/forks/atc-net/atc-cosmos)](https://github.com/atc-net/atc-cosmos)
+[![Github size](https://img.shields.io/github/repo-size/atc-net/atc-cosmos)](https://github.com/atc-net/atc-cosmos)
+[![Issues Open](https://img.shields.io/github/issues/atc-net/atc-cosmos.svg?logo=github)](https://github.com/atc-net/atc-cosmos/issues)
+
+### Packages
+[![Github Version](https://img.shields.io/static/v1?logo=github&color=blue&label=github&message=latest)](https://github.com/orgs/atc-net/packages?repo_name=atc-cosmos)
+[![NuGet Version](https://img.shields.io/nuget/v/Atc.Cosmos.Sql.Api.Repository.svg?logo=nuget)](https://www.nuget.org/profiles/atc-net)
+
+### Build Status
+![Pre-Integration](https://github.com/atc-net/atc-cosmos/workflows/Pre-Integration/badge.svg)
+![Post-Integration](https://github.com/atc-net/atc-cosmos/workflows/Post-Integration/badge.svg)
+![Release](https://github.com/atc-net/atc-cosmos/workflows/Release/badge.svg)
+
+### Code Quality
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=atc-cosmos&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=atc-cosmos)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=atc-cosmos&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=atc-cosmos)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=atc-cosmos&metric=security_rating)](https://sonarcloud.io/dashboard?id=atc-cosmos)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=atc-cosmos&metric=bugs)](https://sonarcloud.io/dashboard?id=atc-cosmos)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=atc-cosmos&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=atc-cosmos)
+
 # Atc.Cosmos
 
 This repo contains the `Atc.Cosmos` library for configuring containers in Cosmos and providing an easy way to read and write document resources.
