@@ -1,5 +1,5 @@
 using System.Linq;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture.Xunit2;
@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Xunit;
 
-namespace Atc.Cosmos.Tests.Extensions
+namespace Atc.Cosmos.Tests.DependencyInjection
 {
     public class CosmosContainerBuilderTests
     {

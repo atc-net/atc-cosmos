@@ -1,9 +1,9 @@
-﻿using AutoFixture.Xunit2;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Xunit;
 using SUT = Atc.Cosmos.CosmosOptionsExtensions;
 
-namespace Atc.Cosmos.Tests.Extensions
+namespace Atc.Cosmos.Tests
 {
     public class CosmosOptionsExtensionsTests
     {

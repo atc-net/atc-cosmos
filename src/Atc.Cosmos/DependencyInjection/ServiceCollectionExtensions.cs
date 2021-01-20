@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Atc.Cosmos;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;

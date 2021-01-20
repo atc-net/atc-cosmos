@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Atc.Cosmos.Extensions
+namespace Atc.Cosmos.DependencyInjection
 {
     /// <summary>
     /// Represents a builder for configuring a Cosmos container.

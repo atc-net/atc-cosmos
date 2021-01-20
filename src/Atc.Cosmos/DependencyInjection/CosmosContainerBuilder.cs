@@ -1,7 +1,7 @@
 using Atc.Cosmos.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Atc.Cosmos.Extensions
+namespace Atc.Cosmos.DependencyInjection
 {
     public class CosmosContainerBuilder : ICosmosContainerBuilder
     {

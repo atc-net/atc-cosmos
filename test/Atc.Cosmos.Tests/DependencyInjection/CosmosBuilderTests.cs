@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture.AutoNSubstitute;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using NSubstitute;
 using Xunit;
 
-namespace Atc.Cosmos.Tests.Extensions
+namespace Atc.Cosmos.Tests.DependencyInjection
 {
     public class CosmosBuilderTests
     {

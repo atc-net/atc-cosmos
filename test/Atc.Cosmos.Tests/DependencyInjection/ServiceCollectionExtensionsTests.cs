@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture;
@@ -13,7 +13,7 @@ using NSubstitute;
 using Xunit;
 using SUT = Microsoft.Extensions.DependencyInjection.ServiceCollectionExtensions;
 
-namespace Atc.Cosmos.Tests.Extensions
+namespace Atc.Cosmos.Tests.DependencyInjection
 {
     public class ServiceCollectionExtensionsTests
     {

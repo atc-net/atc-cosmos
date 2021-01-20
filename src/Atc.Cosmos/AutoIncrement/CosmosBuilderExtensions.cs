@@ -1,6 +1,6 @@
 using Atc.Cosmos;
 using Atc.Cosmos.AutoIncrement;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

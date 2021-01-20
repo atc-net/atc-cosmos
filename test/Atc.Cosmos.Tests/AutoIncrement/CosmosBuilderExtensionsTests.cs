@@ -1,5 +1,5 @@
-﻿using Atc.Cosmos.AutoIncrement;
-using Atc.Cosmos.Extensions;
+using Atc.Cosmos.AutoIncrement;
+using Atc.Cosmos.DependencyInjection;
 using Atc.Test;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;

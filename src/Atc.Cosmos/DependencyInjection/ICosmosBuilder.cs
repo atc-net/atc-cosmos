@@ -2,7 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Atc.Cosmos.Extensions
+namespace Atc.Cosmos.DependencyInjection
 {
     /// <summary>
     /// Represents a builder for configuring Cosmos.
