@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
@@ -13,6 +14,7 @@ namespace Atc.Cosmos.Internal
 
         public IJsonCosmosSerializer Serializer { get; }
 
+        [return: MaybeNull]
         public override T FromStream<T>(Stream stream)
             => Serializer.FromStream<T>(stream);
 
