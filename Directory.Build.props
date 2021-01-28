@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup Label="Metadata configuration">
+    <OrganizationName>atc-net</OrganizationName>
+    <RepositoryName>atc-cosmos</RepositoryName>
+  </PropertyGroup>
+  
   <!-- Solution wide properties -->
   <PropertyGroup Label="Assembly Naming">
-    <Company>atc-net</Company>
-    <Authors>atc-net</Authors>
+    <Company>$(OrganizationName)</Company>
+    <Authors>$(OrganizationName)</Authors>
     <NeutralLanguage>en</NeutralLanguage>
     <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>

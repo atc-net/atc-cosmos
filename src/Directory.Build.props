@@ -6,35 +6,30 @@
   -->
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" />
 
-  <PropertyGroup Label="Metadata configuration">
-    <OrganizationName>atc-net</OrganizationName>
-    <RepositoryName>atc-cosmos</RepositoryName>
-    <PackageName>Atc.Cosmos</PackageName>
-    <!-- tags to help others find your package and understand what it does -->
-    <PackageKeywords>cosmos cosmos-sql netcore repository</PackageKeywords>
-    <PackageDescription>Library for configuring containers in Cosmos and providing an easy way to read and write document resources.</PackageDescription>
+  <!--
+  Place this in your csproj file for each package that needs to be generated.
+
+  <PropertyGroup>
+    <PackageId>my-id</PackageId>
+    <PackageTags>tag1;tag2</PackageTags>
+    <Description>Package description.</Description>
   </PropertyGroup>
-  
-  <PropertyGroup Label="Nuget package metadata">
+
+  -->
+
+  <!-- Global nuget package configurations that should not be needed to change -->
+  <PropertyGroup Label="Global Nuget Package metadata">
     <RepositoryUrl>https://github.com/$(OrganizationName)/$(RepositoryName)</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-
-    <PackageId>$(PackageName)</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/$(OrganizationName)/$(RepositoryName)</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>$(PackageKeywords)</PackageTags>
-    <Description>$(PackageDescription)</Description>
-
-    <Title>$(PackageName)</Title>
-    <Authors>$(OrganizationName)</Authors>
-    <Product>$(PackageName)</Product>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Ensures package icon is valid -->
-    <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
   
   <PropertyGroup Label="Build instructions">
