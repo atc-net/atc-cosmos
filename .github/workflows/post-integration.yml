@@ -50,7 +50,7 @@ jobs:
         run: dotnet build -c Release --no-restore /p:UseSourceLink=true
 
       - name: 🧪 Run unit tests
-        run: dotnet test -c Debug --no-build
+        run: dotnet test -c Release --no-build
 
       - name: 🌩️ SonarCloud install scanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -62,7 +62,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet sonarscanner begin /k:"atc-cosmos" /o:"atc-net" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet build -c Debug /p:UseSourceLink=true --no-restore
+          dotnet build -c Release /p:UseSourceLink=true --no-restore
           dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
       - name: ⏩ Merge to stable-branch
