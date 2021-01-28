@@ -20,7 +20,7 @@ namespace Atc.Cosmos.Internal
         public static async Task<T> GetResourceWithEtag<T>(
             this Task<ItemResponse<T>> responseTask)
             where T : ICosmosResource
-            => GetResourceWithEtag<T>(
+            => GetResourceWithEtag(
                 await responseTask.ConfigureAwait(false));
 
         public static T GetResourceWithEtag<T>(
@@ -37,6 +37,13 @@ namespace Atc.Cosmos.Internal
             }
 
             var resource = serializer.FromString<T>(json);
+            if (resource is null)
+            {
+                throw new ArgumentException(
+                    $"ItemResponse did not provide valid json '{json}'",
+                    nameof(response));
+            }
+
             resource.ETag = response.ETag;
 
             return resource;

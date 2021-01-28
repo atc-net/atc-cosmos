@@ -27,13 +27,13 @@ namespace Atc.Cosmos.Tests.Serialization
 
         [Fact]
         public void ToStream_ShouldThrow_When_Stream_IsNull()
-            => Invoking(() => sut.ToStream<Record>(null))
+            => Invoking(() => sut.ToStream<Record>(input: null))
                 .Should()
                 .Throw<ArgumentNullException>();
 
         [Fact]
         public void ToStream_ShouldThrow_When_Object_IsNull()
-            => Invoking(() => sut.ToStream<Record>(null))
+            => Invoking(() => sut.ToStream<Record>(input: null))
                 .Should()
                 .Throw<ArgumentNullException>();
 
@@ -73,7 +73,7 @@ namespace Atc.Cosmos.Tests.Serialization
 
         [Fact]
         public void FromStream_ShouldThrow_If_Stream_IsNull()
-            => Invoking(() => sut.FromStream<Record>(null))
+            => Invoking(() => sut.FromStream<Record>(stream: null))
                 .Should()
                 .Throw<ArgumentNullException>();
 

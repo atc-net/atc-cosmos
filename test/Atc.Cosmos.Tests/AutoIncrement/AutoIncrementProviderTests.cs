@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.AutoIncrement;
 using Atc.Test;
+using AutoFixture;
 using FluentAssertions;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
@@ -14,13 +16,16 @@ namespace Atc.Cosmos.Tests.AutoIncrement
     {
         private readonly ICosmosWriter<AutoIncrementCounter> writer;
         private readonly AutoIncrementProvider sut;
+        private readonly AutoIncrementCounter counter;
 
+        [SuppressMessage("Minor Code Smell", "S1905:Redundant casts should not be used", Justification = "Require By NSubstitute")]
         public AutoIncrementProviderTests()
         {
+            counter = new Fixture().Create<AutoIncrementCounter>();
             writer = Substitute.For<ICosmosWriter<AutoIncrementCounter>>();
             writer
-                .UpdateOrCreateAsync(default, (Action<AutoIncrementCounter>)default, default, default)
-                .ReturnsForAnyArgs(new AutoIncrementCounter());
+                .UpdateOrCreateAsync(default!, (Action<AutoIncrementCounter>)default!, default, default)
+                .ReturnsForAnyArgs(counter);
 
             sut = new AutoIncrementProvider(writer);
         }
@@ -79,14 +84,10 @@ namespace Atc.Cosmos.Tests.AutoIncrement
         [Theory, AutoNSubstituteData]
         public async Task GetNextAsync_Returns_Updated_Count(
             string counterName,
-            AutoIncrementCounter counter,
             int updatedCount,
             CancellationToken cancellationToken)
         {
             counter.Count = updatedCount;
-            writer
-                .UpdateOrCreateAsync(default, (Action<AutoIncrementCounter>)default, default, default)
-                .ReturnsForAnyArgs(counter);
 
             var result = await sut.GetNextAsync(counterName, cancellationToken);
             result
