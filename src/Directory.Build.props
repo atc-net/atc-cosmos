@@ -6,17 +6,6 @@
   -->
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" />
 
-  <!--
-  Place this in your csproj file for each package that needs to be generated.
-
-  <PropertyGroup>
-    <PackageId>my-id</PackageId>
-    <PackageTags>tag1;tag2</PackageTags>
-    <Description>Package description.</Description>
-  </PropertyGroup>
-
-  -->
-
   <!-- Global nuget package configurations that should not be needed to change -->
   <PropertyGroup Label="Global Nuget Package metadata">
     <RepositoryUrl>https://github.com/$(OrganizationName)/$(RepositoryName)</RepositoryUrl>
@@ -28,30 +17,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Ensures package icon is valid -->
     <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
-  
+
   <PropertyGroup Label="Build instructions">
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-
-    <!-- creates a regular package and a symbols package -->
+    <!-- Creates a regular package and a symbols package -->
     <IncludeSymbols>true</IncludeSymbols>
     <!-- Creates symbol package in the new .snupkg format -->
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <!--
-      instruct the build system to embed project source files that are not tracked by the source control
+      Instruct the build system to embed project source files that are not tracked by the source control
       or imported from a source package to the generated PDB.
     -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Recommended: Embed symbols containing Source Link in the main file (exe/dll) -->
     <DebugType>embedded</DebugType>
-
     <!-- Will generate nuget packages for each project -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <!-- Web projects aren't packable by default. To override the default behavior, add the following -->
-    <!--<IsPackable>true</IsPackable>-->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <!--
@@ -66,7 +52,7 @@
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="All" />
