@@ -16,7 +16,7 @@ namespace Atc.Cosmos
         where T : class, ICosmosResource
     {
         /// <summary>
-        /// Attempts to read the specified <see cref="Task"/> resource,
+        /// Attempts to read the specified <typeparamref name="T"/> resource,
         /// and returns <c>null</c> if none was found.
         /// </summary>
         /// <param name="documentId">Id of the resource.</param>
@@ -29,7 +29,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the specific <see cref="Task"/> resource from the configured
+        /// Reads the specified <typeparamref name="T"/> resource from the configured
         /// Cosmos collection.
         /// </summary>
         /// <remarks>
