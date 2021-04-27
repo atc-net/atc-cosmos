@@ -55,6 +55,22 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Deletes the specified <typeparamref name="T"/> resource from Cosmos.
+        /// </summary>
+        /// <remarks>
+        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
+        /// will be thrown if resource could not be found.
+        /// </remarks>
+        /// <param name="documentId">Id of the resource.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task DeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>

@@ -62,6 +62,16 @@ namespace Atc.Cosmos.Internal
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
 
+        public Task DeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => container
+                .DeleteItemAsync<object>(
+                    documentId,
+                    new PartitionKey(partitionKey),
+                    cancellationToken: cancellationToken);
+
         public Task<T> UpdateAsync(
             string documentId,
             string partitionKey,
