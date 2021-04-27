@@ -135,6 +135,19 @@ namespace Atc.Cosmos.Tests
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task DeleteAsync_Calls_DeleteItemAsync_On_Container(
+           CancellationToken cancellationToken)
+        {
+            await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
+            _ = container
+                .Received(1)
+                .DeleteItemAsync<object>(
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    cancellationToken: cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task UpdateAsync_Reads_The_Resource(
             string documentId,
             string partitionKey,

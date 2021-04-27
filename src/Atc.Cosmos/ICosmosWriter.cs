@@ -15,7 +15,7 @@ namespace Atc.Cosmos
         where T : class, ICosmosResource
     {
         /// <summary>
-        /// Creates a new resource in Cosmos.
+        /// Creates a new <typeparamref name="T"/> resource in Cosmos.
         /// </summary>
         /// <remarks>
         /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
@@ -29,7 +29,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Writes a resource in Cosmos, using upsert behavior.
+        /// Writes a <typeparamref name="T"/> resource to Cosmos, using upsert behavior.
         /// </summary>
         /// <param name="document">The resource to be written.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
@@ -39,7 +39,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Replaces a resource in Cosmos.
+        /// Replaces a <typeparamref name="T"/> resource in Cosmos.
         /// </summary>
         /// <remarks>
         /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
@@ -55,7 +55,23 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a resource that is read from the configured
+        /// Deletes the specified <typeparamref name="T"/> resource from Cosmos.
+        /// </summary>
+        /// <remarks>
+        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
+        /// will be thrown if resource could not be found.
+        /// </remarks>
+        /// <param name="documentId">Id of the resource.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task DeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>
         /// <param name="documentId">Id of the resource.</param>
@@ -72,7 +88,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a resource that is read from the configured
+        /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>
         /// <param name="documentId">Id of the resource.</param>
@@ -89,7 +105,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a resource that is read from the configured
+        /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection, or creates it if it does not exist.
         /// </summary>
         /// <param name="getDefaultDocument">Function for creating the default resource. The returned resource need to have the DocumentId and PartitionKey set.</param>
@@ -104,7 +120,7 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a resource that is read from the configured
+        /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection, or creates it if it does not exist.
         /// </summary>
         /// <param name="getDefaultDocument">Function for creating the default resource. The returned resource need to have the DocumentId and PartitionKey set.</param>
