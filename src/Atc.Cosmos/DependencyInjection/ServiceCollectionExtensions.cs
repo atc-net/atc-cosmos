@@ -57,6 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>();
             services.AddSingleton(typeof(ICosmosReader<>), typeof(CosmosReader<>));
             services.AddSingleton(typeof(ICosmosWriter<>), typeof(CosmosWriter<>));
+            services.AddSingleton(typeof(ICosmosBulkWriter<>), typeof(CosmosBulkWriter<>));
             services.AddSingleton<ICosmosInitializer, CosmosInitializer>();
             services.AddSingleton<IJsonCosmosSerializer, JsonCosmosSerializer>();
             services.AddSingleton<ICosmosClientProvider, CosmosClientProvider>();
