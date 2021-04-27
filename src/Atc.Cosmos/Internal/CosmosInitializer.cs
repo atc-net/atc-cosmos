@@ -14,16 +14,16 @@ namespace Atc.Cosmos.Internal
     /// </summary>
     public class CosmosInitializer : ICosmosInitializer
     {
-        private readonly CosmosClient client;
+        private readonly ICosmosClientProvider provider;
         private readonly CosmosOptions options;
         private readonly IReadOnlyList<ICosmosContainerInitializer> initializers;
 
         public CosmosInitializer(
-            CosmosClient client,
+            ICosmosClientProvider provider,
             IOptions<CosmosOptions> options,
             IEnumerable<ICosmosContainerInitializer> initializers)
         {
-            this.client = client;
+            this.provider = provider;
             this.options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             this.initializers = initializers.ToList();
         }
@@ -44,7 +44,8 @@ namespace Atc.Cosmos.Internal
         {
             try
             {
-                var response = await client
+                var response = await provider
+                    .GetClient()
                     .CreateDatabaseIfNotExistsAsync(
                         options.DatabaseName,
                         options.DatabaseThroughput,
@@ -62,7 +63,7 @@ namespace Atc.Cosmos.Internal
         }
 
         private bool IsCosmosEmulatorMissing(Exception ex)
-            => client.Endpoint.IsLoopback
+            => provider.GetClient().Endpoint.IsLoopback
             && IsConnectionRefused(ex);
 
         private bool IsConnectionRefused(Exception ex) => ex switch
