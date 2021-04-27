@@ -4,7 +4,6 @@ using Atc.Cosmos;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -58,28 +57,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>();
             services.AddSingleton(typeof(ICosmosReader<>), typeof(CosmosReader<>));
             services.AddSingleton(typeof(ICosmosWriter<>), typeof(CosmosWriter<>));
+            services.AddSingleton(typeof(ICosmosBulkWriter<>), typeof(CosmosBulkWriter<>));
             services.AddSingleton<ICosmosInitializer, CosmosInitializer>();
             services.AddSingleton<IJsonCosmosSerializer, JsonCosmosSerializer>();
-
-            services.AddSingleton(s =>
-            {
-                var options = s.GetRequiredService<IOptions<CosmosOptions>>().Value;
-                if (!options.IsValid())
-                {
-                    throw new InvalidOperationException(
-                        $"Invalid configuration in {nameof(CosmosOptions)}.");
-                }
-
-                var connectionString = $"AccountEndpoint={options.AccountEndpoint};AccountKey={options.AccountKey}";
-
-                var clientOptions = s.GetService<IOptions<CosmosClientOptions>>()?.Value
-                    ?? new CosmosClientOptions();
-
-                clientOptions.Serializer = new CosmosSerializerAdapter(
-                    s.GetRequiredService<IJsonCosmosSerializer>());
-
-                return new CosmosClient(connectionString, clientOptions);
-            });
+            services.AddSingleton<ICosmosClientProvider, CosmosClientProvider>();
 
             builder(new CosmosBuilder(services));
             return services;

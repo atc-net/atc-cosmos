@@ -43,17 +43,6 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                 .Returns(serializer);
         }
 
-        private static CosmosClient BuildCosmosClient(
-            IServiceCollection services,
-            IServiceProvider provider)
-            => (CosmosClient)services
-                .ReceivedCalls()
-                .SelectMany(c => c.GetArguments())
-                .OfType<ServiceDescriptor>()
-                .Single(s => s.ServiceType == typeof(CosmosClient))
-                .ImplementationFactory
-                .Invoke(provider);
-
         [Fact]
         public void ConfigureCosmos_Calls_Builder_With_CosmosBuilder()
         {
@@ -63,11 +52,11 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         }
 
         [Theory]
+        [InlineData(typeof(ICosmosClientProvider))]
         [InlineData(typeof(ICosmosContainerProvider))]
         [InlineData(typeof(ICosmosReader<>))]
         [InlineData(typeof(ICosmosWriter<>))]
         [InlineData(typeof(ICosmosInitializer))]
-        [InlineData(typeof(CosmosClient))]
         public void ConfigureCosmos_Adds_Dependencies(Type serviceType)
         {
             SUT.ConfigureCosmos(services, builder);
@@ -110,68 +99,6 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                 .DidNotReceive()
                 .Add(Arg.Is<ServiceDescriptor>(s
                     => s.ServiceType == typeof(IOptions<CosmosOptions>)));
-        }
-
-        [Fact]
-        public void Can_Build_CosmosClient_After_ConfigureCosmos_Has_Been_Calls()
-        {
-            SUT.ConfigureCosmos(services, builder);
-
-            var client = BuildCosmosClient(services, provider);
-            client
-                .Should()
-                .BeAssignableTo<CosmosClient>();
-        }
-
-        [Fact]
-        public void CosmosClient_Uses_Endpoint_From_CosmosOptions_Registered()
-        {
-            SUT.ConfigureCosmos(services, builder);
-
-            var client = BuildCosmosClient(services, provider);
-            client.Endpoint
-                .Should()
-                .BeEquivalentTo(new Uri(options.Value.AccountEndpoint));
-        }
-
-        [Theory, AutoNSubstituteData]
-        public void CosmosClient_Uses_CosmosClientOptions_Registered(
-            [NoAutoProperties] CosmosClientOptions options,
-            string applicationName)
-        {
-            SUT.ConfigureCosmos(services, builder);
-
-            options.ApplicationName = applicationName;
-            provider
-                .GetService(typeof(IOptions<CosmosClientOptions>))
-                .Returns(Options.Create(options));
-
-            var client = BuildCosmosClient(services, provider);
-            client.ClientOptions
-                .Should()
-                .BeEquivalentTo(options);
-        }
-
-        [Theory, AutoNSubstituteData]
-        public void CosmosClient_Uses_JsonCosmosSerializer_If_None_Set_In_Options(
-            [NoAutoProperties] CosmosClientOptions options)
-        {
-            SUT.ConfigureCosmos(services, builder);
-
-            options.Serializer = null;
-            provider
-                .GetService(typeof(IOptions<CosmosClientOptions>))
-                .Returns(Options.Create(options));
-
-            var client = BuildCosmosClient(services, provider);
-            client.ClientOptions.Serializer
-                .Should()
-                .BeAssignableTo<CosmosSerializerAdapter>();
-
-            ((CosmosSerializerAdapter)client.ClientOptions.Serializer)
-                .Serializer
-                .Should()
-                .Be(serializer);
         }
     }
 }

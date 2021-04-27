@@ -14,12 +14,16 @@ namespace Atc.Cosmos.Tests.Internal
     {
         [Theory, AutoNSubstituteData]
         public void GetContainer_Return_NamedContainer(
+            ICosmosClientProvider clientProvider,
             [Substitute] CosmosClient cosmosClient,
             OptionsWrapper<CosmosOptions> options,
             ICosmosContainerNameProvider provider,
             [Substitute] Container container,
             string providerName)
         {
+            clientProvider
+                .GetClient()
+                .Returns(cosmosClient);
             cosmosClient
                 .GetContainer(default, default)
                 .ReturnsForAnyArgs(container);
@@ -31,11 +35,15 @@ namespace Atc.Cosmos.Tests.Internal
                 .FromType
                 .Returns(typeof(string));
 
-            var sut = new CosmosContainerProvider(cosmosClient, options, new[] { provider });
+            var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
 
             sut.GetContainer<string>()
                 .Should()
                 .Be(container);
+
+            clientProvider
+                .Received(1)
+                .GetClient();
 
             cosmosClient
                 .Received(1)
@@ -46,11 +54,48 @@ namespace Atc.Cosmos.Tests.Internal
 
         [Theory, AutoNSubstituteData]
         public void GetContainer_Of_Unsupported_Type_Throws_NotSupportedException(
+            ICosmosClientProvider clientProvider,
             [Substitute] CosmosClient cosmosClient,
             OptionsWrapper<CosmosOptions> options,
-            [Substitute] ICosmosContainerNameProvider provider,
+            [Substitute] ICosmosContainerNameProvider nameProvider,
             string providerName)
         {
+            clientProvider
+                .GetClient()
+                .Returns(cosmosClient);
+            nameProvider
+                .ContainerName
+                .Returns(providerName);
+            nameProvider
+                .FromType
+                .Returns(typeof(string));
+
+            var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
+            new Action(() => sut.GetContainer<CosmosContainerProviderTests>())
+                .Should()
+                .ThrowExactly<NotSupportedException>();
+
+            cosmosClient
+                .DidNotReceive()
+                .GetContainer(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void GetContainer_For_Bulk_Returns_NamedContainer(
+            ICosmosClientProvider clientProvider,
+            [Substitute] CosmosClient cosmosClient,
+            OptionsWrapper<CosmosOptions> options,
+            ICosmosContainerNameProvider provider,
+            [Substitute] Container container,
+            string providerName)
+        {
+            clientProvider
+                .GetBulkClient()
+                .Returns(cosmosClient);
+            cosmosClient
+                .GetContainer(default, default)
+                .ReturnsForAnyArgs(container);
+
             provider
                 .ContainerName
                 .Returns(providerName);
@@ -58,8 +103,43 @@ namespace Atc.Cosmos.Tests.Internal
                 .FromType
                 .Returns(typeof(string));
 
-            var sut = new CosmosContainerProvider(cosmosClient, options, new[] { provider });
-            new Action(() => sut.GetContainer<CosmosContainerProviderTests>())
+            var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
+
+            sut.GetContainer<string>(allowBulk: true)
+                .Should()
+                .Be(container);
+
+            clientProvider
+                .Received(1)
+                .GetBulkClient();
+
+            cosmosClient
+                .Received(1)
+                .GetContainer(
+                    options.Value.DatabaseName,
+                    providerName);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void GetContainer_For_Bulk_Of_Unsupported_Type_Throws_NotSupportedException(
+            ICosmosClientProvider clientProvider,
+            [Substitute] CosmosClient cosmosClient,
+            OptionsWrapper<CosmosOptions> options,
+            [Substitute] ICosmosContainerNameProvider nameProvider,
+            string providerName)
+        {
+            clientProvider
+                .GetBulkClient()
+                .Returns(cosmosClient);
+            nameProvider
+                .ContainerName
+                .Returns(providerName);
+            nameProvider
+                .FromType
+                .Returns(typeof(string));
+
+            var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
+            new Action(() => sut.GetContainer<CosmosContainerProviderTests>(allowBulk: true))
                 .Should()
                 .ThrowExactly<NotSupportedException>();
 

@@ -20,7 +20,8 @@ namespace Atc.Cosmos.Internal
             ICosmosReader<T> reader,
             IJsonCosmosSerializer serializer)
         {
-            this.container = containerProvider.GetContainer<T>();
+            this.container = containerProvider
+                .GetContainer<T>(allowBulk: false);
             this.reader = reader;
             this.serializer = serializer;
         }
