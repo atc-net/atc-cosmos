@@ -31,7 +31,7 @@ namespace Atc.Cosmos.Tests
             containerProvider = Substitute.For<ICosmosContainerProvider>();
             containerProvider
                 .GetContainer<Record>()
-                .Returns(container, null);
+                .ReturnsForAnyArgs(container, null);
 
             var response = Substitute.For<ItemResponse<object>>();
             response.Resource.Returns(new Fixture().Create<string>());
@@ -69,14 +69,17 @@ namespace Atc.Cosmos.Tests
             await sut.WriteAsync(record, cancellationToken);
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(
+                    allowBulk: false);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task WriteAsync_UpsertItem_In_Container(
             CancellationToken cancellationToken)
         {
-            containerProvider.GetContainer<Record>().Returns(container);
+            containerProvider
+                .GetContainer<Record>()
+                .ReturnsForAnyArgs(container);
 
             await sut.WriteAsync(record, cancellationToken);
             await container
@@ -144,6 +147,7 @@ namespace Atc.Cosmos.Tests
                 .DeleteItemAsync<object>(
                     record.Id,
                     new PartitionKey(record.Pk),
+                    Arg.Any<ItemRequestOptions>(),
                     cancellationToken: cancellationToken);
         }
 

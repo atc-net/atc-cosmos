@@ -10,22 +10,35 @@ namespace Atc.Cosmos.Internal
     {
         private readonly Dictionary<Type, string> containerNames;
 
-        private readonly CosmosClient client;
+        private readonly ICosmosClientProvider clientProvider;
         private readonly CosmosOptions options;
 
         public CosmosContainerProvider(
-            CosmosClient client,
+            ICosmosClientProvider clientProvider,
             IOptions<CosmosOptions> options,
-            IEnumerable<ICosmosContainerNameProvider> providers)
+            IEnumerable<ICosmosContainerNameProvider> nameProviders)
         {
-            this.client = client;
+            this.clientProvider = clientProvider;
             this.options = options.Value;
-            containerNames = providers.ToDictionary(p => p.FromType, p => p.ContainerName);
+            containerNames = nameProviders.ToDictionary(p => p.FromType, p => p.ContainerName);
         }
 
-        public Container GetContainer<T>()
-            => containerNames.TryGetValue(typeof(T), out var containerName)
-            ? client.GetContainer(options.DatabaseName, containerName)
-            : throw new NotSupportedException($"Type {typeof(T)} is not supported.");
+        public Container GetContainer<T>(bool allowBulk = false)
+            => GetClient(allowBulk)
+                .GetContainer(
+                    options.DatabaseName,
+                    GetContainerName<T>());
+
+        private string GetContainerName<T>()
+            => containerNames.TryGetValue(
+                typeof(T),
+                out var containerName)
+             ? containerName
+             : throw new NotSupportedException($"Type {typeof(T)} is not supported.");
+
+        private CosmosClient GetClient(bool allowBulk)
+            => allowBulk
+             ? clientProvider.GetBulkClient()
+             : clientProvider.GetClient();
     }
 }
