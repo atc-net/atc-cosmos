@@ -27,8 +27,7 @@ namespace Atc.Cosmos.Internal
                     document,
                     new PartitionKey(document.PartitionKey),
                     new ItemRequestOptions { EnableContentResponseOnWrite = false },
-                    cancellationToken)
-                .GetResourceWithEtag<T>(serializer);
+                    cancellationToken);
 
         public Task WriteAsync(
             T document,
@@ -38,8 +37,7 @@ namespace Atc.Cosmos.Internal
                     document,
                     new PartitionKey(document.PartitionKey),
                     new ItemRequestOptions { EnableContentResponseOnWrite = false },
-                    cancellationToken)
-                .GetResourceWithEtag<T>(serializer);
+                    cancellationToken);
 
         public Task ReplaceAsync(
             T document,
@@ -54,8 +52,7 @@ namespace Atc.Cosmos.Internal
                         IfMatchEtag = document.ETag,
                         EnableContentResponseOnWrite = false,
                     },
-                    cancellationToken)
-                .GetResourceWithEtag<T>(serializer);
+                    cancellationToken);
 
         public Task DeleteAsync(
             string documentId,
