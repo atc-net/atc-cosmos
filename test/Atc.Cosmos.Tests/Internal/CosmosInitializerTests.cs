@@ -15,6 +15,7 @@ namespace Atc.Cosmos.Tests.Internal
 {
     public class CosmosInitializerTests
     {
+        private readonly ICosmosClientProvider clientProvider;
         private readonly CosmosClient client;
         private readonly Database database;
         private readonly DatabaseResponse databaseResponse;
@@ -22,10 +23,15 @@ namespace Atc.Cosmos.Tests.Internal
 
         public CosmosInitializerTests()
         {
+            clientProvider = Substitute.For<ICosmosClientProvider>();
             client = Substitute.For<CosmosClient>();
             database = Substitute.For<Database>();
             databaseResponse = Substitute.For<DatabaseResponse>();
             containerResponse = Substitute.For<ContainerResponse>();
+
+            clientProvider
+                .GetClient()
+                .Returns(client);
 
             client
                 .CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default)
@@ -46,7 +52,7 @@ namespace Atc.Cosmos.Tests.Internal
             OptionsWrapper<CosmosOptions> options,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
 
             await sut.InitializeAsync(cancellationToken);
 
@@ -65,7 +71,7 @@ namespace Atc.Cosmos.Tests.Internal
             OptionsWrapper<CosmosOptions> options,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
 
             await sut.InitializeAsync(cancellationToken);
 
@@ -86,7 +92,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new SocketException((int)SocketError.ConnectionRefused));
 
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactly<InvalidOperationException>()
@@ -104,7 +110,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new Exception(exceptionMessage, new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactly<InvalidOperationException>()
@@ -125,7 +131,7 @@ namespace Atc.Cosmos.Tests.Internal
                     new Exception(),
                     new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactly<InvalidOperationException>()
@@ -143,7 +149,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactly<Exception>()
@@ -161,7 +167,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(client, options, new[] { initializer });
+            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactly<Exception>()
