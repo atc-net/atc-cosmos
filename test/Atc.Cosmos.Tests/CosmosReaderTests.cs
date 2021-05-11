@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
@@ -44,6 +45,10 @@ namespace Atc.Cosmos.Tests
 
             container
                 .GetItemQueryIterator<Record>(default(QueryDefinition), default)
+                .ReturnsForAnyArgs(feedIterator);
+
+            container
+                .GetItemQueryIterator<Record>(default(string), default)
                 .ReturnsForAnyArgs(feedIterator);
 
             containerProvider = Substitute.For<ICosmosContainerProvider>();
@@ -155,6 +160,100 @@ namespace Atc.Cosmos.Tests
         {
             var result = await sut.FindAsync(documentId, partitionKey, cancellationToken);
             result
+                .Should()
+                .Be(record);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void ReadAllAsync_Uses_The_Right_Container(
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.ReadAllAsync(partitionKey, cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task ReadAllAsync_Returns_Empty_No_More_Result(
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .ReadAllAsync(partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task ReadAllAsync_Returns_Empty_When_Query_Matches_Non(
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(true, false);
+
+            var response = await sut
+                .ReadAllAsync(partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task ReadAllAsync_Returns_All_Items(
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true, false);
+
+            feedResponse
+                .GetEnumerator()
+                .Returns(new List<Record> { record }.GetEnumerator());
+
+            var response = await sut
+                .ReadAllAsync(partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .NotBeEmpty();
+
+            response[0]
                 .Should()
                 .Be(record);
         }

@@ -46,6 +46,21 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Reads all the specified <typeparamref name="T"/> resource from the configured
+        /// Cosmos collection.
+        /// </summary>
+        /// <remarks>
+        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
+        /// will be thrown if resource could not be found.
+        /// </remarks>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> the requested <typeparamref name="T"/> resource.</returns>
+        public IAsyncEnumerable<T> ReadAllAsync(
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Query documents from the configured Cosmos container.
         /// </summary>
         /// <param name="query">Cosmos query to execute.</param>

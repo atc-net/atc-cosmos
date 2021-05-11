@@ -9,6 +9,7 @@ namespace Atc.Cosmos.Internal
     public class CosmosReader<T> : ICosmosReader<T>
         where T : class, ICosmosResource
     {
+        private const string ReadAllQuery = "SELECT * FROM c";
         private readonly Container container;
 
         public CosmosReader(ICosmosContainerProvider containerProvider)
@@ -48,6 +49,29 @@ namespace Atc.Cosmos.Internal
             catch (CosmosException)
             {
                 return default;
+            }
+        }
+
+        public async IAsyncEnumerable<T> ReadAllAsync(
+            string partitionKey,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<T>(
+                ReadAllQuery,
+                requestOptions: new QueryRequestOptions
+                {
+                    PartitionKey = new PartitionKey(partitionKey),
+                });
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var document in documents)
+                {
+                    yield return document;
+                }
             }
         }
 
