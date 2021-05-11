@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Atc.Cosmos.Tests
 {
-    public class CosmosReaderTests
+    public class CosmosBulkReaderTests
     {
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
@@ -22,9 +22,9 @@ namespace Atc.Cosmos.Tests
         private readonly Record record;
         private readonly Container container;
         private readonly ICosmosContainerProvider containerProvider;
-        private readonly CosmosReader<Record> sut;
+        private readonly CosmosBulkReader<Record> sut;
 
-        public CosmosReaderTests()
+        public CosmosBulkReaderTests()
         {
             record = new Fixture().Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
@@ -53,14 +53,14 @@ namespace Atc.Cosmos.Tests
 
             containerProvider = Substitute.For<ICosmosContainerProvider>();
             containerProvider
-                .GetContainer<Record>()
+                .GetContainer<Record>(allowBulk: true)
                 .Returns(container, null);
-            sut = new CosmosReader<Record>(containerProvider);
+            sut = new CosmosBulkReader<Record>(containerProvider);
         }
 
         [Fact]
         public void Implements_Interface()
-            => sut.Should().BeAssignableTo<ICosmosReader<Record>>();
+            => sut.Should().BeAssignableTo<ICosmosBulkReader<Record>>();
 
         [Theory, AutoNSubstituteData]
         public async Task ReadAsync_Uses_The_Right_Container(
@@ -72,7 +72,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -131,7 +131,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -173,7 +173,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -268,7 +268,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]

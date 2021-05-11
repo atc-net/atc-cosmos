@@ -13,6 +13,41 @@ namespace Atc.Cosmos.Tests.Internal
     public class CosmosContainerProviderTests
     {
         [Theory, AutoNSubstituteData]
+        public void GetContainer_Return_Specified_Container(
+            ICosmosClientProvider clientProvider,
+            [Substitute] CosmosClient cosmosClient,
+            OptionsWrapper<CosmosOptions> options,
+            [Substitute] Container container,
+            string containerName)
+        {
+            clientProvider
+                .GetClient()
+                .Returns(cosmosClient);
+            cosmosClient
+                .GetContainer(default, default)
+                .ReturnsForAnyArgs(container);
+
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                options,
+                Array.Empty<ICosmosContainerNameProvider>());
+
+            sut.GetContainer(containerName)
+                .Should()
+                .Be(container);
+
+            clientProvider
+                .Received(1)
+                .GetClient();
+
+            cosmosClient
+                .Received(1)
+                .GetContainer(
+                    options.Value.DatabaseName,
+                    containerName);
+        }
+
+        [Theory, AutoNSubstituteData]
         public void GetContainer_Return_NamedContainer(
             ICosmosClientProvider clientProvider,
             [Substitute] CosmosClient cosmosClient,
@@ -78,6 +113,41 @@ namespace Atc.Cosmos.Tests.Internal
             cosmosClient
                 .DidNotReceive()
                 .GetContainer(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void GetContainer_For_Bulk_Return_Specified_Container(
+            ICosmosClientProvider clientProvider,
+            [Substitute] CosmosClient cosmosClient,
+            OptionsWrapper<CosmosOptions> options,
+            [Substitute] Container container,
+            string containerName)
+        {
+            clientProvider
+                .GetBulkClient()
+                .Returns(cosmosClient);
+            cosmosClient
+                .GetContainer(default, default)
+                .ReturnsForAnyArgs(container);
+
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                options,
+                Array.Empty<ICosmosContainerNameProvider>());
+
+            sut.GetContainer(containerName, allowBulk: true)
+                .Should()
+                .Be(container);
+
+            clientProvider
+                .Received(1)
+                .GetBulkClient();
+
+            cosmosClient
+                .Received(1)
+                .GetContainer(
+                    options.Value.DatabaseName,
+                    containerName);
         }
 
         [Theory, AutoNSubstituteData]

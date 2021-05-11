@@ -6,13 +6,13 @@ using Microsoft.Azure.Cosmos;
 namespace Atc.Cosmos
 {
     /// <summary>
-    /// Represents a reader that can read Cosmos resources.
+    /// Represents a reader that can perform bulk reads on Cosmos resources.
     /// </summary>
     /// <typeparam name="T">
     /// The type of <see cref="ICosmosResource"/>
     /// to be read by this reader.
     /// </typeparam>
-    public interface ICosmosReader<T>
+    public interface ICosmosBulkReader<T>
         where T : class, ICosmosResource
     {
         /// <summary>

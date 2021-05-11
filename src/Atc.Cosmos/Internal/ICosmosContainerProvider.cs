@@ -8,5 +8,7 @@ namespace Atc.Cosmos.Internal
     public interface ICosmosContainerProvider
     {
         Container GetContainer<T>(bool allowBulk = false);
+
+        Container GetContainer(string name, bool allowBulk = false);
     }
 }

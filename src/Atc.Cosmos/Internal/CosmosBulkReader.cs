@@ -6,15 +6,15 @@ using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal
 {
-    public class CosmosReader<T> : ICosmosReader<T>
+    public class CosmosBulkReader<T> : ICosmosBulkReader<T>
         where T : class, ICosmosResource
     {
         private const string ReadAllQuery = "SELECT * FROM c";
         private readonly Container container;
 
-        public CosmosReader(ICosmosContainerProvider containerProvider)
+        public CosmosBulkReader(ICosmosContainerProvider containerProvider)
         {
-            this.container = containerProvider.GetContainer<T>();
+            this.container = containerProvider.GetContainer<T>(allowBulk: true);
         }
 
         public async Task<T> ReadAsync(
