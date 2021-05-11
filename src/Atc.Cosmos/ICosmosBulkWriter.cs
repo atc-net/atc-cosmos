@@ -54,7 +54,7 @@ namespace Atc.Cosmos
             T document,
             CancellationToken cancellationToken = default);
 
-                /// <summary>
+        /// <summary>
         /// Deletes the specified <typeparamref name="T"/> resource from Cosmos.
         /// </summary>
         /// <remarks>
