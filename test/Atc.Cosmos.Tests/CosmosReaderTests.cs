@@ -401,5 +401,97 @@ namespace Atc.Cosmos.Tests
                 .Should()
                 .HaveCount(6);
         }
+
+        [Theory, AutoNSubstituteData]
+        public void QueryAsync_With_Custom_Result_Uses_The_Right_Container(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.QueryAsync<Record>(query, partitionKey, cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_With_Custom_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut.QueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_With_Custom_Returns_Empty_When_Query_Matches_Non(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(true, false);
+
+            var response = await sut.QueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_With_Custom_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true, false);
+
+            feedResponse
+                .GetEnumerator()
+                .Returns(new List<Record> { record }.GetEnumerator());
+
+            var response = await sut.QueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .NotBeEmpty();
+
+            response[0]
+                .Should()
+                .Be(record);
+        }
     }
 }

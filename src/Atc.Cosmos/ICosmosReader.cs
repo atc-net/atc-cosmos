@@ -71,5 +71,18 @@ namespace Atc.Cosmos
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents from the configured Cosmos container and returns a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="query">Cosmos query to execute.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
     }
 }

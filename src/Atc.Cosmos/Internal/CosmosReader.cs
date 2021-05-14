@@ -75,12 +75,18 @@ namespace Atc.Cosmos.Internal
             }
         }
 
-        public async IAsyncEnumerable<T> QueryAsync(
+        public IAsyncEnumerable<T> QueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => QueryAsync<T>(query, partitionKey, cancellationToken);
+
+        public async IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var reader = container.GetItemQueryIterator<T>(
+            var reader = container.GetItemQueryIterator<TResult>(
                 query,
                 requestOptions: new QueryRequestOptions
                 {
