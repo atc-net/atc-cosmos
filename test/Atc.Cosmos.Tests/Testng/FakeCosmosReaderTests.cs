@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Atc.Cosmos.Testing;
 using Atc.Test;
+using AutoFixture.Xunit2;
 using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
@@ -177,6 +177,24 @@ namespace Atc.Cosmos.Tests.Testng
             results
                 .Should()
                 .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void Should_Be_Able_To_Inject_As_Frozen_CosmosReader(
+            [Frozen(Matching.ImplementedInterfaces)]
+            FakeCosmosReader<Record> sut,
+            TestCosmosService<Record> service)
+        {
+            service.Reader.Should().BeSameAs(sut);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void Should_Be_Able_To_Inject_As_Frozen_CosmosBulkReader(
+            [Frozen(Matching.ImplementedInterfaces)]
+            FakeCosmosReader<Record> sut,
+            TestCosmosService<Record> service)
+        {
+            service.BulkReader.Should().BeSameAs(sut);
         }
     }
 }

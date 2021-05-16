@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using Atc.Cosmos.Testing;
 using Atc.Test;
 using AutoFixture.AutoNSubstitute;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Atc.Cosmos.Tests.Testng
@@ -342,6 +342,24 @@ namespace Atc.Cosmos.Tests.Testng
             result.ETag
                 .Should()
                 .NotBeNullOrEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void Should_Be_Able_To_Inject_As_Frozen_CosmosWriter(
+            [Frozen(Matching.ImplementedInterfaces)]
+            FakeCosmosWriter<Record> sut,
+            TestCosmosService<Record> service)
+        {
+            service.Writer.Should().BeSameAs(sut);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void Should_Be_Able_To_Inject_As_Frozen_CosmosBulkWriter(
+            [Frozen(Matching.ImplementedInterfaces)]
+            FakeCosmosWriter<Record> sut,
+            TestCosmosService<Record> service)
+        {
+            service.BulkWriter.Should().BeSameAs(sut);
         }
     }
 }
