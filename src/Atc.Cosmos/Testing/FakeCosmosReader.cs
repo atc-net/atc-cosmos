@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,22 +10,33 @@ namespace Atc.Cosmos.Testing
 {
     /// <summary>
     /// Represents a fake <see cref="ICosmosReader{T}"/>
-    /// that can be used when unit testing client code.
+    /// or <see cref="ICosmosBulkReader{T}"/> that can be
+    /// used when unit testing client code.
     /// </summary>
     /// <typeparam name="T">
     /// The type of <see cref="ICosmosResource"/>
     /// to be read by this reader.
     /// </typeparam>
-    public class FakeCosmosReader<T> : ICosmosReader<T>
+    [SuppressMessage(
+        "Design",
+        "MA0016:Prefer return collection abstraction instead of implementation",
+        Justification = "By design")]
+    [SuppressMessage(
+        "Design",
+        "CA1002:Do not expose generic lists",
+        Justification = "By design")]
+    [SuppressMessage(
+        "Usage",
+        "CA2227:Collection properties should be read only",
+        Justification = "By design")]
+    public class FakeCosmosReader<T> :
+        ICosmosReader<T>,
+        ICosmosBulkReader<T>
         where T : class, ICosmosResource
     {
         /// <summary>
         /// Gets or sets the list of documents to return by the fake reader.
         /// </summary>
-        [SuppressMessage(
-            "Design",
-            "MA0016:Prefer return collection abstraction instead of implementation",
-            Justification = "By design")]
         public List<T> Documents { get; set; }
             = new List<T>();
 
@@ -34,14 +44,10 @@ namespace Atc.Cosmos.Testing
         /// Gets or sets the list of custom results to be returned by the
         /// <see cref="QueryAsync{TResult}(QueryDefinition, string, CancellationToken)"/> method.
         /// </summary>
-        [SuppressMessage(
-            "Design",
-            "MA0016:Prefer return collection abstraction instead of implementation",
-            Justification = "By design")]
         public List<object> QueryResults { get; set; }
             = new List<object>();
 
-        public Task<T?> FindAsync(
+        public virtual Task<T?> FindAsync(
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -50,7 +56,7 @@ namespace Atc.Cosmos.Testing
                     => d.DocumentId == documentId
                     && d.PartitionKey == partitionKey));
 
-        public Task<T> ReadAsync(
+        public virtual Task<T> ReadAsync(
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -74,27 +80,27 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(item);
         }
 
-        public IAsyncEnumerable<T> ReadAllAsync(
+        public virtual IAsyncEnumerable<T> ReadAllAsync(
             string partitionKey,
             CancellationToken cancellationToken = default)
             => GetAsyncEnumerator(
                 Documents.Where(d => d.PartitionKey == partitionKey));
 
-        public IAsyncEnumerable<T> QueryAsync(
+        public virtual IAsyncEnumerable<T> QueryAsync(
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
             => GetAsyncEnumerator(
                 Documents.Where(d => d.PartitionKey == partitionKey));
 
-        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+        public virtual IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
             => GetAsyncEnumerator(
                 QueryResults.OfType<TResult>());
 
-        private static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
+        protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)
         {
             foreach (var item in items)

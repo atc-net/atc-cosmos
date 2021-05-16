@@ -8,16 +8,35 @@ using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Testing
 {
-    public class FakeCosmosWriter<T> : ICosmosWriter<T>
+    /// <summary>
+    /// Represents a fake <see cref="ICosmosWriter{T}"/>
+    /// or <see cref="ICosmosBulkWriter{T}"/> that can be
+    /// used when unit testing client code.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The type of <see cref="ICosmosResource"/>
+    /// to be read by this reader.
+    /// </typeparam>
+    [SuppressMessage(
+       "Design",
+       "MA0016:Prefer return collection abstraction instead of implementation",
+       Justification = "By design")]
+    [SuppressMessage(
+       "Design",
+       "CA1002:Do not expose generic lists",
+       Justification = "By design")]
+    [SuppressMessage(
+       "Usage",
+       "CA2227:Collection properties should be read only",
+       Justification = "By design")]
+    public class FakeCosmosWriter<T> :
+        ICosmosWriter<T>,
+        ICosmosBulkWriter<T>
         where T : class, ICosmosResource
     {
         /// <summary>
         /// Gets or sets the list of documents to be modified by the fake writer.
         /// </summary>
-        [SuppressMessage(
-            "Design",
-            "MA0016:Prefer return collection abstraction instead of implementation",
-            Justification = "By design")]
         public List<T> Documents { get; set; }
             = new List<T>();
 
@@ -32,7 +51,7 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(document);
         }
 
-        public Task<T> WriteAsync(
+        public virtual Task<T> WriteAsync(
             T document,
             CancellationToken cancellationToken = default)
         {
@@ -76,7 +95,7 @@ namespace Atc.Cosmos.Testing
             return Task.CompletedTask;
         }
 
-        public Task<T> UpdateAsync(
+        public virtual Task<T> UpdateAsync(
             string documentId,
             string partitionKey,
             Func<T, Task> updateDocument,
@@ -90,7 +109,7 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(document);
         }
 
-        public Task<T> UpdateAsync(
+        public virtual Task<T> UpdateAsync(
             string documentId,
             string partitionKey,
             Action<T> updateDocument,
@@ -107,7 +126,7 @@ namespace Atc.Cosmos.Testing
                 retries,
                 cancellationToken);
 
-        public Task<T> UpdateOrCreateAsync(
+        public virtual Task<T> UpdateOrCreateAsync(
             Func<T> getDefaultDocument,
             Func<T, Task> updateDocument,
             int retries = 0,
@@ -125,7 +144,7 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(document);
         }
 
-        public Task<T> UpdateOrCreateAsync(
+        public virtual Task<T> UpdateOrCreateAsync(
             Func<T> getDefaultDocument,
             Action<T> updateDocument,
             int retries = 0,
@@ -140,7 +159,22 @@ namespace Atc.Cosmos.Testing
                 retries,
                 cancellationToken);
 
-        private void GuardNotExists(
+        Task ICosmosBulkWriter<T>.CreateAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => CreateAsync(document, cancellationToken);
+
+        Task ICosmosBulkWriter<T>.WriteAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => WriteAsync(document, cancellationToken);
+
+        Task ICosmosBulkWriter<T>.ReplaceAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => ReplaceAsync(document, cancellationToken);
+
+        protected void GuardNotExists(
             ICosmosResource document)
         {
             var existingDocument = Documents.Find(d
@@ -158,7 +192,7 @@ namespace Atc.Cosmos.Testing
             }
         }
 
-        private void GuardExistsWithEtag(ICosmosResource document)
+        protected void GuardExistsWithEtag(ICosmosResource document)
         {
             var existingDocument = GuardExists(document);
             if (existingDocument.ETag != document.ETag)
@@ -173,10 +207,10 @@ namespace Atc.Cosmos.Testing
             }
         }
 
-        private T GuardExists(ICosmosResource document)
+        protected T GuardExists(ICosmosResource document)
             => GuardExists(document.DocumentId, document.PartitionKey);
 
-        private T GuardExists(
+        protected T GuardExists(
             string documentId,
             string partitionKey)
         {
