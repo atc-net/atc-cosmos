@@ -54,4 +54,4 @@ dotnet_diagnostic.CA1062.severity = none            # Null checking input to tes
 dotnet_diagnostic.CA1812.severity = none            # Test classes used as generic arguments but not instantiated should be allowed.
 dotnet_diagnostic.SA1202.severity = none            # Private helper methods makes sense to keep at top of test classes, as tests are added to bottom.
 dotnet_diagnostic.CA2201.severity = none            # Instantiating Exceptions as test data should be allowed.
-
+dotnet_diagnostic.MA0016.severity = none            # Prefer return collection abstraction instead of implementation
