@@ -31,14 +31,21 @@ The library is installed by adding the nuget package `Atc.Cosmos` to your projec
 
 ## Getting started
 
-Once the library is added to your project, you will have access to the [`ICosmosReader<T>`](src/Atc.Cosmos/ICosmosReader.cs) and [`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs) interfaces, used for reading and writing Cosmos document resources. A document resource is represented by a class implementing the [`CosmosResource`](src/Atc.Cosmos/CosmosResource.cs) (or the [`ICosmosResource`](src/Atc.Cosmos/ICosmosResource.cs) interface).
+Once the library is added to your project, you will have access to the following interfaces, used for reading and writing Cosmos document resources:
+* [`ICosmosReader<T>`](src/Atc.Cosmos/ICosmosReader.cs)
+* [`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs)
+* [`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)
+* [`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)
 
-To configure where each resource will be stored in Cosmos, the `ConfigureCosmos(buidler)` extension method is used on the `IServiceCollection` when setting up dependency injection (usually in a `Startup.cs` file).
+A document resource is represented by a class deriving from the [`CosmosResource`](src/Atc.Cosmos/CosmosResource.cs) base-class, or by implementing the underlying [`ICosmosResource`](src/Atc.Cosmos/ICosmosResource.cs) interface directly.
+
+To configure where each resource will be stored in Cosmos, the `ConfigureCosmos(builder)` extension method is used on the `IServiceCollection` when setting up dependency injection (usually in a `Startup.cs` file).
 
 This will be explained in the following sections:
 * Configure Cosmos connection
 * Configure containers
 * Initialize containers
+* Using the readers and writers
 
 ## Configure Cosmos connection
 
@@ -81,9 +88,9 @@ For each Cosmos resource you want to access using the `ICosmosReader<T>` and `IC
 
     The class should implement the abstract `CosmosResource` base-class, which requires `GetDocumentId()` and `GetPartitionKey()` methods to be implemented.
 
-    The class will be serialized to Cosmos using the `System.Text.Json.JsonSerializer`, so the `System.Text.Json.Serializaion.JsonPropertyNameAttribute` can be used to control the actual property name in the json document. 
+    The class will be serialized to Cosmos using the `System.Text.Json.JsonSerializer`, so the `System.Text.Json.Serialization.JsonPropertyNameAttribute` can be used to control the actual property name in the json document.
 
-    This can e.g. be usefull when referencing the name of the id and partition key properties in a `ICosmosContainerInitializer` implementation which is described further down.
+    This can e.g. be useful when referencing the name of the id and partition key properties in a `ICosmosContainerInitializer` implementation which is described further down.
 
 2. Configure the container used for the Cosmos document resource.
 
@@ -129,7 +136,7 @@ To do this you will need to:
     }
     ```
 
-    For Azure Functions, the `AzureFunctionInitializeCosmosDatabase()` extension methid
+    For Azure Functions, the `AzureFunctionInitializeCosmosDatabase()` extension method
     can be used to execute the initialization (synchronously) like this:
     ```
     public void Configure(IWebJobsBuilder builder)
@@ -139,4 +146,49 @@ To do this you will need to:
     }
     ```
 
+## Using the readers and writers
 
+Once the setup is in place, the readers and writers are registered with the [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection/) container, and can be obtained via constructor injection on any service.
+
+The registered interfaces are:
+|Name|Description|
+|-|-|
+|[`ICosmosReader<T>`](src/Atc.Cosmos/ICosmosReader.cs)| Represents a reader that can read Cosmos resources. |
+|[`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs)| Represents a writer that can write Cosmos resources. |
+|[`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)| Represents a reader that can perform bulk reads on Cosmos resources. |
+|[`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)| Represents a writer that can perform bulk operations on Cosmos resources. |
+
+The bulk reader and writer are for optimizing performance when executing many operations towards Cosmos. It works by creating all the tasks and then use the `Task.WhenAll()` to await them. This will group operations by partition key and send them in batches of 100.
+
+When not operating with bulks, the normal readers are faster as there is no delay waiting for more work.
+
+### Unit Testing
+The reader and writer interfaces can easily be mocked, but in some cases it is nice to have a fake version of a reader or writer to mimic the behavior of the read and write operations. For this purpose the `Atc.Cosmos.Testing` namespace contains the following fakes:
+
+|Name|Description|
+|-|-|
+|[`FakeCosmosReader<T>`](src/Atc.Cosmos/Testing/FakeCosmosReader.cs)| Used for faking an [`ICosmosReader<T>`](src/Atc.Cosmos/ICosmosReader.cs) or [`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs). |
+|[`FakeCosmosWriter<T>`](src/Atc.Cosmos/Testing/FakeCosmosWriter.cs)| Used for faking an [`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs) or [`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs). |
+|[`FakeCosmos<T>`](src/Atc.Cosmos/Testing/FakeCosmos.cs)| Used for getting a `FakeCosmosReader` and `FakeCosmosWriter` that share state. |
+
+Using the [Atc.Test](https://github.com/atc-net/atc-test) setup a test using the fakes could look like this:
+
+```csharp
+[Theory, AutoNSubstituteData]
+public async Task Should_Update_Cosmos_With_NewData(
+    [Frozen(Matching.ImplementedInterfaces)]
+    FakeCosmos<MyCosmosResource> cosmos,
+    MyCosmosService sut,
+    MyCosmosResource resource,
+    string newData)
+{
+    cosmos.Documents.Add(resource);
+
+    await service.UpdateAsync(resource.Id, newData);
+
+    resource
+        .Data
+        .Should()
+        .Be(newData);
+}
+```
