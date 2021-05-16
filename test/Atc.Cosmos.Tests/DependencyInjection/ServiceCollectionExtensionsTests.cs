@@ -1,13 +1,8 @@
 using System;
-using System.Linq;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
-using Atc.Test;
 using AutoFixture;
-using AutoFixture.Xunit2;
-using FluentAssertions;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;

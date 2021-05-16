@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos
 {
@@ -18,7 +20,8 @@ namespace Atc.Cosmos
         /// Creates a new <typeparamref name="T"/> resource in Cosmos.
         /// </summary>
         /// <remarks>
-        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.Conflict"/>
         /// will be thrown if a resource already exists.
         /// </remarks>
         /// <param name="document">The resource to be created.</param>
@@ -42,10 +45,17 @@ namespace Atc.Cosmos
         /// Replaces a <typeparamref name="T"/> resource in Cosmos.
         /// </summary>
         /// <remarks>
-        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
-        /// will be thrown if the resource does not already exist in Cosmos,
-        /// or if the resource has been updated since it was read
-        /// (using the <see cref="ICosmosResource.ETag"/>).
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
+        /// will be thrown if the resource does not already exist in Cosmos.
+        /// </para>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource has been updated since it was read
+        /// (using the <see cref="ICosmosResource.ETag"/> to match the version).
+        /// </para>
         /// </remarks>
         /// <param name="document">The resource to be created.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
@@ -58,8 +68,10 @@ namespace Atc.Cosmos
         /// Deletes the specified <typeparamref name="T"/> resource from Cosmos.
         /// </summary>
         /// <remarks>
-        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
-        /// will be thrown if resource could not be found.
+        /// A <see cref="CosmosException"/>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
+        /// will be thrown if the resource does not already exist in Cosmos.
         /// </remarks>
         /// <param name="documentId">Id of the resource.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
@@ -74,6 +86,19 @@ namespace Atc.Cosmos
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
+        /// will be thrown if the resource does not already exist in Cosmos.
+        /// </para>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource is being updated simultanious by another thread
+        /// and the <paramref name="retries"/> has run out.
+        /// </para>
+        /// </remarks>
         /// <param name="documentId">Id of the resource.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="updateDocument">Function for applying updates to the resource.</param>
@@ -91,6 +116,19 @@ namespace Atc.Cosmos
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
+        /// will be thrown if the resource does not already exist in Cosmos.
+        /// </para>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource is being updated simultanious by another thread
+        /// and the <paramref name="retries"/> has run out.
+        /// </para>
+        /// </remarks>
         /// <param name="documentId">Id of the resource.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="updateDocument">Function for applying updates to the resource.</param>
@@ -108,6 +146,12 @@ namespace Atc.Cosmos
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection, or creates it if it does not exist.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource is being updated simultanious by another thread
+        /// and the <paramref name="retries"/> has run out.
+        /// </remarks>
         /// <param name="getDefaultDocument">Function for creating the default resource. The returned resource need to have the DocumentId and PartitionKey set.</param>
         /// <param name="updateDocument">Function for applying updates to the resource.</param>
         /// <param name="retries">Number of retries when a conflict occurs.</param>
@@ -123,6 +167,12 @@ namespace Atc.Cosmos
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection, or creates it if it does not exist.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource is being updated simultanious by another thread
+        /// and the <paramref name="retries"/> has run out.
+        /// </remarks>
         /// <param name="getDefaultDocument">Function for creating the default resource. The returned resource need to have the DocumentId and PartitionKey set.</param>
         /// <param name="updateDocument">Function for applying updates to the resource.</param>
         /// <param name="retries">Number of retries when a conflict occurs.</param>

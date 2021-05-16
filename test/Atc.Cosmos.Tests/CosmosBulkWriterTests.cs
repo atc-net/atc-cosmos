@@ -1,11 +1,9 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
 using Atc.Test;
 using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using NSubstitute;

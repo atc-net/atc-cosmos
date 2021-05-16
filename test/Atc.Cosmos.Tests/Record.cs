@@ -1,15 +1,17 @@
 namespace Atc.Cosmos.Tests
 {
-    public class Record : CosmosResource
+    public sealed class Record : ICosmosResource
     {
         public string Id { get; set; } = string.Empty;
 
         public string Pk { get; set; } = string.Empty;
 
-        protected override string GetDocumentId()
-            => Id;
+        public string? ETag { get; set; }
 
-        protected override string GetPartitionKey()
-            => Pk;
+        public string Data { get; set; }
+
+        string ICosmosResource.DocumentId => Id;
+
+        string ICosmosResource.PartitionKey => Pk;
     }
 }

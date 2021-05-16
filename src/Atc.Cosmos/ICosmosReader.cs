@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -33,7 +34,8 @@ namespace Atc.Cosmos
         /// Cosmos collection.
         /// </summary>
         /// <remarks>
-        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
         /// will be thrown if resource could not be found.
         /// </remarks>
         /// <param name="documentId">Id of the resource.</param>
@@ -49,10 +51,6 @@ namespace Atc.Cosmos
         /// Reads all the specified <typeparamref name="T"/> resource from the configured
         /// Cosmos collection.
         /// </summary>
-        /// <remarks>
-        /// A <see cref="Microsoft.Azure.Cosmos.CosmosException"/>
-        /// will be thrown if resource could not be found.
-        /// </remarks>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
         /// <returns>A <see cref="Task"/> the requested <typeparamref name="T"/> resource.</returns>
@@ -66,7 +64,7 @@ namespace Atc.Cosmos
         /// <param name="query">Cosmos query to execute.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
-        /// <returns>An <see cref="System.Collections.Generic.IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="T"/> resources.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="T"/> resources.</returns>
         public IAsyncEnumerable<T> QueryAsync(
             QueryDefinition query,
             string partitionKey,
