@@ -51,7 +51,7 @@ namespace Atc.Cosmos.Testing
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(
+            => Task.FromResult<T?>(
                 Documents.Find(d
                     => d.DocumentId == documentId
                     && d.PartitionKey == partitionKey));
