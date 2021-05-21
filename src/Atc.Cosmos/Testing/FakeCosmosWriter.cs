@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -34,6 +35,17 @@ namespace Atc.Cosmos.Testing
         ICosmosBulkWriter<T>
         where T : class, ICosmosResource
     {
+        private readonly JsonSerializerOptions? options;
+
+        public FakeCosmosWriter()
+        {
+        }
+
+        public FakeCosmosWriter(JsonSerializerOptions options)
+        {
+            this.options = options;
+        }
+
         /// <summary>
         /// Gets or sets the list of documents to be modified by the fake writer.
         /// </summary>
@@ -46,9 +58,10 @@ namespace Atc.Cosmos.Testing
         {
             GuardNotExists(document);
 
-            document.ETag = Guid.NewGuid().ToString();
-            Documents.Add(document);
-            return Task.FromResult(document);
+            T newDocument = document.Clone(options);
+            newDocument.ETag = Guid.NewGuid().ToString();
+            Documents.Add(newDocument);
+            return Task.FromResult(newDocument);
         }
 
         public virtual Task<T> WriteAsync(
@@ -59,10 +72,11 @@ namespace Atc.Cosmos.Testing
                 => d.DocumentId == document.DocumentId
                 && d.PartitionKey == document.PartitionKey);
 
-            document.ETag = Guid.NewGuid().ToString();
-            Documents.Add(document);
+            var newDocument = document.Clone(options);
+            newDocument.ETag = Guid.NewGuid().ToString();
+            Documents.Add(newDocument);
 
-            return Task.FromResult(document);
+            return Task.FromResult(newDocument);
         }
 
         public virtual Task<T> ReplaceAsync(
@@ -75,10 +89,11 @@ namespace Atc.Cosmos.Testing
                 => d.DocumentId == document.DocumentId
                 && d.PartitionKey == document.PartitionKey);
 
-            document.ETag = Guid.NewGuid().ToString();
-            Documents.Add(document);
+            var newDocument = document.Clone(options);
+            newDocument.ETag = Guid.NewGuid().ToString();
+            Documents.Add(newDocument);
 
-            return Task.FromResult(document);
+            return Task.FromResult(newDocument);
         }
 
         public virtual Task DeleteAsync(
@@ -103,10 +118,15 @@ namespace Atc.Cosmos.Testing
             CancellationToken cancellationToken = default)
         {
             var document = GuardExists(documentId, partitionKey);
-            updateDocument(document);
-            document.ETag = Guid.NewGuid().ToString();
 
-            return Task.FromResult(document);
+            var newDocument = document.Clone(options);
+            updateDocument(newDocument);
+            newDocument.ETag = Guid.NewGuid().ToString();
+
+            Documents.Remove(document);
+            Documents.Add(newDocument);
+
+            return Task.FromResult(newDocument);
         }
 
         public virtual Task<T> UpdateAsync(
@@ -137,16 +157,18 @@ namespace Atc.Cosmos.Testing
                 => d.DocumentId == defaultDocument.DocumentId
                 && d.PartitionKey == defaultDocument.PartitionKey);
 
-            var document = existingDocument ?? defaultDocument;
-            updateDocument(document);
+            var newDocument = (existingDocument ?? defaultDocument).Clone(options);
+            updateDocument(newDocument);
 
-            document.ETag = Guid.NewGuid().ToString();
-            if (existingDocument is null)
+            newDocument.ETag = Guid.NewGuid().ToString();
+            if (existingDocument is not null)
             {
-                Documents.Add(defaultDocument);
+                Documents.Remove(existingDocument);
             }
 
-            return Task.FromResult(document);
+            Documents.Add(newDocument);
+
+            return Task.FromResult(newDocument);
         }
 
         public virtual Task<T> UpdateOrCreateAsync(

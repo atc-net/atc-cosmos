@@ -18,10 +18,15 @@ namespace Atc.Cosmos.Tests.Testing
             FakeCosmosWriter<Record> sut,
             Record record)
         {
-            await sut.CreateAsync(record);
+            var result = await sut.CreateAsync(record);
+            result
+                .Should()
+                .BeEquivalentTo(
+                    record,
+                    o => o.Excluding(d => d.ETag));
             sut.Documents
                 .Should()
-                .ContainEquivalentOf(record);
+                .ContainEquivalentOf(result);
         }
 
         [Theory, AutoNSubstituteData]
@@ -53,10 +58,16 @@ namespace Atc.Cosmos.Tests.Testing
             FakeCosmosWriter<Record> sut,
             Record record)
         {
-            await sut.WriteAsync(record);
+            var result = await sut.WriteAsync(record);
             sut.Documents
                 .Should()
-                .ContainEquivalentOf(record);
+                .ContainEquivalentOf(result);
+
+            result
+                .Should()
+                .BeEquivalentTo(
+                    record,
+                    o => o.Excluding(d => d.ETag));
         }
 
         [Theory, AutoNSubstituteData]
@@ -83,12 +94,17 @@ namespace Atc.Cosmos.Tests.Testing
             };
             sut.Documents.Add(existingDocument);
 
-            await sut.WriteAsync(record);
+            var result = await sut.WriteAsync(record);
+            result
+                .Should()
+                .BeEquivalentTo(
+                    record,
+                    o => o.Excluding(d => d.ETag));
             sut.Documents
                 .Should()
                 .NotContain(existingDocument)
                 .And
-                .ContainEquivalentOf(record);
+                .ContainEquivalentOf(result);
         }
 
         [Theory, AutoNSubstituteData]
@@ -115,12 +131,17 @@ namespace Atc.Cosmos.Tests.Testing
             };
             sut.Documents.Add(existingDocument);
 
-            await sut.ReplaceAsync(record);
+            var result = await sut.ReplaceAsync(record);
+            result
+                .Should()
+                .BeEquivalentTo(
+                    record,
+                    o => o.Excluding(d => d.ETag));
             sut.Documents
                 .Should()
                 .NotContain(existingDocument)
                 .And
-                .ContainEquivalentOf(record);
+                .ContainEquivalentOf(result);
         }
 
         [Theory, AutoNSubstituteData]
@@ -215,14 +236,19 @@ namespace Atc.Cosmos.Tests.Testing
         {
             sut.Documents.Add(record);
 
-            await sut.UpdateAsync(
+            var result = await sut.UpdateAsync(
                 record.Id,
                 record.Pk,
                 updateDocument);
 
+            result
+                .Should()
+                .BeEquivalentTo(
+                    record,
+                    o => o.Excluding(d => d.ETag));
             updateDocument
                 .Received(1)
-                .Invoke(record);
+                .Invoke(result);
         }
 
         [Theory, AutoNSubstituteData]
@@ -279,13 +305,18 @@ namespace Atc.Cosmos.Tests.Testing
              Record defaultDocument,
              [Substitute] Action<Record> updateDocument)
         {
-            await sut.UpdateOrCreateAsync(
+            var result = await sut.UpdateOrCreateAsync(
                 () => defaultDocument,
                 updateDocument);
 
+            result
+                .Should()
+                .BeEquivalentTo(
+                    defaultDocument,
+                    o => o.Excluding(d => d.ETag));
             updateDocument
                 .Received(1)
-                .Invoke(defaultDocument);
+                .Invoke(result);
         }
 
         [Theory, AutoNSubstituteData]
@@ -294,11 +325,19 @@ namespace Atc.Cosmos.Tests.Testing
              Record defaultDocument,
              [Substitute] Action<Record> updateDocument)
         {
-            await sut.UpdateOrCreateAsync(
+            var result = await sut.UpdateOrCreateAsync(
                 () => defaultDocument,
                 updateDocument);
 
-            sut.Documents.Should().Contain(defaultDocument);
+            sut.Documents
+                .Should()
+                .ContainEquivalentOf(result);
+
+            result
+                .Should()
+                .BeEquivalentTo(
+                    defaultDocument,
+                    o => o.Excluding(d => d.ETag));
         }
 
         [Theory, AutoNSubstituteData]
@@ -314,13 +353,19 @@ namespace Atc.Cosmos.Tests.Testing
                 Pk = existingDocument.Pk,
             };
 
-            await sut.UpdateOrCreateAsync(
+            var result = await sut.UpdateOrCreateAsync(
                 () => defaultDocument,
                 updateDocument);
 
             updateDocument
                 .Received(1)
-                .Invoke(existingDocument);
+                .Invoke(result);
+
+            result
+                .Should()
+                .BeEquivalentTo(
+                    existingDocument,
+                    o => o.Excluding(d => d.ETag));
         }
 
         [Theory, AutoNSubstituteData]
