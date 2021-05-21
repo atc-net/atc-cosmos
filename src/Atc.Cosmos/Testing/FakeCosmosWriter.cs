@@ -139,7 +139,12 @@ namespace Atc.Cosmos.Testing
 
             var document = existingDocument ?? defaultDocument;
             updateDocument(document);
+
             document.ETag = Guid.NewGuid().ToString();
+            if (existingDocument is null)
+            {
+                Documents.Add(defaultDocument);
+            }
 
             return Task.FromResult(document);
         }
