@@ -1,4 +1,4 @@
-namespace Atc.Cosmos.Tests.Testng
+namespace Atc.Cosmos.Tests.Testing
 {
     public class TestCosmosService<T>
         where T : class, ICosmosResource

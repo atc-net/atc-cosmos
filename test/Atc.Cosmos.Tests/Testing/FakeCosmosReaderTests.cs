@@ -9,7 +9,7 @@ using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Xunit;
 
-namespace Atc.Cosmos.Tests.Testng
+namespace Atc.Cosmos.Tests.Testing
 {
     public class FakeCosmosReaderTests
     {
