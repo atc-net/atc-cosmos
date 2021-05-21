@@ -9,7 +9,7 @@ using Microsoft.Azure.Cosmos;
 using NSubstitute;
 using Xunit;
 
-namespace Atc.Cosmos.Tests.Testng
+namespace Atc.Cosmos.Tests.Testing
 {
     public class FakeCosmosTests
     {
