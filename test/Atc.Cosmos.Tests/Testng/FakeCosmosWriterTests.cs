@@ -289,6 +289,19 @@ namespace Atc.Cosmos.Tests.Testng
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task UpdateOrCreateAsync_Should_Add_NonExisting_Document(
+             FakeCosmosWriter<Record> sut,
+             Record defaultDocument,
+             [Substitute] Action<Record> updateDocument)
+        {
+            await sut.UpdateOrCreateAsync(
+                () => defaultDocument,
+                updateDocument);
+
+            sut.Documents.Should().Contain(defaultDocument);
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task UpdateOrCreateAsync_Should_Call_UpdateDocument_With_ExistingDocument(
              FakeCosmosWriter<Record> sut,
              Record existingDocument,
