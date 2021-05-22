@@ -105,9 +105,10 @@ namespace Atc.Cosmos.Testing
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => GetAsyncEnumerator(Documents
-                .Where(d => d.PartitionKey == partitionKey)
-                .Clone(options));
+            => QueryAsync<T>(
+                query,
+                partitionKey,
+                cancellationToken);
 
         public virtual IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,

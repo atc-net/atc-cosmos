@@ -107,9 +107,10 @@ namespace Atc.Cosmos.Tests.Testing
         public async Task QueryAsync_Should_Return_All_Documents_With_PartitionKey(
             FakeCosmosReader<Record> sut,
             QueryDefinition query,
+            Record[] queryResults,
             string partitionKey)
         {
-            sut.Documents.ForEach(d => d.Pk = partitionKey);
+            sut.QueryResults.AddRange(queryResults);
 
             var results = await sut
                 .QueryAsync(
@@ -119,24 +120,7 @@ namespace Atc.Cosmos.Tests.Testing
 
             results
                 .Should()
-                .BeEquivalentTo(sut.Documents);
-        }
-
-        [Theory, AutoNSubstituteData]
-        public async Task QueryAsync_Should_Not_Return_Documents_With_Different_PartitionKey(
-            FakeCosmosReader<Record> sut,
-            QueryDefinition query,
-            string partitionKey)
-        {
-            var results = await sut
-                .QueryAsync(
-                    query,
-                    partitionKey)
-                .ToListAsync();
-
-            results
-                .Should()
-                .BeEmpty();
+                .BeEquivalentTo(queryResults);
         }
 
         [Theory, AutoNSubstituteData]
