@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -30,6 +31,13 @@ namespace Atc.Cosmos.Testing
             : this(
                   new FakeCosmosReader<T>(),
                   new FakeCosmosWriter<T>())
+        {
+        }
+
+        public FakeCosmos(JsonSerializerOptions options)
+            : this(
+                  new FakeCosmosReader<T>(options),
+                  new FakeCosmosWriter<T>(options))
         {
         }
 

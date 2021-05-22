@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -34,6 +35,17 @@ namespace Atc.Cosmos.Testing
         ICosmosBulkReader<T>
         where T : class, ICosmosResource
     {
+        private readonly JsonSerializerOptions? options;
+
+        public FakeCosmosReader()
+        {
+        }
+
+        public FakeCosmosReader(JsonSerializerOptions options)
+        {
+            this.options = options;
+        }
+
         /// <summary>
         /// Gets or sets the list of documents to return by the fake reader.
         /// </summary>
@@ -52,9 +64,11 @@ namespace Atc.Cosmos.Testing
             string partitionKey,
             CancellationToken cancellationToken = default)
             => Task.FromResult<T?>(
-                Documents.Find(d
-                    => d.DocumentId == documentId
-                    && d.PartitionKey == partitionKey));
+                Documents
+                    .Find(d
+                        => d.DocumentId == documentId
+                        && d.PartitionKey == partitionKey)
+                    .Clone(options));
 
         public virtual Task<T> ReadAsync(
             string documentId,
@@ -77,28 +91,32 @@ namespace Atc.Cosmos.Testing
                     0);
             }
 
-            return Task.FromResult(item);
+            return Task.FromResult(item.Clone(options));
         }
 
         public virtual IAsyncEnumerable<T> ReadAllAsync(
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => GetAsyncEnumerator(
-                Documents.Where(d => d.PartitionKey == partitionKey));
+            => GetAsyncEnumerator(Documents
+                .Where(d => d.PartitionKey == partitionKey)
+                .Clone(options));
 
         public virtual IAsyncEnumerable<T> QueryAsync(
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => GetAsyncEnumerator(
-                Documents.Where(d => d.PartitionKey == partitionKey));
+            => QueryAsync<T>(
+                query,
+                partitionKey,
+                cancellationToken);
 
         public virtual IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => GetAsyncEnumerator(
-                QueryResults.OfType<TResult>());
+            => GetAsyncEnumerator(QueryResults
+                .OfType<TResult>()
+                .Clone(options));
 
         protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)
