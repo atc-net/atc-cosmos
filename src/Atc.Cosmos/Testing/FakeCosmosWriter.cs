@@ -64,6 +64,11 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(newDocument);
         }
 
+        public virtual Task CreateWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => CreateAsync(document, cancellationToken);
+
         public virtual Task<T> WriteAsync(
             T document,
             CancellationToken cancellationToken = default)
@@ -78,6 +83,11 @@ namespace Atc.Cosmos.Testing
 
             return Task.FromResult(newDocument);
         }
+
+        public virtual Task WriteWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => WriteAsync(document, cancellationToken);
 
         public virtual Task<T> ReplaceAsync(
             T document,
@@ -95,6 +105,11 @@ namespace Atc.Cosmos.Testing
 
             return Task.FromResult(newDocument);
         }
+
+        public virtual Task ReplaceWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => ReplaceAsync(document, cancellationToken);
 
         public virtual Task DeleteAsync(
             string documentId,

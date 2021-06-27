@@ -92,6 +92,24 @@ namespace Atc.Cosmos.Tests
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task WriteWithNoResponseAsync_UpsertItem_In_Container(
+            CancellationToken cancellationToken)
+        {
+            containerProvider
+                .GetContainer<Record>()
+                .ReturnsForAnyArgs(container);
+
+            await sut.WriteWithNoResponseAsync(record, cancellationToken);
+            await container
+                .Received(1)
+                .UpsertItemAsync<object>(
+                    record,
+                    new PartitionKey(record.Pk),
+                    Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task CreateAsync_Calls_CreateItem_On_Container(
            CancellationToken cancellationToken)
         {
@@ -102,6 +120,20 @@ namespace Atc.Cosmos.Tests
                     record,
                     new PartitionKey(record.Pk),
                     Arg.Any<ItemRequestOptions>(),
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CreateWithNoResponseAsync_Calls_CreateItem_On_Container(
+           CancellationToken cancellationToken)
+        {
+            await sut.CreateWithNoResponseAsync(record, cancellationToken);
+            _ = container
+                .Received(1)
+                .CreateItemAsync<object>(
+                    record,
+                    new PartitionKey(record.Pk),
+                    Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
                     cancellationToken);
         }
 
@@ -117,6 +149,22 @@ namespace Atc.Cosmos.Tests
                     record.Id,
                     new PartitionKey(record.Pk),
                     Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)record).ETag),
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task ReplaceWithNoResponseAsync_Calls_ReplaceItemAsync_On_Container(
+           CancellationToken cancellationToken)
+        {
+            await sut.ReplaceWithNoResponseAsync(record, cancellationToken);
+            _ = container
+                .Received(1)
+                .ReplaceItemAsync<object>(
+                    record,
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)record).ETag
+                                                 && o.EnableContentResponseOnWrite == false),
                     cancellationToken);
         }
 

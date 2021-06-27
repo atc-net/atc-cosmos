@@ -177,6 +177,14 @@ namespace Atc.Cosmos.Testing
                     document,
                     cancellationToken);
 
+        Task ICosmosWriter<T>.CreateWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => ((ICosmosWriter<T>)Writer)
+                .CreateWithNoResponseAsync(
+                    document,
+                    cancellationToken);
+
         Task<T> ICosmosWriter<T>.WriteAsync(
             T document,
             CancellationToken cancellationToken)
@@ -185,11 +193,27 @@ namespace Atc.Cosmos.Testing
                     document,
                     cancellationToken);
 
+        Task ICosmosWriter<T>.WriteWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => ((ICosmosWriter<T>)Writer)
+                .WriteWithNoResponseAsync(
+                    document,
+                    cancellationToken);
+
         Task<T> ICosmosWriter<T>.ReplaceAsync(
             T document,
             CancellationToken cancellationToken)
             => ((ICosmosWriter<T>)Writer)
                 .ReplaceAsync(
+                    document,
+                    cancellationToken);
+
+        Task ICosmosWriter<T>.ReplaceWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken)
+            => ((ICosmosWriter<T>)Writer)
+                .ReplaceWithNoResponseAsync(
                     document,
                     cancellationToken);
 
