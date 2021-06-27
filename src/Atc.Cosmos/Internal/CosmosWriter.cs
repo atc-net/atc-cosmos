@@ -37,6 +37,16 @@ namespace Atc.Cosmos.Internal
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
 
+        public Task CreateWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => container
+                .CreateItemAsync<object>(
+                    document,
+                    new PartitionKey(document.PartitionKey),
+                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    cancellationToken);
+
         public Task<T> WriteAsync(
             T document,
             CancellationToken cancellationToken = default)
@@ -47,6 +57,16 @@ namespace Atc.Cosmos.Internal
                     new ItemRequestOptions { },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
+
+        public Task WriteWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => container
+                .UpsertItemAsync<object>(
+                    document,
+                    new PartitionKey(document.PartitionKey),
+                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    cancellationToken);
 
         public Task<T> ReplaceAsync(
             T document,
@@ -62,6 +82,21 @@ namespace Atc.Cosmos.Internal
                     },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
+
+        public Task ReplaceWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default)
+            => container
+                .ReplaceItemAsync<object>(
+                    document,
+                    document.DocumentId,
+                    new PartitionKey(document.PartitionKey),
+                    new ItemRequestOptions
+                    {
+                        IfMatchEtag = document.ETag,
+                        EnableContentResponseOnWrite = false,
+                    },
+                    cancellationToken);
 
         public Task DeleteAsync(
             string documentId,

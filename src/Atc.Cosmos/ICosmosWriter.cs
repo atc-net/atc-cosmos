@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,12 +32,41 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Creates a new <typeparamref name="T"/> resource in Cosmos.
+        /// </summary>
+        /// <remarks>
+        /// This is optimal for workloads where the returned resource is not used.
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.Conflict"/>
+        /// will be thrown if a resource already exists.
+        /// </remarks>
+        /// <param name="document">The resource to be created.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task CreateWithNoResponseAsync(
+            T document,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Writes a <typeparamref name="T"/> resource to Cosmos, using upsert behavior.
         /// </summary>
         /// <param name="document">The resource to be written.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
         /// <returns>A <see cref="Task"/> containing the written <typeparamref name="T"/> resource.</returns>
         Task<T> WriteAsync(
+            T document,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Writes a <typeparamref name="T"/> resource to Cosmos, using upsert behavior.
+        /// </summary>
+        /// <remarks>
+        /// This is optimal for workloads where the returned resource is not used.
+        /// </remarks>
+        /// <param name="document">The resource to be written.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task WriteWithNoResponseAsync(
             T document,
             CancellationToken cancellationToken = default);
 
@@ -61,6 +90,30 @@ namespace Atc.Cosmos
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
         /// <returns>A <see cref="Task"/> containing the updated <typeparamref name="T"/> resource.</returns>
         Task<T> ReplaceAsync(
+            T document,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Replaces a <typeparamref name="T"/> resource in Cosmos.
+        /// </summary>
+        /// <remarks>
+        /// This is optimal for workloads where the returned resource is not used.
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
+        /// will be thrown if the resource does not already exist in Cosmos.
+        /// </para>
+        /// <para>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the resource has been updated since it was read
+        /// (using the <see cref="ICosmosResource.ETag"/> to match the version).
+        /// </para>
+        /// </remarks>
+        /// <param name="document">The resource to be created.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task ReplaceWithNoResponseAsync(
             T document,
             CancellationToken cancellationToken = default);
 
