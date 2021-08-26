@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
+using static System.FormattableString;
 
 namespace Atc.Cosmos.Testing
 {
@@ -117,6 +119,51 @@ namespace Atc.Cosmos.Testing
             => GetAsyncEnumerator(QueryResults
                 .OfType<TResult>()
                 .Clone(options));
+
+        public virtual Task<PagedResult<T>> PagedQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => PagedQueryAsync<T>(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+        public virtual Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var startIndex = GetStartIndex(continuationToken);
+            var items = QueryResults
+                .OfType<TResult>()
+                .Skip(startIndex)
+                .Take(pageSize)
+                .Select(o => o.Clone(options))
+                .ToList();
+
+            return Task.FromResult(new PagedResult<TResult>
+            {
+                Items = items,
+                ContinuationToken = Invariant($"{startIndex + items.Count}"),
+            });
+        }
+
+        protected static int GetStartIndex(string? continuationToken)
+            => continuationToken is not null
+            && int.TryParse(
+                continuationToken,
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out var index)
+            ? index
+            : 0;
 
         protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)
