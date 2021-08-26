@@ -164,6 +164,66 @@ namespace Atc.Cosmos.Tests.Testing
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Should_Return_Result_In_Pages(
+            FakeCosmosReader<Record> sut,
+            QueryDefinition query,
+            Record[] queryResults,
+            string partitionKey)
+        {
+            sut.QueryResults.AddRange(queryResults);
+
+            var page1 = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    1,
+                    null);
+            var page2 = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    1,
+                    page1.ContinuationToken);
+
+            page1.Items
+                .Should()
+                .BeEquivalentTo(queryResults[0]);
+            page2.Items
+                .Should()
+                .BeEquivalentTo(queryResults[1]);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Of_T_Should_Return_Result_In_Pages(
+            FakeCosmosReader<Record> sut,
+            QueryDefinition query,
+            RecordAggregate[] queryResults,
+            string partitionKey)
+        {
+            sut.QueryResults.AddRange(queryResults);
+
+            var page1 = await sut
+                .PagedQueryAsync<RecordAggregate>(
+                    query,
+                    partitionKey,
+                    1,
+                    null);
+            var page2 = await sut
+                .PagedQueryAsync<RecordAggregate>(
+                    query,
+                    partitionKey,
+                    1,
+                    page1.ContinuationToken);
+
+            page1.Items
+                .Should()
+                .BeEquivalentTo(queryResults[0]);
+            page2.Items
+                .Should()
+                .BeEquivalentTo(queryResults[1]);
+        }
+
+        [Theory, AutoNSubstituteData]
         public void Should_Be_Able_To_Inject_As_Frozen_CosmosReader(
             [Frozen(Matching.ImplementedInterfaces)]
             FakeCosmosReader<Record> sut,

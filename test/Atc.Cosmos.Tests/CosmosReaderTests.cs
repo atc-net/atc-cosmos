@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
@@ -491,6 +492,202 @@ namespace Atc.Cosmos.Tests
             response[0]
                 .Should()
                 .Be(record);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void PagedQueryAsync_Uses_The_Right_Container(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void PagedQueryAsync_With_Custom_Uses_The_Right_Container(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync<Record>(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_With_Custom_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .PagedQueryAsync<Record>(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_With_Custom_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .PagedQueryAsync<Record>(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
         }
     }
 }
