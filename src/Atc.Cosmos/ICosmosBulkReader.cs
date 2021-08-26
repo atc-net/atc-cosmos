@@ -53,7 +53,7 @@ namespace Atc.Cosmos
         /// </summary>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
-        /// <returns>A <see cref="Task"/> the requested <typeparamref name="T"/> resource.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over all the <typeparamref name="T"/> resources.</returns>
         public IAsyncEnumerable<T> ReadAllAsync(
             string partitionKey,
             CancellationToken cancellationToken = default);
@@ -77,7 +77,7 @@ namespace Atc.Cosmos
         /// <param name="query">Cosmos query to execute.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
-        /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
         public IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
