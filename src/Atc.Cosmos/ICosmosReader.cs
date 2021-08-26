@@ -82,5 +82,38 @@ namespace Atc.Cosmos
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents from the configured Cosmos container using pagination.
+        /// </summary>
+        /// <param name="query">Cosmos query to execute.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="pageSize">The number of items to return per page.</param>
+        /// <param name="continuationToken">The continuationToken for getting the next page of a previous query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="T"/> resources.</returns>
+        public Task<PagedResult<T>> PagedQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents from the configured Cosmos container using pagination and a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="query">Cosmos query to execute.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="pageSize">The number of items to return per page.</param>
+        /// <param name="continuationToken">The continuationToken for getting the next page of a previous query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default);
     }
 }

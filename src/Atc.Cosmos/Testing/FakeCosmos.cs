@@ -121,6 +121,34 @@ namespace Atc.Cosmos.Testing
                     partitionKey,
                     cancellationToken);
 
+        Task<PagedResult<T>> ICosmosReader<T>.PagedQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken,
+            CancellationToken cancellationToken)
+            => ((ICosmosReader<T>)Reader)
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+        Task<PagedResult<TResult>> ICosmosReader<T>.PagedQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken,
+            CancellationToken cancellationToken)
+            => ((ICosmosReader<T>)Reader)
+                .PagedQueryAsync<TResult>(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
         Task<T?> ICosmosBulkReader<T>.FindAsync(
             string documentId,
             string partitionKey,

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,6 +104,51 @@ namespace Atc.Cosmos.Internal
                     yield return document;
                 }
             }
+        }
+
+        public Task<PagedResult<T>> PagedQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => PagedQueryAsync<T>(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+        public async Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(
+                query,
+                continuationToken,
+                requestOptions: new QueryRequestOptions
+                {
+                    PartitionKey = new PartitionKey(partitionKey),
+                    MaxItemCount = pageSize,
+                });
+
+            if (!reader.HasMoreResults)
+            {
+                return new PagedResult<TResult>();
+            }
+
+            var result = await reader
+                .ReadNextAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return new PagedResult<TResult>
+            {
+                Items = result.ToArray(),
+                ContinuationToken = result.ContinuationToken,
+            };
         }
     }
 }
