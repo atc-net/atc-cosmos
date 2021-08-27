@@ -123,7 +123,7 @@ namespace Atc.Cosmos.Testing
         public virtual Task<PagedResult<T>> PagedQueryAsync(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default)
             => PagedQueryAsync<T>(
@@ -136,7 +136,7 @@ namespace Atc.Cosmos.Testing
         public virtual Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default)
         {
@@ -144,7 +144,7 @@ namespace Atc.Cosmos.Testing
             var items = QueryResults
                 .OfType<TResult>()
                 .Skip(startIndex)
-                .Take(pageSize)
+                .Take(pageSize ?? 3)
                 .Select(o => o.Clone(options))
                 .ToList();
 

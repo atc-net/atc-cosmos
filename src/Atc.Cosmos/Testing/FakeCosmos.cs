@@ -124,7 +124,7 @@ namespace Atc.Cosmos.Testing
         Task<PagedResult<T>> ICosmosReader<T>.PagedQueryAsync(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken,
             CancellationToken cancellationToken)
             => ((ICosmosReader<T>)Reader)
@@ -138,7 +138,7 @@ namespace Atc.Cosmos.Testing
         Task<PagedResult<TResult>> ICosmosReader<T>.PagedQueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken,
             CancellationToken cancellationToken)
             => ((ICosmosReader<T>)Reader)

@@ -95,7 +95,7 @@ namespace Atc.Cosmos
         public Task<PagedResult<T>> PagedQueryAsync(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default);
 
@@ -112,7 +112,7 @@ namespace Atc.Cosmos
         public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
-            int pageSize,
+            int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default);
     }
