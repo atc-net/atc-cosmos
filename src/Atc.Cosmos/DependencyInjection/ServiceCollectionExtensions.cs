@@ -4,6 +4,7 @@ using Atc.Cosmos;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -72,15 +73,20 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <remarks>
         /// As Azure Functions does not have a mechanism for executing
         /// asynchronous initialization logic, this method should be called
-        /// during setup of the <c>IWebJobsBuilder</c>.
+        /// before running the <c>IHost</c>.
         /// </remarks>
         /// <param name="services">The service provider.</param>
-        public static void AzureFunctionInitializeCosmosDatabase(
+        /// <returns>The same service provider.</returns>
+        public static IServiceProvider AzureFunctionInitializeCosmosDatabase(
             this IServiceProvider services)
-            => services
+        {
+            services
                 .GetRequiredService<ICosmosInitializer>()
                 .InitializeAsync(CancellationToken.None)
                 .GetAwaiter().GetResult();
+
+            return services;
+        }
 
         /// <summary>
         /// Executes the Cosmos initialization logic.
@@ -88,7 +94,29 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <remarks>
         /// As Azure Functions does not have a mechanism for executing
         /// asynchronous initialization logic, this method should be called
-        /// during setup of the <c>IWebJobsBuilder</c>.
+        /// before running the <c>IHost</c>.
+        /// </remarks>
+        /// <param name="host">The host.</param>
+        /// <returns>The same host.</returns>
+        public static IHost AzureFunctionInitializeCosmosDatabase(
+            this IHost host)
+        {
+            host
+                .Services
+                .GetRequiredService<ICosmosInitializer>()
+                .InitializeAsync(CancellationToken.None)
+                .GetAwaiter().GetResult();
+
+            return host;
+        }
+
+        /// <summary>
+        /// Executes the Cosmos initialization logic.
+        /// </summary>
+        /// <remarks>
+        /// As Azure Functions does not have a mechanism for executing
+        /// asynchronous initialization logic, this method should be called
+        /// before running the <c>IHost</c>.
         /// </remarks>
         /// <param name="services">The service collection.</param>
         public static void AzureFunctionInitializeCosmosDatabase(
@@ -96,10 +124,5 @@ namespace Microsoft.Extensions.DependencyInjection
             => services
                 .BuildServiceProvider()
                 .AzureFunctionInitializeCosmosDatabase();
-
-        private static bool IsValid(this CosmosOptions options)
-            => !string.IsNullOrEmpty(options.AccountEndpoint)
-            && !string.IsNullOrEmpty(options.AccountKey)
-            && !string.IsNullOrEmpty(options.DatabaseName);
     }
 }
