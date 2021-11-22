@@ -19,8 +19,7 @@ namespace Atc.Cosmos.DependencyInjection
             Services.AddSingleton<ICosmosContainerInitializer, LeasesContainerInitializer>();
             Services.TryAddSingleton<IChangeFeedFactory, ChangeFeedFactory>();
             Services.AddSingleton<TProcessor>();
-
-            Services.AddHostedService<ChangeFeedService<T, TProcessor>>();
+            Services.AddSingleton<IChangeFeedListener, ChangeFeedListener<T, TProcessor>>();
 
             return this;
         }

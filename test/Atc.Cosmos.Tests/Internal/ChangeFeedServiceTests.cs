@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
 using Atc.Test;
+using AutoFixture;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Hosting;
 using NSubstitute;
 using Xunit;
 
@@ -14,109 +16,49 @@ namespace Atc.Cosmos.Tests.Internal
 {
     public class ChangeFeedServiceTests
     {
-        public class RecordProcessor : IChangeFeedProcessor<Record>
-        {
-            public virtual Task ProcessAsync(
-                string partitionKey,
-                IReadOnlyCollection<Record> changes,
-                CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task ErrorAsync(
-                string leaseToken,
-                Exception exception)
-                => Task.CompletedTask;
-        }
-
-        private readonly RecordProcessor processor;
-        private readonly ChangeFeedProcessor changeFeed;
-        private readonly IChangeFeedFactory factory;
-        private readonly ChangeFeedService<Record, RecordProcessor> sut;
+        private readonly IChangeFeedListener[] listeners;
+        private readonly ChangeFeedService sut;
 
         public ChangeFeedServiceTests()
         {
-            processor = Substitute.For<RecordProcessor>();
-            changeFeed = Substitute.For<ChangeFeedProcessor>();
-            factory = Substitute.For<IChangeFeedFactory>();
-            factory
-                .Create<Record>(default)
-                .ReturnsForAnyArgs(changeFeed);
+            listeners = FixtureFactory.Create().Create<IChangeFeedListener[]>();
 
-            sut = new ChangeFeedService<Record, RecordProcessor>(factory, processor);
+            sut = new ChangeFeedService(
+                listeners);
         }
 
         [Fact]
-        public void Should_Create_ChangeFeedProcessor_Using_Factory()
-        {
-            factory
-                .Received(1)
-                .Create<Record>(
-                    Arg.Any<Container.ChangesHandler<Record>>(),
-                    Arg.Any<Container.ChangeFeedMonitorErrorDelegate>());
-        }
-
-        [Theory, AutoNSubstituteData]
-        public void Should_Call_Processor_With_Partitioned_Data_From_ChangeFeed(
-            Record[][] records,
-            string[] partitionKeys,
-            CancellationToken cancellationToken)
-        {
-            for (var i = 0; i < partitionKeys.Length; i++)
-            {
-                foreach (var record in records[i])
-                {
-                    record.Pk = partitionKeys[i];
-                }
-            }
-
-            var onChanges = factory
-                .ReceivedCallWithArgument<
-                    Container.ChangesHandler<Record>>();
-
-            onChanges.Invoke(
-                records
-                    .SelectMany(a => a)
-                    .OrderBy(a => Guid.NewGuid())
-                    .ToArray(),
-                cancellationToken);
-
-            foreach (var pk in partitionKeys)
-            {
-                processor
-                    .Received(1)
-                    .ProcessAsync(
-                        pk,
-                        Arg.Any<IReadOnlyCollection<Record>>(),
-                        cancellationToken);
-            }
-
-            processor
-                .ReceivedCallsWithArguments<
-                    IReadOnlyCollection<Record>>()
+        public void Should_Implement_IHostedService()
+            => sut
                 .Should()
-                .BeEquivalentTo(records);
-        }
+                .BeAssignableTo<IHostedService>();
 
         [Theory, AutoNSubstituteData]
-        public async Task StartAsync_Should_Start_ChangeFeedProcessor(
-                CancellationToken cancellationToken)
+        public async Task StartAsync_Should_Call_Start_On_Listeners(
+            CancellationToken cancellationToken)
         {
             await sut.StartAsync(cancellationToken);
 
-            _ = changeFeed
-                .Received(1)
-                .StartAsync();
+            foreach (var listener in listeners)
+            {
+                _ = listener
+                    .Received(1)
+                    .StartAsync(cancellationToken);
+            }
         }
 
         [Theory, AutoNSubstituteData]
-        public async Task StopAsync_Should_Stop_ChangeFeedProcessor(
-                CancellationToken cancellationToken)
+        public async Task StopAsync_Should_Call_Stop_On_Listeners(
+            CancellationToken cancellationToken)
         {
             await sut.StopAsync(cancellationToken);
 
-            _ = changeFeed
-                .Received(1)
-                .StopAsync();
+            foreach (var listener in listeners)
+            {
+                _ = listener
+                    .Received(1)
+                    .StopAsync(cancellationToken);
+            }
         }
     }
 }

@@ -54,6 +54,7 @@ namespace Atc.Cosmos.DependencyInjection
         public ICosmosBuilder UseHostedService()
         {
             Services.AddHostedService<StartupInitializationJob>();
+            Services.AddHostedService<ChangeFeedService>();
 
             return this;
         }

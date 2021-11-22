@@ -1,48 +1,35 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Hosting;
 
 namespace Atc.Cosmos.Internal
 {
-    public class ChangeFeedService<TResource, TProcessor> : IHostedService
-        where TResource : class, ICosmosResource
-        where TProcessor : IChangeFeedProcessor<TResource>
+    public class ChangeFeedService : IHostedService
     {
-        private readonly ChangeFeedProcessor changeFeed;
-        private readonly TProcessor processor;
+        private readonly IEnumerable<IChangeFeedListener> listeners;
 
         public ChangeFeedService(
-            IChangeFeedFactory changeFeedFactory,
-            TProcessor processor)
+            IEnumerable<IChangeFeedListener> listeners)
         {
-            this.changeFeed = changeFeedFactory
-                .Create<TResource>(
-                OnChanges,
-                processor.ErrorAsync);
-            this.processor = processor;
+            this.listeners = listeners;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
-            => changeFeed.StartAsync();
+        {
+            var tasks = listeners
+               .Select(l => l.StartAsync(cancellationToken))
+               .ToArray();
+
+            return Task.WhenAll(tasks);
+        }
 
         public Task StopAsync(CancellationToken cancellationToken)
-            => changeFeed.StopAsync();
-
-        private Task OnChanges(
-            IReadOnlyCollection<TResource> changes,
-            CancellationToken cancellationToken)
         {
-            var partitions = changes.GroupBy(c => c.PartitionKey, StringComparer.Ordinal);
-            var tasks = partitions
-                .Select(g => processor.ProcessAsync(
-                    g.Key,
-                    g.ToArray(),
-                    cancellationToken))
-                .ToArray();
+            var tasks = listeners
+               .Select(l => l.StopAsync(cancellationToken))
+               .ToArray();
 
             return Task.WhenAll(tasks);
         }
