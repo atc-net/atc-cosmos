@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 
@@ -14,7 +14,7 @@ namespace Atc.Cosmos
         /// </summary>
         /// <param name="database">The Cosmos database.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
-        /// <returns>The resource.</returns>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task InitializeAsync(
             Database database,
             CancellationToken cancellationToken);

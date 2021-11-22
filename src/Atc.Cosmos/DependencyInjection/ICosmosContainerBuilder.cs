@@ -26,7 +26,7 @@ namespace Atc.Cosmos.DependencyInjection
         /// representing document resources in the container.
         /// </typeparam>
         /// <returns>An <see cref="ICosmosContainerBuilder" /> for configuring the container.</returns>
-        ICosmosContainerBuilder AddResource<T>()
-            where T : ICosmosResource;
+        ICosmosContainerBuilder<T> AddResource<T>()
+            where T : class, ICosmosResource;
     }
 }

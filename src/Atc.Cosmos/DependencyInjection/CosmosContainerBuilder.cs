@@ -17,13 +17,15 @@ namespace Atc.Cosmos.DependencyInjection
 
         public IServiceCollection Services { get; }
 
-        public ICosmosContainerBuilder AddResource<TResource>()
-            where TResource : ICosmosResource
+        public ICosmosContainerBuilder<TResource> AddResource<TResource>()
+            where TResource : class, ICosmosResource
         {
             Services.AddSingleton<ICosmosContainerNameProvider>(
                 new CosmosContainerNameProvider<TResource>(ContainerName));
 
-            return this;
+            return new CosmosContainerBuilder<TResource>(
+                ContainerName,
+                Services);
         }
     }
 }
