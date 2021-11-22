@@ -7,14 +7,14 @@ using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal
 {
-    public class ChangeFeedListener<TResource, TProcessor> : IChangeFeedListener
+    public class PartitionedChangeFeedListener<TResource, TProcessor> : IChangeFeedListener
         where TResource : class, ICosmosResource
         where TProcessor : IChangeFeedProcessor<TResource>
     {
         private readonly ChangeFeedProcessor changeFeed;
         private readonly TProcessor processor;
 
-        public ChangeFeedListener(
+        public PartitionedChangeFeedListener(
             IChangeFeedFactory changeFeedFactory,
             TProcessor processor)
         {

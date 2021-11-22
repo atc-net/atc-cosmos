@@ -31,7 +31,7 @@ namespace Atc.Cosmos.Tests.Internal
         private readonly RecordProcessor processor;
         private readonly ChangeFeedProcessor changeFeed;
         private readonly IChangeFeedFactory factory;
-        private readonly ChangeFeedListener<Record, RecordProcessor> sut;
+        private readonly PartitionedChangeFeedListener<Record, RecordProcessor> sut;
 
         public ChangeFeedListenerTests()
         {
@@ -42,7 +42,7 @@ namespace Atc.Cosmos.Tests.Internal
                 .Create<Record>(default)
                 .ReturnsForAnyArgs(changeFeed);
 
-            sut = new ChangeFeedListener<Record, RecordProcessor>(
+            sut = new PartitionedChangeFeedListener<Record, RecordProcessor>(
                 factory,
                 processor);
         }
