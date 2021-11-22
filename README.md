@@ -162,6 +162,43 @@ The bulk reader and writer are for optimizing performance when executing many op
 
 When not operating with bulks, the normal readers are faster as there is no delay waiting for more work.
 
+## Change Feeds
+
+The library supports adding change feed processors for a container.
+
+To do this you will need to:
+
+1. Create a processor by implementing the `IChangeFeedProcessor` interface.
+
+2. Setup the change feed processor during initialization
+
+    This is done on the `ICosmosBuilder<T>` made available using the `ConfigureCosmos()` extension on the `IServiceCollection`, like this:
+
+    ```
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.ConfigureCosmos(b => b
+        .AddContainer<MyInitializer, MyResource>(containerName)
+        .WithChangeFeedProcessor<MyChangeFeedProcessor>());
+    }
+    ```
+
+    or using the `ICosmosContainerBuilder<T>` like this:
+
+    ```
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.ConfigureCosmos(b => b
+        .AddContainer<MyInitializer>(
+          containerName,
+          c => c
+            .AddResource<MyResource>()
+            .WithChangeFeedProcessor<MyChangeFeedProcessor>()));
+    }
+    ```
+
+*Note: The change feed processor relies on a HostedService, which means that this feature is only available in AspNet Core services.*
+
 ### Unit Testing
 The reader and writer interfaces can easily be mocked, but in some cases it is nice to have a fake version of a reader or writer to mimic the behavior of the read and write operations. For this purpose the `Atc.Cosmos.Testing` namespace contains the following fakes:
 
