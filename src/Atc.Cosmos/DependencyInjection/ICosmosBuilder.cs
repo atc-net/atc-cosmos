@@ -52,7 +52,7 @@ namespace Atc.Cosmos.DependencyInjection
         /// </typeparam>
         /// <param name="name">The name of the container.</param>
         /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
-        ICosmosBuilder AddContainer<TInitializer, TResource>(
+        ICosmosBuilder<TResource> AddContainer<TInitializer, TResource>(
             string name)
             where TInitializer : class, ICosmosContainerInitializer
             where TResource : class, ICosmosResource;
@@ -66,7 +66,7 @@ namespace Atc.Cosmos.DependencyInjection
         /// </typeparam>
         /// <param name="name">The name of the container.</param>
         /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
-        ICosmosBuilder AddContainer<TResource>(
+        ICosmosBuilder<TResource> AddContainer<TResource>(
             string name)
             where TResource : class, ICosmosResource;
 
