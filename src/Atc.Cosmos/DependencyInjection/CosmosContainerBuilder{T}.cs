@@ -17,7 +17,7 @@ namespace Atc.Cosmos.DependencyInjection
         public ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>()
             where TProcessor : class, IChangeFeedProcessor<T>
         {
-            Services.TryAddSingleton<ICosmosContainerInitializer, LeasesContainerInitializer>();
+            Services.AddSingleton<ICosmosContainerInitializer, LeasesContainerInitializer>();
             Services.TryAddSingleton<IChangeFeedFactory, ChangeFeedFactory>();
             Services.AddSingleton<TProcessor>();
 
