@@ -1,3 +1,4 @@
+using System;
 using Atc.Cosmos.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,15 @@ namespace Atc.Cosmos.DependencyInjection
             return new CosmosContainerBuilder<TResource>(
                 ContainerName,
                 Services);
+        }
+
+        public ICosmosContainerBuilder AddResource(
+            Type resourceType)
+        {
+            Services.AddSingleton<ICosmosContainerNameProvider>(
+                new CosmosContainerNameProvider(resourceType, ContainerName));
+
+            return this;
         }
     }
 }

@@ -67,12 +67,10 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                .OfType<ICosmosContainerNameProvider>()
                .Single();
 
-            nameProvider.ContainerName
+            nameProvider
+                .GetContainerName(typeof(Record))
                 .Should()
                 .Be(name);
-            nameProvider.FromType
-                .Should()
-                .Be(typeof(Record));
         }
 
         [Theory, AutoNSubstituteData]
@@ -147,12 +145,10 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                .OfType<ICosmosContainerNameProvider>()
                .Single();
 
-            nameProvider.ContainerName
+            nameProvider
+                .GetContainerName(typeof(Record))
                 .Should()
                 .Be(name);
-            nameProvider.FromType
-                .Should()
-                .Be(typeof(Record));
         }
 
         [Theory, AutoNSubstituteData]

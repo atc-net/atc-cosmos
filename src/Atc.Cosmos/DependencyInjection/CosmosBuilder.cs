@@ -41,6 +41,16 @@ namespace Atc.Cosmos.DependencyInjection
             return AddContainer<TResource>(name);
         }
 
+        public ICosmosBuilder AddContainer<TInitializer>(
+            Type resourceType,
+            string name)
+            where TInitializer : class, ICosmosContainerInitializer
+        {
+            Services.AddSingleton<ICosmosContainerInitializer, TInitializer>();
+
+            return AddContainer(resourceType, name);
+        }
+
         public ICosmosBuilder<TResource> AddContainer<TResource>(
             string name)
             where TResource : class, ICosmosResource
@@ -49,6 +59,16 @@ namespace Atc.Cosmos.DependencyInjection
                 new CosmosContainerNameProvider<TResource>(name));
 
             return new CosmosBuilder<TResource>(Services);
+        }
+
+        public ICosmosBuilder AddContainer(
+            Type resourceType,
+            string name)
+        {
+            Services.AddSingleton<ICosmosContainerNameProvider>(
+                new CosmosContainerNameProvider(resourceType, name));
+
+            return this;
         }
 
         public ICosmosBuilder UseHostedService()

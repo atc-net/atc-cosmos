@@ -58,6 +58,23 @@ namespace Atc.Cosmos.DependencyInjection
             where TResource : class, ICosmosResource;
 
         /// <summary>
+        /// Adds a container with an initializer and a resource type.
+        /// </summary>
+        /// <typeparam name="TInitializer">
+        /// The <see cref="ICosmosContainerInitializer"/> to be
+        /// used for initializing the container.
+        /// </typeparam>
+        /// <param name="resourceType">
+        /// The <see cref="ICosmosResource"/> to be used for
+        /// representing document resources in the container.</param>
+        /// <param name="name">The name of the container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
+        ICosmosBuilder AddContainer<TInitializer>(
+            Type resourceType,
+            string name)
+            where TInitializer : class, ICosmosContainerInitializer;
+
+        /// <summary>
         /// Adds a container with a resource type.
         /// </summary>
         /// <typeparam name="TResource">
@@ -69,6 +86,19 @@ namespace Atc.Cosmos.DependencyInjection
         ICosmosBuilder<TResource> AddContainer<TResource>(
             string name)
             where TResource : class, ICosmosResource;
+
+        /// <summary>
+        /// Adds a container with a resource type.
+        /// </summary>
+        /// <param name="resourceType">
+        /// The <see cref="ICosmosResource"/> to be used for
+        /// representing document resources in the container.
+        /// </param>
+        /// <param name="name">The name of the container.</param>
+        /// <returns>The <see cref="ICosmosBuilder"/> instance.</returns>
+        ICosmosBuilder AddContainer(
+            Type resourceType,
+            string name);
 
         /// <summary>
         /// Configures a <see cref="IHostedService"/> for running the
