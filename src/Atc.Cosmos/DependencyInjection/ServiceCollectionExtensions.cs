@@ -62,6 +62,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ICosmosInitializer, CosmosInitializer>();
             services.AddSingleton<IJsonCosmosSerializer, JsonCosmosSerializer>();
             services.AddSingleton<ICosmosClientProvider, CosmosClientProvider>();
+            services.AddSingleton<ICosmosReaderFactory, CosmosReaderFactory>();
+            services.AddSingleton<ICosmosWriterFactory, CosmosWriterFactory>();
 
             builder(new CosmosBuilder(services));
             return services;
