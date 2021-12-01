@@ -12,7 +12,14 @@ namespace Atc.Cosmos.DependencyInjection
     public interface ICosmosContainerBuilder<T> : ICosmosContainerBuilder
         where T : class, ICosmosResource
     {
-        ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>()
+        /// <summary>
+        /// Adds a <see cref="IChangeFeedProcessor{T}"/> to the container.
+        /// </summary>
+        /// <typeparam name="TProcessor">The <see cref="IChangeFeedProcessor{T}"/> type.</typeparam>
+        /// <param name="maxDegreeOfParallelism">The maximum parallel calls to the <see cref="IChangeFeedProcessor{T}"/>.</param>
+        /// <returns>The <see cref="ICosmosContainerBuilder{T}"/> instance.</returns>
+        ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>(
+            int maxDegreeOfParallelism = 1)
             where TProcessor : class, IChangeFeedProcessor<T>;
     }
 }
