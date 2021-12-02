@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atc.Cosmos.DependencyInjection
@@ -28,5 +29,17 @@ namespace Atc.Cosmos.DependencyInjection
         /// <returns>An <see cref="ICosmosContainerBuilder" /> for configuring the container.</returns>
         ICosmosContainerBuilder<T> AddResource<T>()
             where T : class, ICosmosResource;
+
+        /// <summary>
+        /// Adds a <see cref="ICosmosResource"/> to be used for
+        /// representing document resources in the container.
+        /// </summary>
+        /// <param name="resourceType">
+        /// The <see cref="ICosmosResource"/> to be used for
+        /// representing document resources in the container.
+        /// </param>
+        /// <returns>An <see cref="ICosmosContainerBuilder" /> for configuring the container.</returns>
+        ICosmosContainerBuilder AddResource(
+            Type resourceType);
     }
 }

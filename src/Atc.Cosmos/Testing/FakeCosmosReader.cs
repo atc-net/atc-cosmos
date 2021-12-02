@@ -151,7 +151,7 @@ namespace Atc.Cosmos.Testing
             return Task.FromResult(new PagedResult<TResult>
             {
                 Items = items,
-                ContinuationToken = Invariant($"{startIndex + items.Count}"),
+                ContinuationToken = GetContinuationToken(startIndex, items.Count),
             });
         }
 
@@ -164,6 +164,13 @@ namespace Atc.Cosmos.Testing
                 out var index)
             ? index
             : 0;
+
+        protected static string? GetContinuationToken(
+            int startIndex,
+            int itemsCount)
+            => itemsCount > 0
+             ? Invariant($"{startIndex + itemsCount}")
+             : null;
 
         protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)

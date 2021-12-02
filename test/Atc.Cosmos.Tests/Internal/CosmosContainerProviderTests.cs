@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture.AutoNSubstitute;
@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 using Xunit;
 
 namespace Atc.Cosmos.Tests.Internal
@@ -62,13 +63,9 @@ namespace Atc.Cosmos.Tests.Internal
             cosmosClient
                 .GetContainer(default, default)
                 .ReturnsForAnyArgs(container);
-
             provider
-                .ContainerName
+                .GetContainerName(typeof(string))
                 .Returns(providerName);
-            provider
-                .FromType
-                .Returns(typeof(string));
 
             var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
 
@@ -92,18 +89,14 @@ namespace Atc.Cosmos.Tests.Internal
             ICosmosClientProvider clientProvider,
             [Substitute] CosmosClient cosmosClient,
             OptionsWrapper<CosmosOptions> options,
-            [Substitute] ICosmosContainerNameProvider nameProvider,
-            string providerName)
+            [Substitute] ICosmosContainerNameProvider nameProvider)
         {
             clientProvider
                 .GetClient()
                 .Returns(cosmosClient);
             nameProvider
-                .ContainerName
-                .Returns(providerName);
-            nameProvider
-                .FromType
-                .Returns(typeof(string));
+                .GetContainerName(typeof(CosmosContainerProviderTests))
+                .ReturnsNull();
 
             var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
             new Action(() => sut.GetContainer<CosmosContainerProviderTests>())
@@ -165,13 +158,9 @@ namespace Atc.Cosmos.Tests.Internal
             cosmosClient
                 .GetContainer(default, default)
                 .ReturnsForAnyArgs(container);
-
             provider
-                .ContainerName
+                .GetContainerName(typeof(string))
                 .Returns(providerName);
-            provider
-                .FromType
-                .Returns(typeof(string));
 
             var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
 
@@ -195,18 +184,14 @@ namespace Atc.Cosmos.Tests.Internal
             ICosmosClientProvider clientProvider,
             [Substitute] CosmosClient cosmosClient,
             OptionsWrapper<CosmosOptions> options,
-            [Substitute] ICosmosContainerNameProvider nameProvider,
-            string providerName)
+            [Substitute] ICosmosContainerNameProvider nameProvider)
         {
             clientProvider
                 .GetBulkClient()
                 .Returns(cosmosClient);
             nameProvider
-                .ContainerName
-                .Returns(providerName);
-            nameProvider
-                .FromType
-                .Returns(typeof(string));
+                .GetContainerName(typeof(CosmosContainerProviderTests))
+                .ReturnsNull();
 
             var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
             new Action(() => sut.GetContainer<CosmosContainerProviderTests>(allowBulk: true))
