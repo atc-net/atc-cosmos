@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
@@ -12,10 +13,14 @@ namespace Atc.Cosmos.Internal
     {
         private const string ReadAllQuery = "SELECT * FROM c";
         private readonly Container container;
+        private readonly IOptions<CosmosOptions> options;
 
-        public CosmosReader(ICosmosContainerProvider containerProvider)
+        public CosmosReader(
+            ICosmosContainerProvider containerProvider,
+            IOptions<CosmosOptions> options)
         {
             this.container = containerProvider.GetContainer<T>();
+            this.options = options;
         }
 
         public async Task<T> ReadAsync(
@@ -133,6 +138,7 @@ namespace Atc.Cosmos.Internal
                 {
                     PartitionKey = new PartitionKey(partitionKey),
                     MaxItemCount = pageSize,
+                    ResponseContinuationTokenLimitInKb = options.Value.ContinuationTokenLimitInKb,
                 });
 
             if (!reader.HasMoreResults)

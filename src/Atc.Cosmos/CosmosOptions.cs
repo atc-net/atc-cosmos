@@ -43,6 +43,16 @@ namespace Atc.Cosmos
         public int DatabaseThroughput { get; set; } = 1000;
 
         /// <summary>
+        /// Gets or sets the <see cref="Microsoft.Azure.Cosmos.QueryRequestOptions.ResponseContinuationTokenLimitInKb"/>
+        /// request option for <c>PagedQuery()</c> calls on <see cref="ICosmosReader{T}"/>.
+        /// </summary>
+        /// <remarks>
+        /// ContinuationTokenLimitInKb is used to limit the length of continuation
+        /// token in the query response. Valid values are >= 0.
+        /// </remarks>
+        public int? ContinuationTokenLimitInKb { get; set; }
+
+        /// <summary>
         /// Gets or sets the options for controlling the json serializer.
         /// </summary>
         public JsonSerializerOptions SerializerOptions { get; set; }

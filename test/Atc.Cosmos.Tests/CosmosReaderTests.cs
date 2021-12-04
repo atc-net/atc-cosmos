@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using AutoFixture;
 using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -16,6 +17,7 @@ namespace Atc.Cosmos.Tests
 {
     public class CosmosReaderTests
     {
+        private readonly CosmosOptions options;
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
         private readonly FeedResponse<Record> feedResponse;
@@ -26,7 +28,9 @@ namespace Atc.Cosmos.Tests
 
         public CosmosReaderTests()
         {
-            record = new Fixture().Create<Record>();
+            var fixture = FixtureFactory.Create();
+            options = fixture.Create<CosmosOptions>();
+            record = fixture.Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
             itemResponse
                 .Resource
@@ -55,7 +59,8 @@ namespace Atc.Cosmos.Tests
             containerProvider
                 .GetContainer<Record>()
                 .Returns(container, null);
-            sut = new CosmosReader<Record>(containerProvider);
+
+            sut = new CosmosReader<Record>(containerProvider, Options.Create(options));
         }
 
         [Fact]
@@ -515,7 +520,33 @@ namespace Atc.Cosmos.Tests
         }
 
         [Theory, AutoNSubstituteData]
-        public async Task PagedQueryAsync_Returns_Empty_No_More_Result(
+        public void PagedQueryAsync_Gets_ItemQueryIterator(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            container
+                .Received(1)
+                .GetItemQueryIterator<Record>(
+                    query,
+                    continuationToken,
+                    requestOptions: Arg.Is<QueryRequestOptions>(o
+                        => o.PartitionKey == new PartitionKey(partitionKey)
+                        && o.MaxItemCount == pageSize
+                        && o.ResponseContinuationTokenLimitInKb == options.ContinuationTokenLimitInKb));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Returns_Empty_When_No_More_Result(
             QueryDefinition query,
             string partitionKey,
             int pageSize,
