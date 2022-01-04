@@ -67,14 +67,14 @@ There are 3 ways to provide the `CosmosOptions` to the library:
 
     This could be done by e.g. reading the `CosmosOptions` from configuration, like this:
 
-    ```
+    ```c#
     services.Configure<CosmosOptions>(
       Configuration.GetSection(configurationSectionName));
     ```
 
     Or by using a factory class implementing the `IConfigureOptions<CosmosOptions>` interface and register it like this:
 
-    ```
+    ```c#
     services.ConfigureOptions<ConfigureCosmosOptions>();
     ```
 
@@ -96,7 +96,7 @@ For each Cosmos resource you want to access using the `ICosmosReader<T>` and `IC
 
     This is done on the `ICosmosBuilder` made available using the `ConfigureCosmos()` extension on the `IServiceCollection`, like this:
 
-    ```
+    ```c#
     public void ConfigureServices(IServiceCollection services)
     {
       services.ConfigureCosmos(b => b.AddContainer<MyResource>(containerName));
@@ -119,7 +119,7 @@ To do this you will need to:
 
     This is done on the `ICosmosBuilder` made available using the `ConfigureCosmos()` extension on the `IServiceCollection`, like this:
 
-    ```
+    ```c#
     public void ConfigureServices(IServiceCollection services)
     {
       services.ConfigureCosmos(b => b.AddContainer<MyInitializer>(containerName));
@@ -129,7 +129,8 @@ To do this you will need to:
 3. Chose a way to run the initialization
 
     For an AspNet Core services, a HostedService can be used, like this:
-    ```
+    
+    ```c#
     public void ConfigureServices(IServiceCollection services)
     {
       services.ConfigureCosmos(b => b.UseHostedService()));
@@ -138,7 +139,8 @@ To do this you will need to:
 
     For Azure Functions, the `AzureFunctionInitializeCosmosDatabase()` extension method
     can be used to execute the initialization (synchronously) like this:
-    ```
+    
+    ```c#
     public void Configure(IWebJobsBuilder builder)
     {
         ConfigureServices(builder.Services);
@@ -174,7 +176,7 @@ To do this you will need to:
 
     This is done on the `ICosmosBuilder<T>` made available using the `ConfigureCosmos()` extension on the `IServiceCollection`, like this:
 
-    ```
+    ```c#
     public void ConfigureServices(IServiceCollection services)
     {
       services.ConfigureCosmos(b => b
@@ -185,7 +187,7 @@ To do this you will need to:
 
     or using the `ICosmosContainerBuilder<T>` like this:
 
-    ```
+    ```c#
     public void ConfigureServices(IServiceCollection services)
     {
       services.ConfigureCosmos(b => b
