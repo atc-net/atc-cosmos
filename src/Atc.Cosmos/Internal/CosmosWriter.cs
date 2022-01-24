@@ -108,6 +108,29 @@ namespace Atc.Cosmos.Internal
                     new PartitionKey(partitionKey),
                     cancellationToken: cancellationToken);
 
+        public async Task<bool> TryDeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await container
+                    .DeleteItemAsync<object>(
+                        documentId,
+                        new PartitionKey(partitionKey),
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (CosmosException ex)
+             when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public Task<T> UpdateAsync(
             string documentId,
             string partitionKey,

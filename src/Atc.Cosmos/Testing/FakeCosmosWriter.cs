@@ -125,6 +125,28 @@ namespace Atc.Cosmos.Testing
             return Task.CompletedTask;
         }
 
+        public async Task<bool> TryDeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await DeleteAsync(
+                    documentId,
+                    partitionKey,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            }
+            catch (CosmosException ex)
+             when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public virtual Task<T> UpdateAsync(
             string documentId,
             string partitionKey,

@@ -136,6 +136,21 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Tries to delete the specified <typeparamref name="T"/> resource from Cosmos.
+        /// </summary>
+        /// <remarks>
+        /// When trying to delete a non existing resource, False is returned.
+        /// </remarks>
+        /// <param name="documentId">Id of the resource.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>True if resource was deleted otherwise False.</returns>
+        public Task<bool> TryDeleteAsync(
+            string documentId,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
         /// Cosmos collection.
         /// </summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
@@ -190,6 +191,55 @@ namespace Atc.Cosmos.Tests
            CancellationToken cancellationToken)
         {
             await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
+            _ = container
+                .Received(1)
+                .DeleteItemAsync<object>(
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    Arg.Any<ItemRequestOptions>(),
+                    cancellationToken: cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Return_True_When_Trying_To_Delete_Existing_Resource(
+           CancellationToken cancellationToken)
+        {
+            var deleted = await sut.TryDeleteAsync(
+                record.Id,
+                record.Pk,
+                cancellationToken);
+
+            deleted
+                .Should()
+                .BeTrue();
+
+            _ = container
+                .Received(1)
+                .DeleteItemAsync<object>(
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    Arg.Any<ItemRequestOptions>(),
+                    cancellationToken: cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Return_False_When_Trying_To_Delete_NonExisting_Resource(
+           CancellationToken cancellationToken)
+        {
+            container
+                .DeleteItemAsync<object>(default, default, default, default)
+                .ReturnsForAnyArgs<ItemResponse<object>>(
+                    r => throw new CosmosException("fake", HttpStatusCode.NotFound, 0, "1", 1));
+
+            var deleted = await sut.TryDeleteAsync(
+                record.Id,
+                record.Pk,
+                cancellationToken);
+
+            deleted
+                .Should()
+                .BeFalse();
+
             _ = container
                 .Received(1)
                 .DeleteItemAsync<object>(
