@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
@@ -254,6 +255,42 @@ namespace Atc.Cosmos.Internal
                 }
             }
         }
+
+        public Task<T> PatchAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
+            CancellationToken cancellationToken = default)
+            => container
+                .PatchItemAsync<object>(
+                    documentId,
+                    new PartitionKey(partitionKey),
+                    patchOperations,
+                    new PatchItemRequestOptions
+                    {
+                        FilterPredicate = filterPredicate,
+                    },
+                    cancellationToken)
+                .GetResourceWithEtag<T>(serializer);
+
+        public Task PatchWithNoResponseAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
+            CancellationToken cancellationToken = default)
+            => container
+                .PatchItemAsync<object>(
+                    documentId,
+                    new PartitionKey(partitionKey),
+                    patchOperations,
+                    new PatchItemRequestOptions
+                    {
+                        FilterPredicate = filterPredicate,
+                        EnableContentResponseOnWrite = false,
+                    },
+                    cancellationToken);
 
         private static Task MakeAsync(Action action)
         {

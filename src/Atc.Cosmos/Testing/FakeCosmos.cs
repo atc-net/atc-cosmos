@@ -317,6 +317,34 @@ namespace Atc.Cosmos.Testing
                     retries,
                     cancellationToken);
 
+        Task<T> ICosmosWriter<T>.PatchAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate,
+            CancellationToken cancellationToken)
+            => ((ICosmosWriter<T>)Writer)
+            .PatchAsync(
+                documentId,
+                partitionKey,
+                patchOperations,
+                filterPredicate,
+                cancellationToken);
+
+        Task ICosmosWriter<T>.PatchWithNoResponseAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate,
+            CancellationToken cancellationToken)
+            => ((ICosmosWriter<T>)Writer)
+                .PatchWithNoResponseAsync(
+                    documentId,
+                    partitionKey,
+                    patchOperations,
+                    filterPredicate,
+                    cancellationToken);
+
         Task ICosmosBulkWriter<T>.CreateAsync(
              T document,
              CancellationToken cancellationToken)

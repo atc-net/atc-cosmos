@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -250,6 +251,48 @@ namespace Atc.Cosmos
             Func<T> getDefaultDocument,
             Action<T> updateDocument,
             int retries = 0,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Partially update a <typeparamref name="T"/> resource in Cosmos.
+        /// </summary>
+        /// <param name="documentId">Id of the resource.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="patchOperations">Represents a list of operations to be sequentially applied to the referred Cosmos resource.</param>
+        /// <param name="filterPredicate">
+        /// Condition to be checked before the patch operations in the Azure Cosmos DB service are applied.
+        /// A <see cref="CosmosException"/> with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the condition is not met.
+        /// <example><code>FROM c WHERE c.taskNum = 3</code></example>
+        /// </param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> containing the modified <typeparamref name="T"/> resource.</returns>
+        Task<T> PatchAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Partially update a <typeparamref name="T"/> resource in Cosmos.
+        /// </summary>
+        /// <param name="documentId">Id of the resource.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="patchOperations">Represents a list of operations to be sequentially applied to the referred Cosmos resource.</param>
+        /// <param name="filterPredicate">
+        /// Condition to be checked before the patch operations in the Azure Cosmos DB service are applied.
+        /// A <see cref="CosmosException"/> with StatusCode <see cref="HttpStatusCode.PreconditionFailed"/>
+        /// will be thrown if the condition is not met.
+        /// <example><code>FROM c WHERE c.taskNum = 3</code></example>
+        /// </param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task PatchWithNoResponseAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
             CancellationToken cancellationToken = default);
     }
 }

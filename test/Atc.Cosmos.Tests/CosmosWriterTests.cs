@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,6 +45,9 @@ namespace Atc.Cosmos.Tests
                 .ReturnsForAnyArgs(response);
             container
                 .UpsertItemAsync<object>(default, default, default, default)
+                .ReturnsForAnyArgs(response);
+            container
+                .PatchItemAsync<object>(default, default, default, default)
                 .ReturnsForAnyArgs(response);
 
             reader = Substitute.For<ICosmosReader<Record>>();
@@ -429,6 +433,52 @@ namespace Atc.Cosmos.Tests
                     defaultDocument,
                     new PartitionKey(defaultDocument.Pk),
                     Arg.Any<ItemRequestOptions>(),
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PatchAsync_Calls_PatchItemAsync_On_Container(
+            IReadOnlyList<PatchOperation> patchOperations,
+            string filterPredicate,
+            CancellationToken cancellationToken)
+        {
+            await sut.PatchAsync(
+                record.Id,
+                record.Pk,
+                patchOperations,
+                filterPredicate,
+                cancellationToken);
+
+            _ = container
+                .Received(1)
+                .PatchItemAsync<object>(
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    patchOperations,
+                    Arg.Any<PatchItemRequestOptions>(),
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PatchWithNoResponseAsync_Calls_PatchItemAsync_On_Container(
+            IReadOnlyList<PatchOperation> patchOperations,
+            string filterPredicate,
+            CancellationToken cancellationToken)
+        {
+            await sut.PatchWithNoResponseAsync(
+                record.Id,
+                record.Pk,
+                patchOperations,
+                filterPredicate,
+                cancellationToken);
+
+            _ = container
+                .Received(1)
+                .PatchItemAsync<object>(
+                    record.Id,
+                    new PartitionKey(record.Pk),
+                    patchOperations,
+                    Arg.Any<PatchItemRequestOptions>(),
                     cancellationToken);
         }
     }

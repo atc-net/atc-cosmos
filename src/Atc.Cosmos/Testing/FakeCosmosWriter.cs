@@ -52,6 +52,13 @@ namespace Atc.Cosmos.Testing
         public List<T> Documents { get; set; }
             = new List<T>();
 
+        /// <summary>
+        /// Gets or sets the list of custom results to be returned by the
+        /// <see cref="PatchAsync(string, string, IReadOnlyList{PatchOperation}, string?, CancellationToken)"/> method.
+        /// </summary>
+        public List<T> PatchResults { get; set; }
+            = new List<T>();
+
         public virtual Task<T> CreateAsync(
             T document,
             CancellationToken cancellationToken = default)
@@ -222,6 +229,35 @@ namespace Atc.Cosmos.Testing
                 },
                 retries,
                 cancellationToken);
+
+        public Task<T> PatchAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
+            CancellationToken cancellationToken = default)
+        {
+            GuardExists(documentId, partitionKey);
+
+            return Task.FromResult(
+                PatchResults
+                    .Find(d
+                        => d.DocumentId == documentId
+                        && d.PartitionKey == partitionKey)
+                    .Clone(options));
+        }
+
+        public Task PatchWithNoResponseAsync(
+            string documentId,
+            string partitionKey,
+            IReadOnlyList<PatchOperation> patchOperations,
+            string? filterPredicate = null,
+            CancellationToken cancellationToken = default)
+        {
+            GuardExists(documentId, partitionKey);
+
+            return Task.CompletedTask;
+        }
 
         Task ICosmosBulkWriter<T>.CreateAsync(
             T document,
