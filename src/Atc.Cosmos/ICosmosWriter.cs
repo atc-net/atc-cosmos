@@ -123,7 +123,6 @@ namespace Atc.Cosmos
         /// </summary>
         /// <remarks>
         /// A <see cref="CosmosException"/>
-        /// A <see cref="CosmosException"/>
         /// with StatusCode <see cref="HttpStatusCode.NotFound"/>
         /// will be thrown if the resource does not already exist in Cosmos.
         /// </remarks>
