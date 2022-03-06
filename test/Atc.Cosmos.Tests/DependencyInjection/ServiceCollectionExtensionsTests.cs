@@ -2,6 +2,7 @@ using System;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
+using Atc.Test;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,8 @@ namespace Atc.Cosmos.Tests.DependencyInjection
 
         public ServiceCollectionExtensionsTests()
         {
-            var cosmosOptions = new Fixture().Create<CosmosOptions>();
+            var fixture = FixtureFactory.Create();
+            var cosmosOptions = fixture.Create<CosmosOptions>();
             cosmosOptions.UseCosmosEmulator();
             options = Options.Create(cosmosOptions);
             services = Substitute.For<IServiceCollection>();

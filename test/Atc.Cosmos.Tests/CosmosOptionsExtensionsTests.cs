@@ -1,4 +1,4 @@
-using AutoFixture.Xunit2;
+using Atc.Test;
 using FluentAssertions;
 using Xunit;
 using SUT = Atc.Cosmos.CosmosOptionsExtensions;
@@ -7,7 +7,7 @@ namespace Atc.Cosmos.Tests
 {
     public class CosmosOptionsExtensionsTests
     {
-        [Theory, AutoData]
+        [Theory, AutoNSubstituteData]
         public void UseCosmosEmulator_Sets_AccountEndpoint(
             CosmosOptions options)
         {
@@ -18,7 +18,7 @@ namespace Atc.Cosmos.Tests
                 .Be("https://localhost:8081");
         }
 
-        [Theory, AutoData]
+        [Theory, AutoNSubstituteData]
         public void UseCosmosEmulator_Sets_AccountKey(
             CosmosOptions options)
         {
