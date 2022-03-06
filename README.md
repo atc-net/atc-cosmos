@@ -57,6 +57,7 @@ For configuring how the library connects to Cosmos, the library uses the `Cosmos
 | `DatabaseName` | Name of the Cosmos database (will be provisioned by the library). |
 | `DatabaseThroughput` | The throughput provisioned for the database in measurement of Request Units per second in the Azure Cosmos DB service. |
 | `SerializerOptions` | The `JsonSerializerOptions` used for the `System.Text.Json.JsonSerializer`. |
+| `Credential` | The `TokenCredential` used for accessing [cosmos with an Azure AD token](https://docs.microsoft.com/en-us/azure/cosmos-db/managed-identity-based-authentication). Please note that setting this property will ignore any value specified in `AccountKey`. |
 
 <br/>
 
