@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +95,7 @@ namespace Atc.Cosmos.Tests.Internal
             var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
-                .ThrowExactly<InvalidOperationException>()
+                .ThrowExactlyAsync<InvalidOperationException>()
                 .WithMessage("Please start Cosmos DB Emulator");
         }
 
@@ -113,7 +113,7 @@ namespace Atc.Cosmos.Tests.Internal
             var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
-                .ThrowExactly<InvalidOperationException>()
+                .ThrowExactlyAsync<InvalidOperationException>()
                 .WithMessage("Please start Cosmos DB Emulator");
         }
 
@@ -134,7 +134,7 @@ namespace Atc.Cosmos.Tests.Internal
             var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
-                .ThrowExactly<InvalidOperationException>()
+                .ThrowExactlyAsync<InvalidOperationException>()
                 .WithMessage("Please start Cosmos DB Emulator");
         }
 
@@ -152,7 +152,7 @@ namespace Atc.Cosmos.Tests.Internal
             var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactlyAsync<Exception>()
                 .Where(e => e == exception);
         }
 
@@ -170,7 +170,7 @@ namespace Atc.Cosmos.Tests.Internal
             var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactlyAsync<Exception>()
                 .Where(e => e == exception);
         }
     }

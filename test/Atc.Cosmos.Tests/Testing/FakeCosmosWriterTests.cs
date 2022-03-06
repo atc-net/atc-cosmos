@@ -49,7 +49,7 @@ namespace Atc.Cosmos.Tests.Testing
             sut.Documents.Add(record);
             FluentActions.Awaiting(() => sut.CreateAsync(record))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.Conflict);
         }
 
@@ -114,7 +114,7 @@ namespace Atc.Cosmos.Tests.Testing
         {
             FluentActions.Awaiting(() => sut.ReplaceAsync(record))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.NotFound);
         }
 
@@ -160,7 +160,7 @@ namespace Atc.Cosmos.Tests.Testing
 
             FluentActions.Awaiting(() => sut.ReplaceAsync(record))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.PreconditionFailed);
         }
 
@@ -190,7 +190,7 @@ namespace Atc.Cosmos.Tests.Testing
         {
             FluentActions.Awaiting(() => sut.DeleteAsync(documentId, partitionKey))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.NotFound);
         }
 
@@ -224,7 +224,7 @@ namespace Atc.Cosmos.Tests.Testing
                     partitionKey,
                     d => { }))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.NotFound);
         }
 

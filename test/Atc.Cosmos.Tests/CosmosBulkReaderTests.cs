@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
@@ -117,7 +117,7 @@ namespace Atc.Cosmos.Tests
             FluentActions
                 .Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
                 .Should()
-                .Throw<CosmosException>();
+                .ThrowAsync<CosmosException>();
         }
 
         [Theory, AutoNSubstituteData]

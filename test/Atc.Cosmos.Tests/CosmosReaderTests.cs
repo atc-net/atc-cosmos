@@ -123,7 +123,7 @@ namespace Atc.Cosmos.Tests
             FluentActions
                 .Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
                 .Should()
-                .Throw<CosmosException>();
+                .ThrowAsync<CosmosException>();
         }
 
         [Theory, AutoNSubstituteData]

@@ -69,7 +69,7 @@ namespace Atc.Cosmos.Tests.Testing
         {
             FluentActions.Awaiting(() => sut.ReadAsync(documentId, partitionKey))
                 .Should()
-                .Throw<CosmosException>()
+                .ThrowAsync<CosmosException>()
                 .Where(e => e.StatusCode == System.Net.HttpStatusCode.NotFound);
         }
 
@@ -187,10 +187,10 @@ namespace Atc.Cosmos.Tests.Testing
 
             page1.Items
                 .Should()
-                .BeEquivalentTo(queryResults[0]);
+                .BeEquivalentTo(new[] { queryResults[0] });
             page2.Items
                 .Should()
-                .BeEquivalentTo(queryResults[1]);
+                .BeEquivalentTo(new[] { queryResults[1] });
         }
 
         [Theory, AutoNSubstituteData]
@@ -217,10 +217,10 @@ namespace Atc.Cosmos.Tests.Testing
 
             page1.Items
                 .Should()
-                .BeEquivalentTo(queryResults[0]);
+                .BeEquivalentTo(new[] { queryResults[0] });
             page2.Items
                 .Should()
-                .BeEquivalentTo(queryResults[1]);
+                .BeEquivalentTo(new[] { queryResults[1] });
         }
 
         [Theory, AutoNSubstituteData]
