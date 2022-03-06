@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Azure.Core;
 
 namespace Atc.Cosmos
 {
@@ -25,8 +26,9 @@ namespace Atc.Cosmos
         /// Navigate to your Azure Cosmos account.
         /// Open the Connection Strings or Keys pane, and copy the
         /// "Password" or PRIMARY KEY value.
+        /// The <see cref="AccountKey"/> is required if <see cref="Credential"/> is not specified.
         /// </remarks>
-        public string AccountKey { get; set; } = default!;
+        public string? AccountKey { get; set; } = default!;
 
         /// <summary>
         /// Gets or sets the Cosmos database name.
@@ -57,5 +59,13 @@ namespace Atc.Cosmos
         /// </summary>
         public JsonSerializerOptions SerializerOptions { get; set; }
             = new JsonSerializerOptions();
+
+        /// <summary>
+        /// Gets or sets the TokenCredential to use instead of <see cref="AccountKey"/>.
+        /// </summary>
+        /// <remarks>
+        /// When <see cref="TokenCredential"/> is provided the property <see cref="AccountKey"/> is not needed.
+        /// </remarks>
+        public TokenCredential? Credential { get; set; }
     }
 }

@@ -45,7 +45,7 @@ namespace Atc.Cosmos.Internal
         private static bool IsValid(CosmosOptions? options)
             => options is not null
             && !string.IsNullOrEmpty(options.AccountEndpoint)
-            && !string.IsNullOrEmpty(options.AccountKey)
+            && (!string.IsNullOrEmpty(options.AccountKey) || options.Credential is not null)
             && !string.IsNullOrEmpty(options.DatabaseName);
 
         private CosmosClient CreateClient(bool allowBulk)
@@ -59,7 +59,12 @@ namespace Atc.Cosmos.Internal
             options.Serializer = cosmosClientOptions.Value.Serializer
                 ?? new CosmosSerializerAdapter(serializer);
 
-            return new CosmosClient(connectionString, options);
+            return cosmosOptions.Value.Credential is not null
+                 ? new CosmosClient(
+                     cosmosOptions.Value.AccountEndpoint,
+                     cosmosOptions.Value.Credential,
+                     options)
+                 : new CosmosClient(connectionString, options);
         }
 
         private CosmosClientOptions CreateCosmosClientOptions()

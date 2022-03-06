@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
+using Atc.Cosmos.Tests.Generators;
 using Atc.Test;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -174,6 +175,67 @@ namespace Atc.Cosmos.Tests.Internal
                 .Serializer
                 .Should()
                 .Be(serializer);
+        }
+
+        [Fact]
+        public void Client_Should_Use_TokenCredential_When_Specified()
+        {
+            cosmosOptions.Credential = new FakeTokenCredential();
+            using var provider = new CosmosClientProvider(
+                Options.Create(cosmosOptions),
+                Options.Create(cosmosClientOptions),
+                serializer);
+
+            // As there is not possiblility to assert if a CosmosClient
+            // has been instanciated with a TokenCredential or auth key
+            // we simply ensure that we get a client object.
+            provider
+                .GetClient()
+                .Should()
+                .NotBeNull();
+        }
+
+        [Fact]
+        public void ShouldThrow_When_TokenCredential_And_AccountKey_IsMissing()
+        {
+            cosmosOptions.Credential = null;
+            cosmosOptions.AccountKey = string.Empty;
+
+            FluentActions.Invoking(
+                () => new CosmosClientProvider(
+                    Options.Create(cosmosOptions),
+                    Options.Create(cosmosClientOptions),
+                    serializer))
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void ShouldThrow_When_No_AccountEndpoint_IsConfigured()
+        {
+            cosmosOptions.AccountEndpoint = string.Empty;
+
+            FluentActions.Invoking(
+                () => new CosmosClientProvider(
+                    Options.Create(cosmosOptions),
+                    Options.Create(cosmosClientOptions),
+                    serializer))
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void ShouldThrow_When_No_DatabaseName_IsConfigured()
+        {
+            cosmosOptions.DatabaseName = string.Empty;
+
+            FluentActions.Invoking(
+                () => new CosmosClientProvider(
+                    Options.Create(cosmosOptions),
+                    Options.Create(cosmosClientOptions),
+                    serializer))
+                .Should()
+                .Throw<InvalidOperationException>();
         }
     }
 }
