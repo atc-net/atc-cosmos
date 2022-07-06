@@ -9,6 +9,10 @@ using Microsoft.Azure.Cosmos;
 namespace Atc.Cosmos.Testing
 {
     [SuppressMessage(
+        "Design",
+        "CA1033:Interface methods should be callable by child types",
+        Justification = "By design")]
+    [SuppressMessage(
        "Design",
        "MA0016:Prefer return collection abstraction instead of implementation",
        Justification = "By design")]
