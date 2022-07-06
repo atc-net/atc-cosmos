@@ -20,7 +20,7 @@ namespace Atc.Cosmos.Testing
        "Usage",
        "CA2227:Collection properties should be read only",
        Justification = "By design")]
-    public sealed class FakeCosmos<T> :
+    public class FakeCosmos<T> :
         ICosmosReader<T>,
         ICosmosWriter<T>,
         ICosmosBulkReader<T>,
