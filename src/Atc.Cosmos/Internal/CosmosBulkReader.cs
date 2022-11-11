@@ -75,6 +75,23 @@ namespace Atc.Cosmos.Internal
             }
         }
 
+        public async IAsyncEnumerable<T> ReadAllAsync(
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<T>(ReadAllQuery);
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var document in documents)
+                {
+                    yield return document;
+                }
+            }
+        }
+
         public IAsyncEnumerable<T> QueryAsync(
             QueryDefinition query,
             string partitionKey,
