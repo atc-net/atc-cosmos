@@ -101,6 +101,11 @@ namespace Atc.Cosmos.Testing
                     partitionKey,
                     cancellationToken);
 
+        IAsyncEnumerable<T> ICosmosReader<T>.ReadAllAsync(
+            CancellationToken cancellationToken)
+            => ((ICosmosReader<T>)Reader)
+                .ReadAllAsync(cancellationToken);
+
         IAsyncEnumerable<T> ICosmosReader<T>.QueryAsync(
             QueryDefinition query,
             string partitionKey,
