@@ -6,19 +6,27 @@ namespace Atc.Cosmos.DependencyInjection
 {
     public class CosmosBuilder : ICosmosBuilder
     {
+        private readonly ICosmosContainerRegistry containerRegistry;
+
         public CosmosBuilder(
-            IServiceCollection services)
+            IServiceCollection services,
+            ICosmosContainerRegistry containerRegistry,
+            string? databaseName)
         {
             this.Services = services;
+            this.containerRegistry = containerRegistry;
+            DatabaseName = databaseName;
         }
 
         public IServiceCollection Services { get; }
+
+        public string? DatabaseName { get; }
 
         public ICosmosBuilder AddContainer(
             string name,
             Action<ICosmosContainerBuilder> builder)
         {
-            builder(new CosmosContainerBuilder(name, Services));
+            builder(new CosmosContainerBuilder(name, Services, containerRegistry, DatabaseName));
             return this;
         }
 
@@ -55,18 +63,18 @@ namespace Atc.Cosmos.DependencyInjection
             string name)
             where TResource : class, ICosmosResource
         {
-            Services.AddSingleton<ICosmosContainerNameProvider>(
-                new CosmosContainerNameProvider<TResource>(name));
+            Services.AddSingleton(
+                containerRegistry.Register<TResource>(name, DatabaseName));
 
-            return new CosmosBuilder<TResource>(Services);
+            return new CosmosBuilder<TResource>(Services, containerRegistry, DatabaseName);
         }
 
         public ICosmosBuilder AddContainer(
             Type resourceType,
             string name)
         {
-            Services.AddSingleton<ICosmosContainerNameProvider>(
-                new CosmosContainerNameProvider(resourceType, name));
+            Services.AddSingleton(
+                containerRegistry.Register(resourceType, name, DatabaseName));
 
             return this;
         }
@@ -78,5 +86,8 @@ namespace Atc.Cosmos.DependencyInjection
 
             return this;
         }
+
+        public ICosmosBuilder ForDatabase(string databaseName)
+            => new CosmosBuilder(Services, containerRegistry, databaseName);
     }
 }

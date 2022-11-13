@@ -8,8 +8,10 @@ namespace Atc.Cosmos.DependencyInjection
         where T : class, ICosmosResource
     {
         public CosmosBuilder(
-            IServiceCollection services)
-            : base(services)
+            IServiceCollection services,
+            ICosmosContainerRegistry containerRegistry,
+            string? databaseName)
+            : base(services, containerRegistry, databaseName)
         {
         }
 

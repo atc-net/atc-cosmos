@@ -19,6 +19,11 @@ namespace Atc.Cosmos.DependencyInjection
         public string ContainerName { get; }
 
         /// <summary>
+        /// Gets the database name for the container being built. Null means default database as specified in <see cref="CosmosOptions"/>.
+        /// </summary>
+        public string? DatabaseName { get; }
+
+        /// <summary>
         /// Adds a <see cref="ICosmosResource"/> to be used for
         /// representing document resources in the container.
         /// </summary>

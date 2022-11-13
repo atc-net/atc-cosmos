@@ -15,39 +15,45 @@ namespace Atc.Cosmos.Internal
     public class CosmosInitializer : ICosmosInitializer
     {
         private readonly ICosmosClientProvider provider;
+        private readonly ICosmosDatabaseNameProvider databaseNameProvider;
         private readonly CosmosOptions options;
         private readonly IReadOnlyList<ICosmosContainerInitializer> initializers;
 
         public CosmosInitializer(
             ICosmosClientProvider provider,
             IOptions<CosmosOptions> options,
-            IEnumerable<ICosmosContainerInitializer> initializers)
+            IEnumerable<ICosmosContainerInitializer> initializers,
+            ICosmosDatabaseNameProvider databaseNameProvider)
         {
             this.provider = provider;
+            this.databaseNameProvider = databaseNameProvider;
             this.options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             this.initializers = initializers.ToList();
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            var database = await GetOrCreateDatabaseAsync(cancellationToken)
-                .ConfigureAwait(false);
+            foreach (var databaseName in databaseNameProvider.DatabaseNames)
+            {
+                var database = await GetOrCreateDatabaseAsync(databaseName, cancellationToken)
+                    .ConfigureAwait(false);
 
-            var initializerTasks = initializers
-                .Select(init => init.InitializeAsync(database, cancellationToken));
+                var initializerTasks = initializers
+                    .Select(init => init.InitializeAsync(database, cancellationToken));
 
-            await Task.WhenAll(initializerTasks)
-                .ConfigureAwait(false);
+                await Task.WhenAll(initializerTasks)
+                    .ConfigureAwait(false);
+            }
         }
 
-        private async Task<Database> GetOrCreateDatabaseAsync(CancellationToken cancellationToken)
+        private async Task<Database> GetOrCreateDatabaseAsync(string databaseName, CancellationToken cancellationToken)
         {
             try
             {
                 var response = await provider
                     .GetClient()
                     .CreateDatabaseIfNotExistsAsync(
-                        options.DatabaseName,
+                        databaseName,
                         options.DatabaseThroughput,
                         cancellationToken: cancellationToken)
                     .ConfigureAwait(false);

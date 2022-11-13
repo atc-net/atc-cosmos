@@ -1,21 +1,24 @@
 using System;
+using System.Collections.Generic;
+using System.Security.AccessControl;
 
 namespace Atc.Cosmos.Internal
 {
     public class CosmosContainerNameProvider<T> : ICosmosContainerNameProvider
         where T : ICosmosResource
     {
-        private readonly string containerName;
-
         public CosmosContainerNameProvider(
-            string containerName)
+            string containerName,
+            string? databaseName)
         {
-            this.containerName = containerName;
+            ContainerName = containerName;
+            DatabaseName = databaseName;
         }
 
-        public string? GetContainerName(Type resourceType)
-            => typeof(T) == resourceType
-             ? containerName
-             : null;
+        public string ContainerName { get; }
+
+        public string? DatabaseName { get; }
+
+        public bool IsForType(Type resourceType) => typeof(T) == resourceType;
     }
 }

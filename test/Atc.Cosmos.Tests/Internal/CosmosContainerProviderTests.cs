@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture.AutoNSubstitute;
@@ -30,7 +31,7 @@ namespace Atc.Cosmos.Tests.Internal
 
             var sut = new CosmosContainerProvider(
                 clientProvider,
-                options,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
                 Array.Empty<ICosmosContainerNameProvider>());
 
             sut.GetContainer(containerName)
@@ -64,10 +65,19 @@ namespace Atc.Cosmos.Tests.Internal
                 .GetContainer(default, default)
                 .ReturnsForAnyArgs(container);
             provider
-                .GetContainerName(typeof(string))
+                .IsForType(typeof(string))
+                .Returns(true);
+            provider
+                .ContainerName
                 .Returns(providerName);
+            provider
+                .DatabaseName
+                .Returns(options.Value.DatabaseName);
 
-            var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
+                new[] { provider });
 
             sut.GetContainer<string>()
                 .Should()
@@ -95,10 +105,13 @@ namespace Atc.Cosmos.Tests.Internal
                 .GetClient()
                 .Returns(cosmosClient);
             nameProvider
-                .GetContainerName(typeof(CosmosContainerProviderTests))
-                .ReturnsNull();
+                .IsForType(typeof(CosmosContainerProviderTests))
+                .Returns(false);
 
-            var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
+                new[] { nameProvider });
             new Action(() => sut.GetContainer<CosmosContainerProviderTests>())
                 .Should()
                 .ThrowExactly<NotSupportedException>();
@@ -125,7 +138,7 @@ namespace Atc.Cosmos.Tests.Internal
 
             var sut = new CosmosContainerProvider(
                 clientProvider,
-                options,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
                 Array.Empty<ICosmosContainerNameProvider>());
 
             sut.GetContainer(containerName, allowBulk: true)
@@ -159,10 +172,19 @@ namespace Atc.Cosmos.Tests.Internal
                 .GetContainer(default, default)
                 .ReturnsForAnyArgs(container);
             provider
-                .GetContainerName(typeof(string))
+                .IsForType(typeof(string))
+                .Returns(true);
+            provider
+                .ContainerName
                 .Returns(providerName);
+            provider
+                .DatabaseName
+                .Returns(options.Value.DatabaseName);
 
-            var sut = new CosmosContainerProvider(clientProvider, options, new[] { provider });
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
+                new[] { provider });
 
             sut.GetContainer<string>(allowBulk: true)
                 .Should()
@@ -190,10 +212,13 @@ namespace Atc.Cosmos.Tests.Internal
                 .GetBulkClient()
                 .Returns(cosmosClient);
             nameProvider
-                .GetContainerName(typeof(CosmosContainerProviderTests))
-                .ReturnsNull();
+                .IsForType(typeof(CosmosContainerProviderTests))
+                .Returns(false);
 
-            var sut = new CosmosContainerProvider(clientProvider, options, new[] { nameProvider });
+            var sut = new CosmosContainerProvider(
+                clientProvider,
+                new CosmosDatabaseNameProvider(Enumerable.Empty<ICosmosContainerNameProvider>(), options),
+                new[] { nameProvider });
             new Action(() => sut.GetContainer<CosmosContainerProviderTests>(allowBulk: true))
                 .Should()
                 .ThrowExactly<NotSupportedException>();
