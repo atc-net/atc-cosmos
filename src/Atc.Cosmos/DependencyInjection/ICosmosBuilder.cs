@@ -120,7 +120,7 @@ namespace Atc.Cosmos.DependencyInjection
         /// Creates a new <see cref="ICosmosBuilder"/> instance for the given database.
         /// </summary>
         /// <param name="databaseName">The database name for the builder to use.</param>
-        /// <returns>A new builder instance for the given database</returns>
+        /// <returns>A new builder instance for the given database.</returns>
         ICosmosBuilder ForDatabase(string databaseName);
     }
 }

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
-
     public class CosmosDatabaseNameProvider : ICosmosDatabaseNameProvider
     {
         public CosmosDatabaseNameProvider(IEnumerable<ICosmosContainerNameProvider> providers, OptionsWrapper<CosmosOptions> options)

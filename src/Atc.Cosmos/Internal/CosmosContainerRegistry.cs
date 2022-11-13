@@ -4,7 +4,6 @@ using System.Security.AccessControl;
 
 namespace Atc.Cosmos.Internal
 {
-
     public class CosmosContainerRegistry : ICosmosContainerRegistry
     {
         private readonly HashSet<Type> constraints = new HashSet<Type>();

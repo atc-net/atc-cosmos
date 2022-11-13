@@ -63,7 +63,6 @@ namespace Atc.Cosmos.Tests.Internal
             Assert.Throws<NotSupportedException>(() => sut.Register(typeof(Record<string>), "1", "3"));
         }
 
-
         [Fact]
         public void Register_Open_Generic_Type_Will_Succeed_When_Concrete_Generic_Is_Already_Registered()
         {
