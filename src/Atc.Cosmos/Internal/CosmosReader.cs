@@ -179,5 +179,43 @@ namespace Atc.Cosmos.Internal
                 }
             }
         }
+
+        public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionPagedQueryAsync<T>(query, pageSize, continuationToken, cancellationToken);
+
+        public async Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(
+                query,
+                continuationToken,
+                requestOptions: new QueryRequestOptions
+                {
+                    MaxItemCount = pageSize,
+                    ResponseContinuationTokenLimitInKb = options.Value.ContinuationTokenLimitInKb,
+                });
+
+            if (!reader.HasMoreResults)
+            {
+                return new PagedResult<TResult>();
+            }
+
+            var result = await reader
+                .ReadNextAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return new PagedResult<TResult>
+            {
+                Items = result.ToArray(),
+                ContinuationToken = result.ContinuationToken,
+            };
+        }
     }
 }
