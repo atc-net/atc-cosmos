@@ -8,10 +8,11 @@ on:
       - reopened
 
 jobs:
-  dotnet5-build:
+  dotnet-build:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        dotnet_version: ['6.0.x', '7.0.x']
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🛒 Checkout repository
@@ -19,10 +20,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: ⚙️ Setup dotnet 6.0.x
+      - name: ⚙️ Setup dotnet ${{ matrix.os }}
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: ${{ matrix.os }}
 
       - name: 🧹 Clean
         run: dotnet clean -c Release && dotnet nuget locals all --clear
@@ -34,19 +35,23 @@ jobs:
         run: dotnet build -c Release --no-restore
 
   dotnet-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        dotnet_version: ['6.0.x', '7.0.x']
+    runs-on: ${{ matrix.os }}
     needs:
-      - dotnet5-build
+      - dotnet-build
     steps:
       - name: 🛒 Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: ⚙️ Setup dotnet 6.0.x
+      - name: ⚙️ Setup dotnet ${{ matrix.os }}
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: ${{ matrix.os }}
 
       - name: 🔁 Restore packages
         run: dotnet restore
