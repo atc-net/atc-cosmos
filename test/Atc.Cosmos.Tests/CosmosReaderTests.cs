@@ -720,5 +720,313 @@ namespace Atc.Cosmos.Tests
                 .Should()
                 .Be(continuationToken);
         }
+
+        [Theory, AutoNSubstituteData]
+        public void CrossPartitionQueryAsync_Uses_The_Right_Container(
+            QueryDefinition query,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.CrossPartitionQueryAsync(query, cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
+            QueryDefinition query,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.CrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
+
+            container
+                .Received(1)
+                .GetItemQueryIterator<Record>(query, requestOptions: null);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionQueryAsync_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut.CrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionQueryAsync_Returns_Empty_When_Query_Matches_Non(
+            QueryDefinition query,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(true, false);
+
+            var response = await sut.CrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionQueryAsync_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true, false);
+
+            feedResponse
+                .GetEnumerator()
+                .Returns(new List<Record> { record }.GetEnumerator());
+
+            var response = await sut.CrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+
+            _ = feedIterator
+                .Received(2)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response
+                .Should()
+                .NotBeEmpty();
+
+            response[0]
+                .Should()
+                .Be(record);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void CrossPartitionPagedQueryAsync_Uses_The_Right_Container(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.CrossPartitionPagedQueryAsync(
+                query,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void CrossPartitionPagedQueryAsync_Gets_ItemQueryIterator(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.CrossPartitionPagedQueryAsync(
+                query,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            container
+                .Received(1)
+                .GetItemQueryIterator<Record>(
+                    query,
+                    continuationToken,
+                    requestOptions: Arg.Is<QueryRequestOptions>(o
+                        => o.PartitionKey == null
+                        && o.MaxItemCount == pageSize
+                        && o.ResponseContinuationTokenLimitInKb == options.ContinuationTokenLimitInKb));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionPagedQueryAsync_Returns_Empty_When_No_More_Result(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .CrossPartitionPagedQueryAsync(
+                    query,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionPagedQueryAsync_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .CrossPartitionPagedQueryAsync(
+                    query,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void CrossPartitionPagedQueryAsync_With_Custom_Uses_The_Right_Container(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.CrossPartitionPagedQueryAsync<Record>(
+                query,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionPagedQueryAsync_With_Custom_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .CrossPartitionPagedQueryAsync<Record>(
+                    query,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionPagedQueryAsync_With_Custom_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .CrossPartitionPagedQueryAsync<Record>(
+                    query,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
+        }
     }
 }
