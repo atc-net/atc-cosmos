@@ -115,5 +115,26 @@ namespace Atc.Cosmos
             int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents across partitions from the configured Cosmos container.
+        /// </summary>
+        /// <param name="query">Cosmos query to execute.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="T"/> resources.</returns>
+        public IAsyncEnumerable<T> CrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents across partitions from the configured Cosmos container and returns a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="query">Cosmos query to execute.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default);
     }
 }

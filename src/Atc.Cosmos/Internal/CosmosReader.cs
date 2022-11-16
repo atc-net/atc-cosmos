@@ -156,5 +156,28 @@ namespace Atc.Cosmos.Internal
                 ContinuationToken = result.ContinuationToken,
             };
         }
+
+        public IAsyncEnumerable<T> CrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionQueryAsync<T>(query, cancellationToken);
+
+        public async IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(query);
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var document in documents)
+                {
+                    yield return document;
+                }
+            }
+        }
     }
 }
