@@ -103,10 +103,6 @@ namespace Atc.Cosmos.Testing
                 .Where(d => d.PartitionKey == partitionKey)
                 .Clone(options));
 
-        public IAsyncEnumerable<T> ReadAllAsync(
-            CancellationToken cancellationToken = default)
-            => GetAsyncEnumerator(Documents.Clone(options));
-
         public virtual IAsyncEnumerable<T> QueryAsync(
             QueryDefinition query,
             string partitionKey,

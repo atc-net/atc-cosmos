@@ -59,18 +59,6 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads all the specified <typeparamref name="T"/> resource from the configured
-        /// Cosmos collection.
-        ///
-        /// It is NOT recommended to read data across partitions.
-        /// This method is provided for convenience for scenarios where ALL data needs to processed or re-processed.
-        /// </summary>
-        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
-        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over all the <typeparamref name="T"/> resources.</returns>
-        public IAsyncEnumerable<T> ReadAllAsync(
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Query documents from the configured Cosmos container.
         /// </summary>
         /// <param name="query">Cosmos query to execute.</param>
