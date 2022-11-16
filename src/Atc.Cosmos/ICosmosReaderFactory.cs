@@ -20,5 +20,13 @@ namespace Atc.Cosmos
         /// <returns>A <see cref="ICosmosBulkReader{T}"/>.</returns>
         ICosmosBulkReader<TResource> CreateBulkReader<TResource>()
             where TResource : class, ICosmosResource;
+
+        /// <summary>
+        /// Create a <see cref="ICosmosBatchReader{T}"/>.
+        /// </summary>
+        /// <typeparam name="TResource">The <see cref="ICosmosResource"/> for the <see cref="ICosmosBulkReader{T}"/>.</typeparam>
+        /// <returns>A <see cref="CreateBatchReader{TResource}"/>.</returns>
+        ICosmosBatchReader<TResource> CreateBatchReader<TResource>()
+            where TResource : class, ICosmosResource;
     }
 }

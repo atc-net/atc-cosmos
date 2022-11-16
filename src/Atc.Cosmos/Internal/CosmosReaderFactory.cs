@@ -1,4 +1,3 @@
-using Atc.Cosmos.Serialization;
 using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
@@ -23,5 +22,9 @@ namespace Atc.Cosmos.Internal
         public ICosmosBulkReader<TResource> CreateBulkReader<TResource>()
             where TResource : class, ICosmosResource
             => new CosmosBulkReader<TResource>(provider);
+
+        public ICosmosBatchReader<TResource> CreateBatchReader<TResource>()
+            where TResource : class, ICosmosResource
+            => new CosmosBatchReader<TResource>(provider, options);
     }
 }
