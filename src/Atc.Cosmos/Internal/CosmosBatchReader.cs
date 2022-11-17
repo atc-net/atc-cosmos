@@ -17,7 +17,7 @@ namespace Atc.Cosmos.Internal
             ICosmosContainerProvider containerProvider,
             IOptions<CosmosOptions> options)
         {
-            this.container = containerProvider.GetContainer<T>();
+            this.container = containerProvider.GetContainer<T>(allowBulk: true);
             this.options = options;
         }
 

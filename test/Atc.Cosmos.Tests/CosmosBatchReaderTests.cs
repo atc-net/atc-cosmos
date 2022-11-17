@@ -57,7 +57,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider = Substitute.For<ICosmosContainerProvider>();
             containerProvider
-                .GetContainer<Record>()
+                .GetContainer<Record>(allowBulk: true)
                 .Returns(container, null);
 
             sut = new CosmosBatchReader<Record>(containerProvider, Options.Create(options));
@@ -76,7 +76,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -173,7 +173,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -283,7 +283,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
@@ -376,7 +376,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>();
+                .GetContainer<Record>(allowBulk: true);
         }
 
         [Theory, AutoNSubstituteData]
