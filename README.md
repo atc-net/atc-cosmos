@@ -36,7 +36,6 @@ Once the library is added to your project, you will have access to the following
 * [`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs)
 * [`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)
 * [`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)
-* [`ICosmosBatchReader<T>`](src/Atc.Cosmos/ICosmosBatchReader.cs)
 
 A document resource is represented by a class deriving from the [`CosmosResource`](src/Atc.Cosmos/CosmosResource.cs) base-class, or by implementing the underlying [`ICosmosResource`](src/Atc.Cosmos/ICosmosResource.cs) interface directly.
 
@@ -161,7 +160,6 @@ The registered interfaces are:
 |[`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs)| Represents a writer that can write Cosmos resources. |
 |[`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)| Represents a reader that can perform bulk reads on Cosmos resources. |
 |[`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)| Represents a writer that can perform bulk operations on Cosmos resources. |
-|[`ICosmosBatchReader<T>`](src/Atc.Cosmos/ICosmosBatchReader.cs)| Represents a reader that can perform bulk reads on Cosmos resources in slices |
 
 The bulk reader and writer are for optimizing performance when executing many operations towards Cosmos. It works by creating all the tasks and then use the `Task.WhenAll()` to await them. This will group operations by partition key and send them in batches of 100.
 
