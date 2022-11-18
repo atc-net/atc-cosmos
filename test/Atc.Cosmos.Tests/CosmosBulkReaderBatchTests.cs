@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Atc.Cosmos.Tests
 {
-    public class CosmosBatchReaderTests
+    public class CosmosBulkReaderBatchTests
     {
         private readonly CosmosOptions options;
         private readonly ItemResponse<Record> itemResponse;
@@ -24,9 +24,9 @@ namespace Atc.Cosmos.Tests
         private readonly Record record;
         private readonly Container container;
         private readonly ICosmosContainerProvider containerProvider;
-        private readonly CosmosBatchReader<Record> sut;
+        private readonly CosmosBulkReader<Record> sut;
 
-        public CosmosBatchReaderTests()
+        public CosmosBulkReaderBatchTests()
         {
             var fixture = FixtureFactory.Create();
             options = fixture.Create<CosmosOptions>();
@@ -60,12 +60,12 @@ namespace Atc.Cosmos.Tests
                 .GetContainer<Record>(allowBulk: true)
                 .Returns(container, null);
 
-            sut = new CosmosBatchReader<Record>(containerProvider, Options.Create(options));
+            sut = new CosmosBulkReader<Record>(containerProvider);
         }
 
         [Fact]
         public void Implements_Interface()
-            => sut.Should().BeAssignableTo<ICosmosBatchReader<Record>>();
+            => sut.Should().BeAssignableTo<ICosmosBulkReader<Record>>();
 
         [Theory, AutoNSubstituteData]
         public void ReadAllAsync_Uses_The_Right_Container(
