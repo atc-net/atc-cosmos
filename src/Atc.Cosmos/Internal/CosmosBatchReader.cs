@@ -21,7 +21,7 @@ namespace Atc.Cosmos.Internal
             this.options = options;
         }
 
-        public async IAsyncEnumerable<IEnumerable<T>> ReadAllAsync(
+        public async IAsyncEnumerable<IEnumerable<T>> BatchReadAllAsync(
             string partitionKey,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
@@ -42,13 +42,13 @@ namespace Atc.Cosmos.Internal
             }
         }
 
-        public IAsyncEnumerable<IEnumerable<T>> QueryAsync(
+        public IAsyncEnumerable<IEnumerable<T>> BatchQueryAsync(
             QueryDefinition query,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => QueryAsync<T>(query, partitionKey, cancellationToken);
+            => BatchQueryAsync<T>(query, partitionKey, cancellationToken);
 
-        public async IAsyncEnumerable<IEnumerable<TResult>> QueryAsync<TResult>(
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
             QueryDefinition query,
             string partitionKey,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -70,12 +70,12 @@ namespace Atc.Cosmos.Internal
             }
         }
 
-        public IAsyncEnumerable<IEnumerable<T>> CrossPartitionQueryAsync(
+        public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken = default)
-            => CrossPartitionQueryAsync<T>(query, cancellationToken);
+            => BatchCrossPartitionQueryAsync<T>(query, cancellationToken);
 
-        public async IAsyncEnumerable<IEnumerable<TResult>> CrossPartitionQueryAsync<TResult>(
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
             QueryDefinition query,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
