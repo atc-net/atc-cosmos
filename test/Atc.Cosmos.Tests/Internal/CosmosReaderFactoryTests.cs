@@ -18,11 +18,5 @@ namespace Atc.Cosmos.Tests.Internal
             => sut.CreateBulkReader<Record>()
                 .Should()
                 .NotBeNull();
-
-        [Theory, AutoNSubstituteData]
-        public void CreateBatchReader_Returns_NotNull(CosmosReaderFactory sut)
-            => sut.CreateBatchReader<Record>()
-                .Should()
-                .NotBeNull();
     }
 }
