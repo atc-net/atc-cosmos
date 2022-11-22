@@ -189,6 +189,43 @@ namespace Atc.Cosmos.Testing
                     continuationToken,
                     cancellationToken);
 
+        IAsyncEnumerable<IEnumerable<T>> ICosmosReader<T>.BatchReadAllAsync(
+            string partitionKey,
+            CancellationToken cancellationToken)
+            => ((ICosmosBulkReader<T>)Reader)
+                .BatchReadAllAsync(
+                    partitionKey,
+                    cancellationToken);
+
+        IAsyncEnumerable<IEnumerable<T>> ICosmosReader<T>.BatchQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+            => ((ICosmosReader<T>)Reader)
+                .BatchQueryAsync(
+                    query,
+                    partitionKey,
+                    cancellationToken);
+
+        IAsyncEnumerable<IEnumerable<TResult>> ICosmosReader<T>.BatchQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken)
+            => ((ICosmosReader<T>)Reader)
+                .BatchQueryAsync<TResult>(
+                    query,
+                    partitionKey,
+                    cancellationToken);
+
+        IAsyncEnumerable<IEnumerable<T>> ICosmosReader<T>.BatchCrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken) => throw new NotImplementedException();
+
+        IAsyncEnumerable<IEnumerable<TResult>> ICosmosReader<T>.BatchCrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            CancellationToken cancellationToken) =>
+            throw new NotImplementedException();
+
         Task<T?> ICosmosBulkReader<T>.FindAsync(
             string documentId,
             string partitionKey,
