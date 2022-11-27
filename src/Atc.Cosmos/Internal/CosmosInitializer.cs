@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
@@ -16,26 +17,27 @@ namespace Atc.Cosmos.Internal
     {
         private readonly ICosmosClientProvider provider;
         private readonly ICosmosContainerRegistry registry;
-        private readonly IReadOnlyList<ICosmosContainerInitializer> initializers;
+        private readonly IReadOnlyDictionary<CosmosOptions, ICosmosContainerInitializer> initializers;
 
         public CosmosInitializer(
             ICosmosClientProvider provider,
-            IEnumerable<ICosmosContainerInitializer> initializers,
+            IEnumerable<IScopedCosmosContainerInitializer> initializers,
             ICosmosContainerRegistry registry)
         {
             this.provider = provider;
             this.registry = registry;
-            this.initializers = initializers.ToList();
+            this.initializers = initializers.ToDictionary(i => i.Scope ?? registry.DefaultOptions, i => i.Initializer);
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            foreach (var option in registry.Options)
+            foreach (var initializer in initializers)
             {
-                var database = await GetOrCreateDatabaseAsync(option, cancellationToken)
+                var database = await GetOrCreateDatabaseAsync(initializer.Key, cancellationToken)
                     .ConfigureAwait(false);
 
                 var initializerTasks = initializers
+                    .Values
                     .Select(init => init.InitializeAsync(database, cancellationToken));
 
                 await Task.WhenAll(initializerTasks)

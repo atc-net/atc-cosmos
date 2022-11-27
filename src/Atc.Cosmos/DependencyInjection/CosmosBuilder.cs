@@ -47,7 +47,11 @@ namespace Atc.Cosmos.DependencyInjection
            where TInitializer : class, ICosmosContainerInitializer
            where TResource : class, ICosmosResource
         {
-            Services.AddSingleton<ICosmosContainerInitializer, TInitializer>();
+            Services.AddSingleton<TInitializer>();
+            Services.AddSingleton<IScopedCosmosContainerInitializer>(
+                s => new ScopedCosmosContainerInitializer(
+                    Options,
+                    s.GetRequiredService<TInitializer>()));
 
             return AddContainer<TResource>(name);
         }
@@ -57,7 +61,11 @@ namespace Atc.Cosmos.DependencyInjection
             string name)
             where TInitializer : class, ICosmosContainerInitializer
         {
-            Services.AddSingleton<ICosmosContainerInitializer, TInitializer>();
+            Services.AddSingleton<TInitializer>();
+            Services.AddSingleton<IScopedCosmosContainerInitializer>(
+                s => new ScopedCosmosContainerInitializer(
+                    Options,
+                    s.GetRequiredService<TInitializer>()));
 
             return AddContainer(resourceType, name);
         }

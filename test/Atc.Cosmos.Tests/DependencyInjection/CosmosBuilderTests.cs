@@ -105,8 +105,12 @@ namespace Atc.Cosmos.Tests.DependencyInjection
             services
                 .Received(1)
                 .Add(Arg.Is<ServiceDescriptor>(s
-                    => s.ServiceType == typeof(ICosmosContainerInitializer)
+                    => s.ServiceType == typeof(RecordInitializer)
                     && s.ImplementationType == typeof(RecordInitializer)));
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType == typeof(IScopedCosmosContainerInitializer)));
         }
 
         [Theory, AutoNSubstituteData]
