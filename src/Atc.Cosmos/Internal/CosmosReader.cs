@@ -198,7 +198,7 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     MaxItemCount = pageSize,
-                    ResponseContinuationTokenLimitInKb = options.Value.ContinuationTokenLimitInKb,
+                    ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
                 });
 
             if (!reader.HasMoreResults)

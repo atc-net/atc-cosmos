@@ -114,39 +114,5 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                 .Add(Arg.Is<ServiceDescriptor>(s
                     => s.ServiceType == typeof(IOptions<CosmosOptions>)));
         }
-
-        /*
-                [Fact]
-                public void ConfigureCosmos_Resolves()
-                {
-                    services.ConfigureCosmos(
-                        options.Value,
-                        builder =>
-                        {
-                            builder // default database
-                                .AddContainer<Record>("MyContainer")
-                                .ForDatabase("MySecondDb") // additional database
-                                    .AddContainer<Record<int>>("MyContainer2")
-                                    .AddContainer<Record<string>>("MyContainer3");
-                        });
-
-                    var clientProvider = Substitute.For<CosmosClientProvider>().As<ICosmosClientProvider>();
-                    var client = Substitute.For<CosmosClient>();
-
-                    services.AddSingleton(clientProvider);
-                    clientProvider
-                        .GetClient()
-                        .Returns(client);
-                    client
-                        .GetContainer(default, default)
-                        .ReceivedCalls()
-                        .Contains(c => c.)
-
-                    var provider = services.BuildServiceProvider();
-
-                    var reader = provider.GetRequiredService<ICosmosReader<Record>>();
-                    var reader2 = provider.GetRequiredService<ICosmosReader<Record<int>>>();
-                }
-        */
     }
 }

@@ -96,7 +96,6 @@ namespace Atc.Cosmos.Tests.Internal
                     cancellationToken);
         }
 
-
         [Theory, AutoNSubstituteData]
         public async Task Should_Initialize_Database_For_All_Options(
             ICosmosContainerInitializer initializer,

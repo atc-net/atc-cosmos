@@ -16,7 +16,6 @@ using Xunit;
 
 namespace Atc.Cosmos.Tests.Internal
 {
-
     public class CosmosContainerRegistryTests
     {
         private readonly CosmosOptions cosmosOptions;
@@ -31,7 +30,6 @@ namespace Atc.Cosmos.Tests.Internal
                 DatabaseName = fixture.Create<string>(),
                 DatabaseThroughput = fixture.Create<int>(),
             };
-
         }
 
         [Fact]

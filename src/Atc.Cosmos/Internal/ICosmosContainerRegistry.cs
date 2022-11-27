@@ -6,7 +6,7 @@ using Microsoft.Azure.Cosmos;
 namespace Atc.Cosmos.Internal
 {
     /// <summary>
-    /// Represents the registry of all registered <see cref="ICosmosContainerNameProvider"/> and associated <see cref="CosmosOptions"/>
+    /// Represents the registry of all registered <see cref="ICosmosContainerNameProvider"/> and associated <see cref="CosmosOptions"/>.
     /// </summary>
     public interface ICosmosContainerRegistry
     {

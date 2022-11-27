@@ -60,7 +60,7 @@ namespace Atc.Cosmos.Tests
                 .GetContainer<Record>()
                 .Returns(container, null);
 
-            sut = new CosmosReader<Record>(containerProvider, Options.Create(options));
+            sut = new CosmosReader<Record>(containerProvider);
         }
 
         [Fact]
