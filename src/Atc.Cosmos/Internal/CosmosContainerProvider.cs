@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
@@ -9,69 +10,91 @@ namespace Atc.Cosmos.Internal
     public class CosmosContainerProvider : ICosmosContainerProvider
     {
         private readonly ICosmosClientProvider clientProvider;
-        private readonly ICosmosDatabaseNameProvider databaseNameProvider;
-        private readonly List<ICosmosContainerNameProvider> nameProviders;
+        private readonly ICosmosContainerRegistry registry;
 
         public CosmosContainerProvider(
             ICosmosClientProvider clientProvider,
-            ICosmosDatabaseNameProvider databaseNameProvider,
-            IEnumerable<ICosmosContainerNameProvider> nameProviders)
+            ICosmosContainerRegistry registry)
         {
             this.clientProvider = clientProvider;
-            this.databaseNameProvider = databaseNameProvider;
-            this.nameProviders = nameProviders.ToList();
+            this.registry = registry;
         }
 
         public Container GetContainer<T>(
             bool allowBulk = false)
         {
-            var container = GetContainerForType(typeof(T));
-            return GetContainer(
-                container.ContainerName,
-                databaseNameProvider.ResolveDatabaseName(container),
-                allowBulk);
+            var container = registry.GetContainerForType<T>();
+            var options = container.Options ?? registry.DefaultOptions;
+
+            return GetClient(options, allowBulk)
+                .GetContainer(
+                    options.DatabaseName,
+                    container.ContainerName);
         }
 
         public Container GetContainer(
             Type resourceType,
             bool allowBulk = false)
         {
-            var container = GetContainerForType(resourceType);
-            return GetContainer(
-                container.ContainerName,
-                databaseNameProvider.ResolveDatabaseName(container),
-                allowBulk);
+            var container = registry.GetContainerForType(resourceType);
+            var options = container.Options ?? registry.DefaultOptions;
+
+            return GetClient(options, allowBulk)
+                .GetContainer(
+                    options.DatabaseName,
+                    container.ContainerName);
         }
 
         public Container GetContainer(
             string name,
-            string databaseName,
             bool allowBulk = false)
-            => GetClient(allowBulk)
+        {
+            return GetClient(registry.DefaultOptions, allowBulk)
                 .GetContainer(
-                    databaseName,
+                    registry.DefaultOptions.DatabaseName,
                     name);
+        }
 
-        public Container GetContainer(
+        public Container GetContainerWithName<T>(
             string name,
             bool allowBulk = false)
-            => GetClient(allowBulk)
+        {
+            var container = registry.GetContainerForType<T>();
+            var options = container.Options ?? registry.DefaultOptions;
+
+            return GetClient(options, allowBulk)
                 .GetContainer(
-                    databaseNameProvider.DefaultDatabaseName,
+                    options.DatabaseName,
                     name);
+        }
 
-        public string GetDatabaseFor<T>()
-            => databaseNameProvider.ResolveDatabaseName(GetContainerForType(typeof(T)));
+        public Container GetContainerWithName(
+            Type resourceType,
+            string name,
+            bool allowBulk = false)
+        {
+            var container = registry.GetContainerForType(resourceType);
+            var options = container.Options!;
 
-        private ICosmosContainerNameProvider GetContainerForType(
-            Type resourceType)
-            => nameProviders.FirstOrDefault(p => p.IsForType(resourceType))
-            ?? throw new NotSupportedException(
-                $"Type {resourceType.Name} is not supported.");
+            return GetClient(options, allowBulk)
+                .GetContainer(
+                    options.DatabaseName,
+                    name);
+        }
 
-        private CosmosClient GetClient(bool allowBulk)
+        public CosmosOptions GetCosmosOptions<T>()
+            => registry
+                .GetContainerForType<T>()
+                .Options!;
+
+        public CosmosOptions GetCosmosOptions(Type resourceType)
+            => registry
+                .GetContainerForType(resourceType)
+                .Options!;
+
+        private CosmosClient GetClient(CosmosOptions options, bool allowBulk)
             => allowBulk
-             ? clientProvider.GetBulkClient()
-             : clientProvider.GetClient();
+             ? clientProvider.GetBulkClient(options)
+             : clientProvider.GetClient(options);
     }
 }

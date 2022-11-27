@@ -15,7 +15,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Theory, AutoNSubstituteData]
         public void AddResource_Registers_ICosmosConntainerNameProvider(
             [Frozen] IServiceCollection services,
-            [Frozen] ICosmosContainerRegistry registry,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosContainerBuilder sut)
         {
             sut.AddResource<Record>();
@@ -28,7 +28,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
 
             registry
                 .Received(1)
-                .Register<Record>(sut.ContainerName, sut.DatabaseName);
+                .Register<Record>(sut.ContainerName, sut.Options);
         }
 
         // Test double registration will fail

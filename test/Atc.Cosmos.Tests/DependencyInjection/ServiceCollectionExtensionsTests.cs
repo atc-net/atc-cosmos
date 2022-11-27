@@ -1,12 +1,16 @@
 using System;
+using System.Linq;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
 using Atc.Test;
 using AutoFixture;
+using FluentAssertions;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 using Xunit;
 using SUT = Microsoft.Extensions.DependencyInjection.ServiceCollectionExtensions;
 
@@ -43,6 +47,19 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Fact]
         public void ConfigureCosmos_Calls_Builder_With_CosmosBuilder()
         {
+            // TODO: remove this as it's only here to show how to use the builder API
+            services.ConfigureCosmos(
+                options.Value,
+                builder =>
+                {
+                    var newCosmosOptions = new CosmosOptions();
+                    builder // default database
+                        .AddContainer<Record>("MyContainer")
+                        .ForDatabase(newCosmosOptions) // additional database
+                            .AddContainer<Record<int>>("MyContainer2")
+                            .AddContainer<Record<string>>("MyContainer3");
+                });
+
             SUT.ConfigureCosmos(services, builder);
 
             builder.Received(1).Invoke(Arg.Any<CosmosBuilder>());
@@ -97,5 +114,39 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                 .Add(Arg.Is<ServiceDescriptor>(s
                     => s.ServiceType == typeof(IOptions<CosmosOptions>)));
         }
+
+        /*
+                [Fact]
+                public void ConfigureCosmos_Resolves()
+                {
+                    services.ConfigureCosmos(
+                        options.Value,
+                        builder =>
+                        {
+                            builder // default database
+                                .AddContainer<Record>("MyContainer")
+                                .ForDatabase("MySecondDb") // additional database
+                                    .AddContainer<Record<int>>("MyContainer2")
+                                    .AddContainer<Record<string>>("MyContainer3");
+                        });
+
+                    var clientProvider = Substitute.For<CosmosClientProvider>().As<ICosmosClientProvider>();
+                    var client = Substitute.For<CosmosClient>();
+
+                    services.AddSingleton(clientProvider);
+                    clientProvider
+                        .GetClient()
+                        .Returns(client);
+                    client
+                        .GetContainer(default, default)
+                        .ReceivedCalls()
+                        .Contains(c => c.)
+
+                    var provider = services.BuildServiceProvider();
+
+                    var reader = provider.GetRequiredService<ICosmosReader<Record>>();
+                    var reader2 = provider.GetRequiredService<ICosmosReader<Record<int>>>();
+                }
+        */
     }
 }

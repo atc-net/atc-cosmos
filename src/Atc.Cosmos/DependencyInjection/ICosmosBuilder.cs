@@ -15,9 +15,9 @@ namespace Atc.Cosmos.DependencyInjection
         IServiceCollection Services { get; }
 
         /// <summary>
-        /// Gets the database name related to this builder. Null means default database as defined in <see cref="CosmosOptions.DatabaseName"/>.
+        /// Gets the options related to this builder. Null means default options.
         /// </summary>
-        string? DatabaseName { get; }
+        CosmosOptions? Options { get; }
 
         /// <summary>
         /// Adds a container with an initializer.
@@ -119,8 +119,8 @@ namespace Atc.Cosmos.DependencyInjection
         /// <summary>
         /// Creates a new <see cref="ICosmosBuilder"/> instance for the given database.
         /// </summary>
-        /// <param name="databaseName">The database name for the builder to use.</param>
-        /// <returns>A new builder instance for the given database.</returns>
-        ICosmosBuilder ForDatabase(string databaseName);
+        /// <param name="options">The <see cref="CosmosOptions"/> for the builder to use.</param>
+        /// <returns>A new builder instance for the given options.</returns>
+        ICosmosBuilder ForDatabase(CosmosOptions options);
     }
 }

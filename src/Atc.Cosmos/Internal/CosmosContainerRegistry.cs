@@ -1,61 +1,64 @@
 using System;
 using System.Collections.Generic;
-using System.Security.AccessControl;
+using System.Linq;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
     public class CosmosContainerRegistry : ICosmosContainerRegistry
     {
-        private readonly HashSet<Type> constraints = new HashSet<Type>();
+        private readonly IOptions<CosmosOptions> defaultOptions;
+        private readonly List<ICosmosContainerNameProvider> providers;
 
-        public ICosmosContainerNameProvider Register<T>(string containerName, string? databaseName)
-            where T : ICosmosResource
+        public CosmosContainerRegistry(
+            IOptions<CosmosOptions> defaultOptions,
+            IEnumerable<ICosmosContainerNameProvider> nameProviders)
         {
-            if (HasAlreadyBeenRegistered(typeof(T)))
-            {
-                throw new NotSupportedException(
-                    $"Type {typeof(T).Name} can only be registered once.");
-            }
+            this.defaultOptions = defaultOptions;
+            this.providers = nameProviders
+                .Select(PatchDefaultOptions)
+                .ToList();
 
-            return new CosmosContainerNameProvider<T>(containerName, databaseName);
+            Options = providers
+                .Select(p => p.Options!)
+                .Union(new[] { defaultOptions.Value })
+                .Distinct()
+                .ToList();
+
+            if (Options.Any(options => !IsValid(options)))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid configuration in {nameof(CosmosOptions)}.");
+            }
         }
 
-        public ICosmosContainerNameProvider Register(Type resourceType, string containerName, string? databaseName)
+        public CosmosOptions DefaultOptions => defaultOptions.Value;
+
+        public IReadOnlyList<CosmosOptions> Options { get; }
+
+        public ICosmosContainerNameProvider GetContainerForType<TType>()
+            => GetContainerForType(typeof(TType));
+
+        public ICosmosContainerNameProvider GetContainerForType(Type resourceType)
+            => providers.FirstOrDefault(p => p.IsForType(resourceType))
+            ?? throw new NotSupportedException(
+                $"Type {resourceType.Name} is not supported.");
+
+        private static bool IsValid(CosmosOptions options)
+            => options is not null
+            && !string.IsNullOrEmpty(options.AccountEndpoint)
+            && (!string.IsNullOrEmpty(options.AccountKey) || options.Credential is not null)
+            && !string.IsNullOrEmpty(options.DatabaseName);
+
+        private ICosmosContainerNameProvider PatchDefaultOptions(ICosmosContainerNameProvider provider)
         {
-            if (HasAlreadyBeenRegistered(resourceType))
+            if (provider.Options == null)
             {
-                throw new NotSupportedException(
-                    $"Type {resourceType.Name} can only be registered once.");
+                provider.Options = defaultOptions.Value;
             }
 
-            return new CosmosContainerNameProvider(resourceType, containerName, databaseName);
-        }
-
-        private bool HasAlreadyBeenRegistered(Type type)
-        {
-            if (type.IsGenericTypeDefinition || !type.IsGenericType)
-            {
-                if (constraints.Contains(type))
-                {
-                    return true;
-                }
-
-                constraints.Add(type);
-                return false;
-            }
-
-            if (type.IsGenericType && constraints.Contains(type.GetGenericTypeDefinition()))
-            { // if the generic version has already been registered then go no further.
-                return true;
-            }
-
-            if (constraints.Contains(type))
-            {
-                return true;
-            }
-
-            constraints.Add(type);
-            return false;
+            return provider;
         }
     }
 }

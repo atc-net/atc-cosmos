@@ -20,8 +20,9 @@ namespace Atc.Cosmos.Tests.Internal
         private readonly Database database;
         private readonly DatabaseResponse databaseResponse;
         private readonly ContainerResponse containerResponse;
-        private readonly ICosmosDatabaseNameProvider databaseNameProvider;
         private readonly CosmosOptions options;
+        private readonly CosmosOptions secondOptions;
+        private readonly ICosmosContainerRegistry containerRegistry;
 
         public CosmosInitializerTests()
         {
@@ -30,11 +31,15 @@ namespace Atc.Cosmos.Tests.Internal
             database = Substitute.For<Database>();
             databaseResponse = Substitute.For<DatabaseResponse>();
             containerResponse = Substitute.For<ContainerResponse>();
-            databaseNameProvider = Substitute.For<ICosmosDatabaseNameProvider>();
             options = Substitute.For<CosmosOptions>();
+            secondOptions = Substitute.For<CosmosOptions>();
+            containerRegistry = Substitute.For<ICosmosContainerRegistry>();
 
             clientProvider
-                .GetClient()
+                .GetClient(options)
+                .Returns(client);
+            clientProvider
+                .GetClient(secondOptions)
                 .Returns(client);
 
             client
@@ -49,9 +54,12 @@ namespace Atc.Cosmos.Tests.Internal
                 .CreateContainerIfNotExistsAsync(default, throughput: default, default, default)
                 .ReturnsForAnyArgs(containerResponse);
 
-            databaseNameProvider
-                .DatabaseNames
-                .Returns(new string[] { options.DatabaseName });
+            containerRegistry
+                .DefaultOptions
+                .Returns(options);
+            containerRegistry
+                .Options
+                .Returns(new[] { options });
         }
 
         [Theory, AutoNSubstituteData]
@@ -59,7 +67,7 @@ namespace Atc.Cosmos.Tests.Internal
             ICosmosContainerInitializer initializer,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
 
             await sut.InitializeAsync(cancellationToken);
 
@@ -77,12 +85,55 @@ namespace Atc.Cosmos.Tests.Internal
             [Substitute] ICosmosContainerInitializer initializer,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
 
             await sut.InitializeAsync(cancellationToken);
 
             _ = initializer
                 .Received(1)
+                .InitializeAsync(
+                    database,
+                    cancellationToken);
+        }
+
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Database_For_All_Options(
+            ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            containerRegistry
+                .Options
+                .Returns(new[] { options, secondOptions });
+
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = client
+                .Received(2)
+                .CreateDatabaseIfNotExistsAsync(
+                    options.DatabaseName,
+                    options.DatabaseThroughput,
+                    null,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Initializers_For_All_Options(
+            [Substitute] ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            containerRegistry
+                .Options
+                .Returns(new[] { options, secondOptions });
+
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = initializer
+                .Received(2)
                 .InitializeAsync(
                     database,
                     cancellationToken);
@@ -97,7 +148,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new SocketException((int)SocketError.ConnectionRefused));
 
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -114,7 +165,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new Exception(exceptionMessage, new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -134,7 +185,7 @@ namespace Atc.Cosmos.Tests.Internal
                     new Exception(),
                     new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -151,7 +202,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<Exception>()
@@ -168,7 +219,7 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(clientProvider, new OptionsWrapper<CosmosOptions>(options), new[] { initializer }, databaseNameProvider);
+            var sut = new CosmosInitializer(clientProvider, new[] { initializer }, containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<Exception>()

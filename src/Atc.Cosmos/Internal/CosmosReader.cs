@@ -13,14 +13,13 @@ namespace Atc.Cosmos.Internal
     {
         private const string ReadAllQuery = "SELECT * FROM c";
         private readonly Container container;
-        private readonly IOptions<CosmosOptions> options;
+        private readonly CosmosOptions options;
 
         public CosmosReader(
-            ICosmosContainerProvider containerProvider,
-            IOptions<CosmosOptions> options)
+            ICosmosContainerProvider containerProvider)
         {
             this.container = containerProvider.GetContainer<T>();
-            this.options = options;
+            this.options = containerProvider.GetCosmosOptions<T>();
         }
 
         public async Task<T> ReadAsync(
@@ -138,7 +137,7 @@ namespace Atc.Cosmos.Internal
                 {
                     PartitionKey = new PartitionKey(partitionKey),
                     MaxItemCount = pageSize,
-                    ResponseContinuationTokenLimitInKb = options.Value.ContinuationTokenLimitInKb,
+                    ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
                 });
 
             if (!reader.HasMoreResults)

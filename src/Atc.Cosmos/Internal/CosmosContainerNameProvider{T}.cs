@@ -9,15 +9,15 @@ namespace Atc.Cosmos.Internal
     {
         public CosmosContainerNameProvider(
             string containerName,
-            string? databaseName)
+            CosmosOptions? options)
         {
             ContainerName = containerName;
-            DatabaseName = databaseName;
+            Options = options;
         }
 
         public string ContainerName { get; }
 
-        public string? DatabaseName { get; }
+        public CosmosOptions? Options { get; set; }
 
         public bool IsForType(Type resourceType) => typeof(T) == resourceType;
     }

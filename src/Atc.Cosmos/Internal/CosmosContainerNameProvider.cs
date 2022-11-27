@@ -11,14 +11,14 @@ namespace Atc.Cosmos.Internal
         public CosmosContainerNameProvider(
             Type resourceType,
             string containerName,
-            string? databaseName)
+            CosmosOptions? options)
         {
-            this.containerType = resourceType;
-            this.ContainerName = containerName;
-            this.DatabaseName = databaseName;
+            containerType = resourceType;
+            ContainerName = containerName;
+            Options = options;
         }
 
-        public string? DatabaseName { get; }
+        public CosmosOptions? Options { get; set; }
 
         public string ContainerName { get; }
 

@@ -9,9 +9,9 @@ namespace Atc.Cosmos.DependencyInjection
     {
         public CosmosBuilder(
             IServiceCollection services,
-            ICosmosContainerRegistry containerRegistry,
-            string? databaseName)
-            : base(services, containerRegistry, databaseName)
+            ICosmosContainerNameProviderFactory containerRegistry,
+            CosmosOptions? options)
+            : base(services, containerRegistry, options)
         {
         }
 

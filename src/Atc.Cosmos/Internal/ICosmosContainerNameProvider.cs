@@ -14,11 +14,11 @@ namespace Atc.Cosmos.Internal
         public string ContainerName { get; }
 
         /// <summary>
-        /// Gets the configured database name for
+        /// Gets or sets the configured <see cref="CosmosOptions"/> for
         /// the specified <see cref="ICosmosResource"/> type.
-        /// A value of null means default database.
+        /// A value of null means default options.
         /// </summary>
-        public string? DatabaseName { get; }
+        public CosmosOptions? Options { get; set; }
 
         /// <summary>
         /// Verifies if this provider is for the given resource type or not.

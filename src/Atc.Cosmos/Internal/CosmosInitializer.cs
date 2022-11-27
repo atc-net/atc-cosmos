@@ -15,27 +15,24 @@ namespace Atc.Cosmos.Internal
     public class CosmosInitializer : ICosmosInitializer
     {
         private readonly ICosmosClientProvider provider;
-        private readonly ICosmosDatabaseNameProvider databaseNameProvider;
-        private readonly CosmosOptions options;
+        private readonly ICosmosContainerRegistry registry;
         private readonly IReadOnlyList<ICosmosContainerInitializer> initializers;
 
         public CosmosInitializer(
             ICosmosClientProvider provider,
-            IOptions<CosmosOptions> options,
             IEnumerable<ICosmosContainerInitializer> initializers,
-            ICosmosDatabaseNameProvider databaseNameProvider)
+            ICosmosContainerRegistry registry)
         {
             this.provider = provider;
-            this.databaseNameProvider = databaseNameProvider;
-            this.options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            this.registry = registry;
             this.initializers = initializers.ToList();
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            foreach (var databaseName in databaseNameProvider.DatabaseNames)
+            foreach (var option in registry.Options)
             {
-                var database = await GetOrCreateDatabaseAsync(databaseName, cancellationToken)
+                var database = await GetOrCreateDatabaseAsync(option, cancellationToken)
                     .ConfigureAwait(false);
 
                 var initializerTasks = initializers
@@ -46,14 +43,14 @@ namespace Atc.Cosmos.Internal
             }
         }
 
-        private async Task<Database> GetOrCreateDatabaseAsync(string databaseName, CancellationToken cancellationToken)
+        private async Task<Database> GetOrCreateDatabaseAsync(CosmosOptions options, CancellationToken cancellationToken)
         {
             try
             {
                 var response = await provider
-                    .GetClient()
+                    .GetClient(options)
                     .CreateDatabaseIfNotExistsAsync(
-                        databaseName,
+                        options.DatabaseName,
                         options.DatabaseThroughput,
                         cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
@@ -61,30 +58,30 @@ namespace Atc.Cosmos.Internal
                 return response.Database;
             }
             catch (Exception ex)
-             when (IsCosmosEmulatorMissing(ex))
+             when (IsCosmosEmulatorMissing(ex, options))
             {
                 throw new InvalidOperationException(
                     "Please start Cosmos DB Emulator");
             }
         }
 
-        private bool IsCosmosEmulatorMissing(Exception ex)
-            => provider.GetClient().Endpoint.IsLoopback
-            && IsConnectionRefused(ex);
+        private bool IsCosmosEmulatorMissing(Exception ex, CosmosOptions options)
+            => provider.GetClient(options).Endpoint.IsLoopback
+            && IsConnectionRefused(ex, options);
 
-        private bool IsConnectionRefused(Exception ex) => ex switch
+        private bool IsConnectionRefused(Exception ex, CosmosOptions options) => ex switch
         {
             SocketException
             { SocketErrorCode: SocketError.ConnectionRefused }
                 => true,
 
             AggregateException ae
-            when ae.InnerExceptions.Any(IsCosmosEmulatorMissing)
+            when ae.InnerExceptions.Any(e => IsCosmosEmulatorMissing(e, options))
                 => true,
 
             Exception { InnerException: var inner }
             when inner != null
-                => IsCosmosEmulatorMissing(inner),
+                => IsCosmosEmulatorMissing(inner, options),
 
             _ => false
         };

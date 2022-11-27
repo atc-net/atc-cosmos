@@ -45,7 +45,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Theory, AutoNSubstituteData]
         public void AddContainer_Of_Generic_Resource_Registers_NameProvider(
             [Frozen] IServiceCollection services,
-            [Frozen] ICosmosContainerRegistry registry,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosBuilder sut,
             string name)
         {
@@ -59,7 +59,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
 
             registry
                 .Received(1)
-                .Register<Record>(name, sut.DatabaseName);
+                .Register<Record>(name, sut.Options);
         }
 
         [Theory, AutoNSubstituteData]
@@ -112,7 +112,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Theory, AutoNSubstituteData]
         public void AddContainer_Of_Generic_Initializer_And_Resource_Registers_NameProvider(
             [Frozen] IServiceCollection services,
-            [Frozen] ICosmosContainerRegistry registry,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosBuilder sut,
             string name)
         {
@@ -126,7 +126,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
 
             registry
                 .Received(1)
-                .Register<Record>(name, sut.DatabaseName);
+                .Register<Record>(name, sut.Options);
         }
 
         [Theory, AutoNSubstituteData]

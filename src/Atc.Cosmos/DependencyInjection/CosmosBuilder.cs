@@ -1,32 +1,34 @@
 using System;
 using Atc.Cosmos.Internal;
+using Atc.Cosmos.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.DependencyInjection
 {
     public class CosmosBuilder : ICosmosBuilder
     {
-        private readonly ICosmosContainerRegistry containerRegistry;
+        private readonly ICosmosContainerNameProviderFactory containerRegistry;
 
         public CosmosBuilder(
             IServiceCollection services,
-            ICosmosContainerRegistry containerRegistry,
-            string? databaseName)
+            ICosmosContainerNameProviderFactory containerRegistry,
+            CosmosOptions? options)
         {
             this.Services = services;
             this.containerRegistry = containerRegistry;
-            DatabaseName = databaseName;
+            this.Options = options;
         }
 
         public IServiceCollection Services { get; }
 
-        public string? DatabaseName { get; }
+        public CosmosOptions? Options { get; }
 
         public ICosmosBuilder AddContainer(
             string name,
             Action<ICosmosContainerBuilder> builder)
         {
-            builder(new CosmosContainerBuilder(name, Services, containerRegistry, DatabaseName));
+            builder(new CosmosContainerBuilder(name, Services, containerRegistry, Options));
             return this;
         }
 
@@ -36,6 +38,7 @@ namespace Atc.Cosmos.DependencyInjection
             where TInitializer : class, ICosmosContainerInitializer
         {
             Services.AddSingleton<ICosmosContainerInitializer, TInitializer>();
+
             return AddContainer(name, builder);
         }
 
@@ -64,9 +67,9 @@ namespace Atc.Cosmos.DependencyInjection
             where TResource : class, ICosmosResource
         {
             Services.AddSingleton(
-                containerRegistry.Register<TResource>(name, DatabaseName));
+                containerRegistry.Register<TResource>(name, Options));
 
-            return new CosmosBuilder<TResource>(Services, containerRegistry, DatabaseName);
+            return new CosmosBuilder<TResource>(Services, containerRegistry, Options);
         }
 
         public ICosmosBuilder AddContainer(
@@ -74,7 +77,7 @@ namespace Atc.Cosmos.DependencyInjection
             string name)
         {
             Services.AddSingleton(
-                containerRegistry.Register(resourceType, name, DatabaseName));
+                containerRegistry.Register(resourceType, name, Options));
 
             return this;
         }
@@ -87,7 +90,9 @@ namespace Atc.Cosmos.DependencyInjection
             return this;
         }
 
-        public ICosmosBuilder ForDatabase(string databaseName)
-            => new CosmosBuilder(Services, containerRegistry, databaseName);
+        public ICosmosBuilder ForDatabase(CosmosOptions options)
+        {
+            return new CosmosBuilder(Services, containerRegistry, options);
+        }
     }
 }

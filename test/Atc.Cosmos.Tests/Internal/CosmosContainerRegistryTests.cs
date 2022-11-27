@@ -1,80 +1,99 @@
 using System;
 using System.Linq;
+using System.Text;
 using Atc.Cosmos.Internal;
+using Atc.Cosmos.Serialization;
+using Atc.Cosmos.Tests.Generators;
 using Atc.Test;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
+using Microsoft.Win32;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using NSubstitute.ReturnsExtensions;
 using Xunit;
 
 namespace Atc.Cosmos.Tests.Internal
 {
+
     public class CosmosContainerRegistryTests
     {
-        [Theory, AutoNSubstituteData]
-        public void Register_Return_Specified_Provider(string containerName, string databaseName)
+        private readonly CosmosOptions cosmosOptions;
+
+        public CosmosContainerRegistryTests()
         {
-            var sut = new CosmosContainerRegistry();
+            var fixture = FixtureFactory.Create();
+            cosmosOptions = new CosmosOptions
+            {
+                AccountEndpoint = fixture.Create<Uri>().AbsoluteUri,
+                AccountKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(fixture.Create<string>())),
+                DatabaseName = fixture.Create<string>(),
+                DatabaseThroughput = fixture.Create<int>(),
+            };
 
-            var provider = sut.Register<Record>(containerName, databaseName);
-
-            provider
-                .Should()
-                .NotBeNull();
-            provider
-                .IsForType(typeof(Record))
-                .Should()
-                .BeTrue();
-
-            provider
-                .ContainerName
-                .Should()
-                .Be(containerName);
-            provider
-                .DatabaseName
-                .Should()
-                .Be(databaseName);
-        }
-
-        [Theory, AutoNSubstituteData]
-        public void Register_Throw_When_Provider_Is_Already_Registered(string containerName, string databaseName)
-        {
-            var sut = new CosmosContainerRegistry();
-
-            sut.Register<Record>(containerName, databaseName);
-
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record>(containerName, databaseName));
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record>("123", databaseName));
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record>(containerName, "123"));
         }
 
         [Fact]
-        public void Register_Concrete_Generic_Type_Will_Throw_When_Open_Generic_Is_Already_Registered()
+        public void ShouldThrow_When_TokenCredential_And_AccountKey_IsMissing()
         {
-            var sut = new CosmosContainerRegistry();
+            cosmosOptions.Credential = null;
+            cosmosOptions.AccountKey = string.Empty;
 
-            sut.Register(typeof(Record<>), "container", "database");
-
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record<string>>("1", "3"));
-            Assert.Throws<NotSupportedException>(() => sut.Register(typeof(Record<string>), "1", "3"));
+            FluentActions.Invoking(
+                () => new CosmosContainerRegistry(
+                    Options.Create(cosmosOptions),
+                    Enumerable.Empty<ICosmosContainerNameProvider>()))
+                .Should()
+                .Throw<InvalidOperationException>();
         }
 
         [Fact]
-        public void Register_Open_Generic_Type_Will_Succeed_When_Concrete_Generic_Is_Already_Registered()
+        public void ShouldThrow_When_No_AccountEndpoint_IsConfigured()
         {
-            var sut = new CosmosContainerRegistry();
+            cosmosOptions.AccountEndpoint = string.Empty;
 
-            sut.Register(typeof(Record<string>), "container", "database");
+            FluentActions.Invoking(
+                () => new CosmosContainerRegistry(
+                    Options.Create(cosmosOptions),
+                    Enumerable.Empty<ICosmosContainerNameProvider>()))
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
 
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record<string>>("1", "3"));
-            sut.Register(typeof(Record<>), "1", "3");
+        [Fact]
+        public void ShouldThrow_When_No_DatabaseName_IsConfigured()
+        {
+            cosmosOptions.DatabaseName = string.Empty;
 
-            // when base generic has been registered then we do not allow any additional registrations
-            Assert.Throws<NotSupportedException>(() => sut.Register<Record<int>>("1", "3"));
+            FluentActions.Invoking(
+                () => new CosmosContainerRegistry(
+                    Options.Create(cosmosOptions),
+                    Enumerable.Empty<ICosmosContainerNameProvider>()))
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void GetContainerForType_Of_Unsupported_Type_Throws_NotSupportedException(
+            OptionsWrapper<CosmosOptions> options,
+            [Substitute] ICosmosContainerNameProvider nameProvider)
+        {
+            nameProvider
+                .IsForType(typeof(CosmosContainerProviderTests))
+                .Returns(false);
+
+            var sut = new CosmosContainerRegistry(
+                options,
+                new[] { nameProvider });
+
+            new Action(() => sut.GetContainerForType<CosmosContainerProviderTests>())
+                .Should()
+                .ThrowExactly<NotSupportedException>();
+
+            new Action(() => sut.GetContainerForType(typeof(CosmosContainerProviderTests)))
+                .Should()
+                .ThrowExactly<NotSupportedException>();
         }
     }
 }

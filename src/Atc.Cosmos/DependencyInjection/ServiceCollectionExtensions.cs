@@ -55,9 +55,8 @@ namespace Microsoft.Extensions.DependencyInjection
            this IServiceCollection services,
            Action<ICosmosBuilder> builder)
         {
-            var registry = new CosmosContainerRegistry();
-            services.AddSingleton<ICosmosContainerRegistry>(registry);
-            services.AddSingleton<ICosmosDatabaseNameProvider, CosmosDatabaseNameProvider>();
+            var registry = new CosmosContainerNameProviderFactory();
+            services.AddSingleton<ICosmosContainerNameProviderFactory>(registry);
             services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>();
             services.AddSingleton(typeof(ICosmosReader<>), typeof(CosmosReader<>));
             services.AddSingleton(typeof(ICosmosWriter<>), typeof(CosmosWriter<>));
@@ -88,7 +87,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services
                 .GetRequiredService<ICosmosInitializer>()
                 .InitializeAsync(CancellationToken.None)
-                .GetAwaiter().GetResult();
+                .GetAwaiter()
+                .GetResult();
 
             return services;
         }
@@ -110,7 +110,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Services
                 .GetRequiredService<ICosmosInitializer>()
                 .InitializeAsync(CancellationToken.None)
-                .GetAwaiter().GetResult();
+                .GetAwaiter()
+                .GetResult();
 
             return host;
         }

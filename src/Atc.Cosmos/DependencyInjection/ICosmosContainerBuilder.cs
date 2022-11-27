@@ -19,9 +19,9 @@ namespace Atc.Cosmos.DependencyInjection
         public string ContainerName { get; }
 
         /// <summary>
-        /// Gets the database name for the container being built. Null means default database as specified in <see cref="CosmosOptions"/>.
+        /// Gets the <see cref="CosmosOptions"/> for the container being built. Null means default options.
         /// </summary>
-        public string? DatabaseName { get; }
+        public CosmosOptions? Options { get; }
 
         /// <summary>
         /// Adds a <see cref="ICosmosResource"/> to be used for
