@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Atc.Cosmos.Internal;
 using Microsoft.Azure.Cosmos;
 using static System.FormattableString;
 
@@ -154,6 +155,89 @@ namespace Atc.Cosmos.Testing
                 ContinuationToken = GetContinuationToken(startIndex, items.Count),
             });
         }
+
+        public virtual IAsyncEnumerable<T> CrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionQueryAsync<T>(
+                query,
+                cancellationToken);
+
+        public virtual IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(QueryResults
+                .OfType<TResult>()
+                .Clone(options));
+
+        public virtual Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionPagedQueryAsync<T>(
+                query,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+        public virtual Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var startIndex = GetStartIndex(continuationToken);
+            var items = QueryResults
+                .OfType<TResult>()
+                .Skip(startIndex)
+                .Take(pageSize ?? 3)
+                .Select(o => o.Clone(options))
+                .ToList();
+
+            return Task.FromResult(new PagedResult<TResult>
+            {
+                Items = items,
+                ContinuationToken = GetContinuationToken(startIndex, items.Count),
+            });
+        }
+
+        public IAsyncEnumerable<IEnumerable<T>> BatchReadAllAsync(
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(Documents
+                .Where(d => d.PartitionKey == partitionKey)
+                .Chunk(3));
+
+        public IAsyncEnumerable<IEnumerable<T>> BatchQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(QueryResults
+                .OfType<T>()
+                .Chunk(3));
+
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(QueryResults
+                .OfType<TResult>()
+                .Chunk(3));
+
+        public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(QueryResults
+                .OfType<T>()
+                .Chunk(3));
+
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(QueryResults
+                .OfType<TResult>()
+                .Chunk(3));
 
         protected static int GetStartIndex(string? continuationToken)
             => continuationToken is not null

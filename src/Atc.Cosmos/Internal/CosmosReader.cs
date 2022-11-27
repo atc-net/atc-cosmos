@@ -155,5 +155,136 @@ namespace Atc.Cosmos.Internal
                 ContinuationToken = result.ContinuationToken,
             };
         }
+
+        public IAsyncEnumerable<T> CrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionQueryAsync<T>(query, cancellationToken);
+
+        public async IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(query);
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var document in documents)
+                {
+                    yield return document;
+                }
+            }
+        }
+
+        public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionPagedQueryAsync<T>(query, pageSize, continuationToken, cancellationToken);
+
+        public async Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(
+                query,
+                continuationToken,
+                requestOptions: new QueryRequestOptions
+                {
+                    MaxItemCount = pageSize,
+                    ResponseContinuationTokenLimitInKb = options.Value.ContinuationTokenLimitInKb,
+                });
+
+            if (!reader.HasMoreResults)
+            {
+                return new PagedResult<TResult>();
+            }
+
+            var result = await reader
+                .ReadNextAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return new PagedResult<TResult>
+            {
+                Items = result.ToArray(),
+                ContinuationToken = result.ContinuationToken,
+            };
+        }
+
+        public async IAsyncEnumerable<IEnumerable<T>> BatchReadAllAsync(
+            string partitionKey,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<T>(
+                ReadAllQuery,
+                requestOptions: new QueryRequestOptions
+                {
+                    PartitionKey = new PartitionKey(partitionKey),
+                });
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                yield return documents;
+            }
+        }
+
+        public IAsyncEnumerable<IEnumerable<T>> BatchQueryAsync(
+            QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => BatchQueryAsync<T>(query, partitionKey, cancellationToken);
+
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            QueryDefinition query,
+            string partitionKey,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(
+                query,
+                requestOptions: new QueryRequestOptions
+                {
+                    PartitionKey = new PartitionKey(partitionKey),
+                });
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                yield return documents;
+            }
+        }
+
+        public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
+            QueryDefinition query,
+            CancellationToken cancellationToken = default)
+            => BatchCrossPartitionQueryAsync<T>(query, cancellationToken);
+
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            QueryDefinition query,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var reader = container.GetItemQueryIterator<TResult>(query);
+
+            while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
+            {
+                var documents = await reader
+                    .ReadNextAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                yield return documents;
+            }
+        }
     }
 }
