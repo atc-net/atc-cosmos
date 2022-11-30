@@ -26,7 +26,7 @@ namespace Atc.Cosmos.Internal
                     onChanges)
                 .WithInstanceName(Guid.NewGuid().ToString())
                 .WithLeaseContainer(
-                    containerProvider.GetContainer(LeasesContainerInitializer.ContainerId))
+                    containerProvider.GetContainerWithName<T>(LeasesContainerInitializer.ContainerId))
                 .WithMaxItems(100)
                 .WithPollInterval(TimeSpan.FromMilliseconds(1000))
                 .WithStartTime(DateTime.MinValue.ToUniversalTime()); // Will start from the beginning of feed when no lease is found.

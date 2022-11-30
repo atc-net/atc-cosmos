@@ -104,6 +104,20 @@ For each Cosmos resource you want to access using the `ICosmosReader<T>` and `IC
     }
     ```
 
+3. If you want to connect to multiple databases you would need to scope your container to a new `CosmosOptions` instance in the following way:
+
+    ```c#
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.ConfigureCosmos(
+          b => b.AddContainer<MyResource>(containerName)
+                .ForDatabase(secondDbOptions)
+                  .AddContainer<MySecondResource>(containerName));
+    }
+    ```
+    The first call to AddContainer will be scoped to the default options as the passed builder 'b' is always scoped to the default options.
+    The subsequent call to *ForDatabase* will return a new builder scoped for the options passed to this method and any subsequent calls to this builder will have the same scope.
+
 ## Initialize containers
 
 The library supports adding initializers for each container, that can then be used to create

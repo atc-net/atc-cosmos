@@ -14,8 +14,8 @@ namespace Atc.Cosmos.Tests.DependencyInjection
     {
         [Theory, AutoNSubstituteData]
         public void AddResource_Registers_ICosmosConntainerNameProvider(
-            [Frozen] string containerName,
             [Frozen] IServiceCollection services,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosContainerBuilder sut)
         {
             sut.AddResource<Record>();
@@ -26,21 +26,12 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                     => s.ServiceType
                     == typeof(ICosmosContainerNameProvider)));
 
-            var nameProvider = services
-                .ReceivedCalls()
-                .SelectMany(c => c.GetArguments())
-                .OfType<ServiceDescriptor>()
-                .Where(s
-                    => s.ServiceType
-                    == typeof(ICosmosContainerNameProvider))
-                .Select(s => s.ImplementationInstance)
-                .OfType<ICosmosContainerNameProvider>()
-                .Single();
-
-            nameProvider
-                .GetContainerName(typeof(Record))
-                .Should()
-                .Be(containerName);
+            registry
+                .Received(1)
+                .Register<Record>(sut.ContainerName, sut.Options);
         }
+
+        // Test double registration will fail
+        // Test same container in different databases will fail
     }
 }

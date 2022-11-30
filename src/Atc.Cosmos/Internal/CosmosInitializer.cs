@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,37 +16,41 @@ namespace Atc.Cosmos.Internal
     public class CosmosInitializer : ICosmosInitializer
     {
         private readonly ICosmosClientProvider provider;
-        private readonly CosmosOptions options;
-        private readonly IReadOnlyList<ICosmosContainerInitializer> initializers;
+        private readonly ICosmosContainerRegistry registry;
+        private readonly IReadOnlyDictionary<CosmosOptions, ICosmosContainerInitializer> initializers;
 
         public CosmosInitializer(
             ICosmosClientProvider provider,
-            IOptions<CosmosOptions> options,
-            IEnumerable<ICosmosContainerInitializer> initializers)
+            IEnumerable<IScopedCosmosContainerInitializer> initializers,
+            ICosmosContainerRegistry registry)
         {
             this.provider = provider;
-            this.options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-            this.initializers = initializers.ToList();
+            this.registry = registry;
+            this.initializers = initializers.ToDictionary(i => i.Scope ?? registry.DefaultOptions, i => i.Initializer);
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            var database = await GetOrCreateDatabaseAsync(cancellationToken)
-                .ConfigureAwait(false);
+            foreach (var initializer in initializers)
+            {
+                var database = await GetOrCreateDatabaseAsync(initializer.Key, cancellationToken)
+                    .ConfigureAwait(false);
 
-            var initializerTasks = initializers
-                .Select(init => init.InitializeAsync(database, cancellationToken));
+                var initializerTasks = initializers
+                    .Values
+                    .Select(init => init.InitializeAsync(database, cancellationToken));
 
-            await Task.WhenAll(initializerTasks)
-                .ConfigureAwait(false);
+                await Task.WhenAll(initializerTasks)
+                    .ConfigureAwait(false);
+            }
         }
 
-        private async Task<Database> GetOrCreateDatabaseAsync(CancellationToken cancellationToken)
+        private async Task<Database> GetOrCreateDatabaseAsync(CosmosOptions options, CancellationToken cancellationToken)
         {
             try
             {
                 var response = await provider
-                    .GetClient()
+                    .GetClient(options)
                     .CreateDatabaseIfNotExistsAsync(
                         options.DatabaseName,
                         options.DatabaseThroughput,
@@ -55,30 +60,30 @@ namespace Atc.Cosmos.Internal
                 return response.Database;
             }
             catch (Exception ex)
-             when (IsCosmosEmulatorMissing(ex))
+             when (IsCosmosEmulatorMissing(ex, options))
             {
                 throw new InvalidOperationException(
                     "Please start Cosmos DB Emulator");
             }
         }
 
-        private bool IsCosmosEmulatorMissing(Exception ex)
-            => provider.GetClient().Endpoint.IsLoopback
-            && IsConnectionRefused(ex);
+        private bool IsCosmosEmulatorMissing(Exception ex, CosmosOptions options)
+            => provider.GetClient(options).Endpoint.IsLoopback
+            && IsConnectionRefused(ex, options);
 
-        private bool IsConnectionRefused(Exception ex) => ex switch
+        private bool IsConnectionRefused(Exception ex, CosmosOptions options) => ex switch
         {
             SocketException
             { SocketErrorCode: SocketError.ConnectionRefused }
                 => true,
 
             AggregateException ae
-            when ae.InnerExceptions.Any(IsCosmosEmulatorMissing)
+            when ae.InnerExceptions.Any(e => IsCosmosEmulatorMissing(e, options))
                 => true,
 
             Exception { InnerException: var inner }
             when inner != null
-                => IsCosmosEmulatorMissing(inner),
+                => IsCosmosEmulatorMissing(inner, options),
 
             _ => false
         };

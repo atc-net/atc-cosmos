@@ -1,6 +1,7 @@
 using Atc.Cosmos.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.DependencyInjection
 {
@@ -8,8 +9,10 @@ namespace Atc.Cosmos.DependencyInjection
         where T : class, ICosmosResource
     {
         public CosmosBuilder(
-            IServiceCollection services)
-            : base(services)
+            IServiceCollection services,
+            ICosmosContainerNameProviderFactory containerRegistry,
+            CosmosOptions? options)
+            : base(services, containerRegistry, options)
         {
         }
 
@@ -17,7 +20,12 @@ namespace Atc.Cosmos.DependencyInjection
             int maxDegreeOfParallelism = 1)
             where TProcessor : class, IChangeFeedProcessor<T>
         {
-            Services.AddSingleton<ICosmosContainerInitializer, LeasesContainerInitializer>();
+            Services.AddSingleton<LeasesContainerInitializer>();
+            Services.AddSingleton<IScopedCosmosContainerInitializer>(
+                s => new ScopedCosmosContainerInitializer(
+                    Options,
+                    s.GetRequiredService<LeasesContainerInitializer>()));
+
             Services.TryAddSingleton<IChangeFeedFactory, ChangeFeedFactory>();
             Services.AddSingleton<TProcessor>();
 

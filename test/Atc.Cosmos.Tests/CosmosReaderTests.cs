@@ -59,8 +59,11 @@ namespace Atc.Cosmos.Tests
             containerProvider
                 .GetContainer<Record>()
                 .Returns(container, null);
+            containerProvider
+                .GetCosmosOptions<Record>()
+                .Returns(options);
 
-            sut = new CosmosReader<Record>(containerProvider, Options.Create(options));
+            sut = new CosmosReader<Record>(containerProvider);
         }
 
         [Fact]

@@ -9,8 +9,10 @@ namespace Atc.Cosmos.DependencyInjection
     {
         public CosmosContainerBuilder(
             string containerName,
-            IServiceCollection services)
-            : base(containerName, services)
+            IServiceCollection services,
+            ICosmosContainerNameProviderFactory registry,
+            CosmosOptions? options)
+            : base(containerName, services, registry, options)
         {
         }
 

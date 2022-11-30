@@ -1,12 +1,16 @@
 using System;
+using System.Linq;
 using Atc.Cosmos.DependencyInjection;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
 using Atc.Test;
 using AutoFixture;
+using FluentAssertions;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 using Xunit;
 using SUT = Microsoft.Extensions.DependencyInjection.ServiceCollectionExtensions;
 
@@ -43,6 +47,19 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Fact]
         public void ConfigureCosmos_Calls_Builder_With_CosmosBuilder()
         {
+            // TODO: remove this as it's only here to show how to use the builder API
+            services.ConfigureCosmos(
+                options.Value,
+                builder =>
+                {
+                    var newCosmosOptions = new CosmosOptions();
+                    builder // default database
+                        .AddContainer<Record>("MyContainer")
+                        .ForDatabase(newCosmosOptions) // additional database
+                            .AddContainer<Record<int>>("MyContainer2")
+                            .AddContainer<Record<string>>("MyContainer3");
+                });
+
             SUT.ConfigureCosmos(services, builder);
 
             builder.Received(1).Invoke(Arg.Any<CosmosBuilder>());

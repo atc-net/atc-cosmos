@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
@@ -7,62 +11,55 @@ namespace Atc.Cosmos.Internal
 {
     public sealed class CosmosClientProvider : IDisposable, ICosmosClientProvider
     {
-        private readonly IOptions<CosmosOptions> cosmosOptions;
         private readonly IOptions<CosmosClientOptions> cosmosClientOptions;
         private readonly IJsonCosmosSerializer serializer;
-        private CosmosClient? client;
-        private CosmosClient? bulkClient;
+        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache;
+        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache;
 
         public CosmosClientProvider(
-            IOptions<CosmosOptions> cosmosOptions,
             IOptions<CosmosClientOptions> cosmosClientOptions,
             IJsonCosmosSerializer serializer)
         {
-            this.cosmosOptions = cosmosOptions;
             this.cosmosClientOptions = cosmosClientOptions;
             this.serializer = serializer;
-
-            var options = cosmosOptions.Value;
-            if (!IsValid(options))
-            {
-                throw new InvalidOperationException(
-                    $"Invalid configuration in {nameof(CosmosOptions)}.");
-            }
+            cosmosClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
+            cosmosBulkClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
         }
 
-        public CosmosClient GetClient()
-            => client ??= CreateClient(allowBulk: false);
+        public CosmosClient GetClient(CosmosOptions options)
+            => cosmosClientCache.AddOrUpdate(options, CreateClient(options, allowBulk: false), (o, c) => c);
 
-        public CosmosClient GetBulkClient()
-            => bulkClient ??= CreateClient(allowBulk: true);
+        public CosmosClient GetBulkClient(CosmosOptions options)
+            => cosmosBulkClientCache.AddOrUpdate(options, CreateClient(options, allowBulk: true), (o, c) => c);
 
         public void Dispose()
         {
-            client?.Dispose();
-            bulkClient?.Dispose();
+            foreach (var client in cosmosClientCache.ToList())
+            {
+                client.Value.Dispose();
+            }
+
+            foreach (var client in cosmosBulkClientCache.ToList())
+            {
+                client.Value.Dispose();
+            }
         }
 
-        private static bool IsValid(CosmosOptions? options)
-            => options is not null
-            && !string.IsNullOrEmpty(options.AccountEndpoint)
-            && (!string.IsNullOrEmpty(options.AccountKey) || options.Credential is not null)
-            && !string.IsNullOrEmpty(options.DatabaseName);
-
-        private CosmosClient CreateClient(bool allowBulk)
+        private CosmosClient CreateClient(CosmosOptions cosmosOptions, bool allowBulk)
         {
             var connectionString =
-                $"AccountEndpoint={cosmosOptions.Value.AccountEndpoint};" +
-                $"AccountKey={cosmosOptions.Value.AccountKey}";
+                $"AccountEndpoint={cosmosOptions.AccountEndpoint};" +
+                $"AccountKey={cosmosOptions.AccountKey}";
 
             var options = CreateCosmosClientOptions();
             options.AllowBulkExecution = allowBulk;
             options.Serializer = cosmosClientOptions.Value.Serializer
                 ?? new CosmosSerializerAdapter(serializer);
 
-            return cosmosOptions.Value.Credential is not null
+            return cosmosOptions.Credential is not null
                  ? new CosmosClient(
-                     cosmosOptions.Value.AccountEndpoint,
-                     cosmosOptions.Value.Credential,
+                     cosmosOptions.AccountEndpoint,
+                     cosmosOptions.Credential,
                      options)
                  : new CosmosClient(connectionString, options);
         }

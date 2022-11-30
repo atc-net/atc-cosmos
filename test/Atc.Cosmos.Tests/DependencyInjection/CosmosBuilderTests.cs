@@ -45,6 +45,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         [Theory, AutoNSubstituteData]
         public void AddContainer_Of_Generic_Resource_Registers_NameProvider(
             [Frozen] IServiceCollection services,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosBuilder sut,
             string name)
         {
@@ -56,21 +57,9 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                     => s.ServiceType
                     == typeof(ICosmosContainerNameProvider)));
 
-            var nameProvider = services
-               .ReceivedCalls()
-               .SelectMany(c => c.GetArguments())
-               .OfType<ServiceDescriptor>()
-               .Where(s
-                   => s.ServiceType
-                   == typeof(ICosmosContainerNameProvider))
-               .Select(s => s.ImplementationInstance)
-               .OfType<ICosmosContainerNameProvider>()
-               .Single();
-
-            nameProvider
-                .GetContainerName(typeof(Record))
-                .Should()
-                .Be(name);
+            registry
+                .Received(1)
+                .Register<Record>(name, sut.Options);
         }
 
         [Theory, AutoNSubstituteData]
@@ -116,13 +105,18 @@ namespace Atc.Cosmos.Tests.DependencyInjection
             services
                 .Received(1)
                 .Add(Arg.Is<ServiceDescriptor>(s
-                    => s.ServiceType == typeof(ICosmosContainerInitializer)
+                    => s.ServiceType == typeof(RecordInitializer)
                     && s.ImplementationType == typeof(RecordInitializer)));
+            services
+                .Received(1)
+                .Add(Arg.Is<ServiceDescriptor>(s
+                    => s.ServiceType == typeof(IScopedCosmosContainerInitializer)));
         }
 
         [Theory, AutoNSubstituteData]
         public void AddContainer_Of_Generic_Initializer_And_Resource_Registers_NameProvider(
             [Frozen] IServiceCollection services,
+            [Frozen] ICosmosContainerNameProviderFactory registry,
             CosmosBuilder sut,
             string name)
         {
@@ -134,21 +128,9 @@ namespace Atc.Cosmos.Tests.DependencyInjection
                     => s.ServiceType
                     == typeof(ICosmosContainerNameProvider)));
 
-            var nameProvider = services
-               .ReceivedCalls()
-               .SelectMany(c => c.GetArguments())
-               .OfType<ServiceDescriptor>()
-               .Where(s
-                   => s.ServiceType
-                   == typeof(ICosmosContainerNameProvider))
-               .Select(s => s.ImplementationInstance)
-               .OfType<ICosmosContainerNameProvider>()
-               .Single();
-
-            nameProvider
-                .GetContainerName(typeof(Record))
-                .Should()
-                .Be(name);
+            registry
+                .Received(1)
+                .Register<Record>(name, sut.Options);
         }
 
         [Theory, AutoNSubstituteData]

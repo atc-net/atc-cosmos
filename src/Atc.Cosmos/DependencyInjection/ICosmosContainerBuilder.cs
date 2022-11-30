@@ -19,6 +19,11 @@ namespace Atc.Cosmos.DependencyInjection
         public string ContainerName { get; }
 
         /// <summary>
+        /// Gets the <see cref="CosmosOptions"/> for the container being built. Null means default options.
+        /// </summary>
+        public CosmosOptions? Options { get; }
+
+        /// <summary>
         /// Adds a <see cref="ICosmosResource"/> to be used for
         /// representing document resources in the container.
         /// </summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
@@ -9,6 +10,7 @@ using AutoFixture.AutoNSubstitute;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
+using Microsoft.Win32;
 using NSubstitute;
 using Xunit;
 
@@ -40,7 +42,6 @@ namespace Atc.Cosmos.Tests.Internal
             serializer = Substitute.For<IJsonCosmosSerializer>();
 
             sut = new CosmosClientProvider(
-                Options.Create(cosmosOptions),
                 Options.Create(cosmosClientOptions),
                 serializer);
         }
@@ -51,7 +52,7 @@ namespace Atc.Cosmos.Tests.Internal
         [Fact]
         public void Clients_Should_Use_Endpoint_From_CosmosOptions()
             => sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .Endpoint
                 .Should()
                 .BeEquivalentTo(
@@ -60,7 +61,7 @@ namespace Atc.Cosmos.Tests.Internal
         [Fact]
         public void Client_Should_Use_CosmosClientOptions()
             => sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .ClientOptions
                 .Should()
                 .BeEquivalentTo(
@@ -75,7 +76,7 @@ namespace Atc.Cosmos.Tests.Internal
             cosmosClientOptions.Serializer = null;
 
             var actualSerializer = sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .ClientOptions
                 .Serializer;
 
@@ -95,7 +96,7 @@ namespace Atc.Cosmos.Tests.Internal
         {
             cosmosClientOptions.Serializer = serializer;
             sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .ClientOptions
                 .Serializer
                 .Should()
@@ -105,28 +106,28 @@ namespace Atc.Cosmos.Tests.Internal
         [Fact]
         public void GetClient_Should_Return_Same_Instance()
             => sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .Should()
-                .Be(sut.GetClient());
+                .Be(sut.GetClient(cosmosOptions));
 
         [Fact]
         public void GetClient_And_GetBulkClinet_Should_Return_Different_Instances()
             => sut
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .Should()
-                .NotBe(sut.GetBulkClient());
+                .NotBe(sut.GetBulkClient(cosmosOptions));
 
         [Fact]
         public void GetBulkClient_Should_Return_Same_Instance()
             => sut
-                .GetBulkClient()
+                .GetBulkClient(cosmosOptions)
                 .Should()
-                .Be(sut.GetBulkClient());
+                .Be(sut.GetBulkClient(cosmosOptions));
 
         [Fact]
         public void BulkClient_Should_Use_Endpoint_From_CosmosOptions()
             => sut
-                .GetBulkClient()
+                .GetBulkClient(cosmosOptions)
                 .Endpoint
                 .Should()
                 .BeEquivalentTo(
@@ -135,7 +136,7 @@ namespace Atc.Cosmos.Tests.Internal
         [Fact]
         public void BulkClient_Should_Use_CosmosClientOptions()
             => sut
-                .GetBulkClient()
+                .GetBulkClient(cosmosOptions)
                 .ClientOptions
                 .Should()
                 .BeEquivalentTo(
@@ -150,7 +151,7 @@ namespace Atc.Cosmos.Tests.Internal
             cosmosClientOptions.Serializer = null;
 
             var actualSerializer = sut
-                .GetBulkClient()
+                .GetBulkClient(cosmosOptions)
                 .ClientOptions
                 .Serializer;
 
@@ -170,7 +171,7 @@ namespace Atc.Cosmos.Tests.Internal
         {
             cosmosClientOptions.Serializer = serializer;
             sut
-                .GetBulkClient()
+                .GetBulkClient(cosmosOptions)
                 .ClientOptions
                 .Serializer
                 .Should()
@@ -182,7 +183,6 @@ namespace Atc.Cosmos.Tests.Internal
         {
             cosmosOptions.Credential = new FakeTokenCredential();
             using var provider = new CosmosClientProvider(
-                Options.Create(cosmosOptions),
                 Options.Create(cosmosClientOptions),
                 serializer);
 
@@ -190,52 +190,9 @@ namespace Atc.Cosmos.Tests.Internal
             // has been instanciated with a TokenCredential or auth key
             // we simply ensure that we get a client object.
             provider
-                .GetClient()
+                .GetClient(cosmosOptions)
                 .Should()
                 .NotBeNull();
-        }
-
-        [Fact]
-        public void ShouldThrow_When_TokenCredential_And_AccountKey_IsMissing()
-        {
-            cosmosOptions.Credential = null;
-            cosmosOptions.AccountKey = string.Empty;
-
-            FluentActions.Invoking(
-                () => new CosmosClientProvider(
-                    Options.Create(cosmosOptions),
-                    Options.Create(cosmosClientOptions),
-                    serializer))
-                .Should()
-                .Throw<InvalidOperationException>();
-        }
-
-        [Fact]
-        public void ShouldThrow_When_No_AccountEndpoint_IsConfigured()
-        {
-            cosmosOptions.AccountEndpoint = string.Empty;
-
-            FluentActions.Invoking(
-                () => new CosmosClientProvider(
-                    Options.Create(cosmosOptions),
-                    Options.Create(cosmosClientOptions),
-                    serializer))
-                .Should()
-                .Throw<InvalidOperationException>();
-        }
-
-        [Fact]
-        public void ShouldThrow_When_No_DatabaseName_IsConfigured()
-        {
-            cosmosOptions.DatabaseName = string.Empty;
-
-            FluentActions.Invoking(
-                () => new CosmosClientProvider(
-                    Options.Create(cosmosOptions),
-                    Options.Create(cosmosClientOptions),
-                    serializer))
-                .Should()
-                .Throw<InvalidOperationException>();
         }
     }
 }

@@ -20,6 +20,9 @@ namespace Atc.Cosmos.Tests.Internal
         private readonly Database database;
         private readonly DatabaseResponse databaseResponse;
         private readonly ContainerResponse containerResponse;
+        private readonly CosmosOptions options;
+        private readonly CosmosOptions secondOptions;
+        private readonly ICosmosContainerRegistry containerRegistry;
 
         public CosmosInitializerTests()
         {
@@ -28,13 +31,19 @@ namespace Atc.Cosmos.Tests.Internal
             database = Substitute.For<Database>();
             databaseResponse = Substitute.For<DatabaseResponse>();
             containerResponse = Substitute.For<ContainerResponse>();
+            options = Substitute.For<CosmosOptions>();
+            secondOptions = Substitute.For<CosmosOptions>();
+            containerRegistry = Substitute.For<ICosmosContainerRegistry>();
 
             clientProvider
-                .GetClient()
+                .GetClient(options)
+                .Returns(client);
+            clientProvider
+                .GetClient(secondOptions)
                 .Returns(client);
 
             client
-                .CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default)
+                .CreateDatabaseIfNotExistsAsync("default", throughput: default, default, default)
                 .ReturnsForAnyArgs(databaseResponse);
 
             databaseResponse
@@ -44,23 +53,32 @@ namespace Atc.Cosmos.Tests.Internal
             database
                 .CreateContainerIfNotExistsAsync(default, throughput: default, default, default)
                 .ReturnsForAnyArgs(containerResponse);
+
+            containerRegistry
+                .DefaultOptions
+                .Returns(options);
+            containerRegistry
+                .Options
+                .Returns(new[] { options });
         }
 
         [Theory, AutoNSubstituteData]
         public async Task Should_Initialize_Database(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
 
             await sut.InitializeAsync(cancellationToken);
 
             _ = client
                 .Received(1)
                 .CreateDatabaseIfNotExistsAsync(
-                    options.Value.DatabaseName,
-                    options.Value.DatabaseThroughput,
+                    options.DatabaseName,
+                    options.DatabaseThroughput,
                     null,
                     cancellationToken);
         }
@@ -68,10 +86,60 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public async Task Should_Initialize_Initializers(
             [Substitute] ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             CancellationToken cancellationToken)
         {
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = initializer
+                .Received(1)
+                .InitializeAsync(
+                    database,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Database_Only_For_Scoped_Options(
+            ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            containerRegistry
+                .Options
+                .Returns(new[] { options, secondOptions });
+
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(secondOptions, initializer) },
+                containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = client
+                .Received(1)
+                .CreateDatabaseIfNotExistsAsync(
+                    options.DatabaseName,
+                    options.DatabaseThroughput,
+                    null,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Initializers_Only_For_Scoped_Options(
+            [Substitute] ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            containerRegistry
+                .Options
+                .Returns(new[] { options, secondOptions });
+
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(secondOptions, initializer) },
+                containerRegistry);
 
             await sut.InitializeAsync(cancellationToken);
 
@@ -85,14 +153,16 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public void Throw_If_Failed_To_Connect_To_CosmosEmulator(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             CancellationToken cancellationToken)
         {
             client.Endpoint.Returns(new Uri("https://localhost"));
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new SocketException((int)SocketError.ConnectionRefused));
 
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -102,7 +172,6 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public void Throw_If_Failed_To_Connect_To_CosmosEmulator_Using_InnerException(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             string exceptionMessage,
             CancellationToken cancellationToken)
         {
@@ -110,7 +179,10 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(new Exception(exceptionMessage, new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -120,7 +192,6 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public void Throw_If_Failed_To_Connect_To_CosmosEmulator_Using_AggregateException(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             string exceptionMessage,
             CancellationToken cancellationToken)
         {
@@ -131,7 +202,10 @@ namespace Atc.Cosmos.Tests.Internal
                     new Exception(),
                     new SocketException((int)SocketError.ConnectionRefused)));
 
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<InvalidOperationException>()
@@ -141,7 +215,6 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public void Throw_Original_Exception_If_CosmosEmulator_Exception(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             Exception exception,
             CancellationToken cancellationToken)
         {
@@ -149,7 +222,10 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<Exception>()
@@ -159,7 +235,6 @@ namespace Atc.Cosmos.Tests.Internal
         [Theory, AutoNSubstituteData]
         public void Throw_Original_Exception_If_Endpoint_Is_Not_Localhost(
             ICosmosContainerInitializer initializer,
-            OptionsWrapper<CosmosOptions> options,
             string exceptionMessage,
             CancellationToken cancellationToken)
         {
@@ -167,7 +242,10 @@ namespace Atc.Cosmos.Tests.Internal
             client.WhenForAnyArgs(c => c.CreateDatabaseIfNotExistsAsync(default, throughput: default, default, default))
                 .Throw(exception);
 
-            var sut = new CosmosInitializer(clientProvider, options, new[] { initializer });
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
             new Func<Task>(() => sut.InitializeAsync(cancellationToken))
                 .Should()
                 .ThrowExactlyAsync<Exception>()
