@@ -37,7 +37,11 @@ namespace Atc.Cosmos.DependencyInjection
             Action<ICosmosContainerBuilder> builder)
             where TInitializer : class, ICosmosContainerInitializer
         {
-            Services.AddSingleton<ICosmosContainerInitializer, TInitializer>();
+            Services.AddSingleton<TInitializer>();
+            Services.AddSingleton<IScopedCosmosContainerInitializer>(
+                s => new ScopedCosmosContainerInitializer(
+                    Options,
+                    s.GetRequiredService<TInitializer>()));
 
             return AddContainer(name, builder);
         }
