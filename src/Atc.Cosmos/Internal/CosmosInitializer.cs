@@ -17,7 +17,7 @@ namespace Atc.Cosmos.Internal
     {
         private readonly ICosmosClientProvider provider;
         private readonly ICosmosContainerRegistry registry;
-        private readonly IReadOnlyDictionary<CosmosOptions, ICosmosContainerInitializer> initializers;
+        private readonly IReadOnlyDictionary<CosmosOptions, List<ICosmosContainerInitializer>> initializers;
 
         public CosmosInitializer(
             ICosmosClientProvider provider,
@@ -26,18 +26,20 @@ namespace Atc.Cosmos.Internal
         {
             this.provider = provider;
             this.registry = registry;
-            this.initializers = initializers.ToDictionary(i => i.Scope ?? registry.DefaultOptions, i => i.Initializer);
+            this.initializers = initializers
+                .GroupBy(i => i.Scope ?? registry.DefaultOptions)
+                .ToDictionary(i => i.Key, i => i.Select(n => n.Initializer).ToList());
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            foreach (var initializer in initializers)
+            foreach (var item in initializers)
             {
-                var database = await GetOrCreateDatabaseAsync(initializer.Key, cancellationToken)
+                var database = await GetOrCreateDatabaseAsync(item.Key, cancellationToken)
                     .ConfigureAwait(false);
 
-                var initializerTasks = initializers
-                    .Values
+                var initializerTasks = item
+                    .Value
                     .Select(init => init.InitializeAsync(database, cancellationToken));
 
                 await Task.WhenAll(initializerTasks)

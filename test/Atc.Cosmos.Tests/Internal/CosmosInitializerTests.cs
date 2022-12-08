@@ -17,8 +17,11 @@ namespace Atc.Cosmos.Tests.Internal
     {
         private readonly ICosmosClientProvider clientProvider;
         private readonly CosmosClient client;
+        private readonly CosmosClient client2;
         private readonly Database database;
+        private readonly Database database2;
         private readonly DatabaseResponse databaseResponse;
+        private readonly DatabaseResponse databaseResponse2;
         private readonly ContainerResponse containerResponse;
         private readonly CosmosOptions options;
         private readonly CosmosOptions secondOptions;
@@ -28,11 +31,16 @@ namespace Atc.Cosmos.Tests.Internal
         {
             clientProvider = Substitute.For<ICosmosClientProvider>();
             client = Substitute.For<CosmosClient>();
+            client2 = Substitute.For<CosmosClient>();
             database = Substitute.For<Database>();
+            database2 = Substitute.For<Database>();
             databaseResponse = Substitute.For<DatabaseResponse>();
+            databaseResponse2 = Substitute.For<DatabaseResponse>();
             containerResponse = Substitute.For<ContainerResponse>();
             options = Substitute.For<CosmosOptions>();
             secondOptions = Substitute.For<CosmosOptions>();
+            secondOptions.DatabaseName = "name2";
+            secondOptions.DatabaseThroughput = 10;
             containerRegistry = Substitute.For<ICosmosContainerRegistry>();
 
             clientProvider
@@ -40,10 +48,10 @@ namespace Atc.Cosmos.Tests.Internal
                 .Returns(client);
             clientProvider
                 .GetClient(secondOptions)
-                .Returns(client);
+                .Returns(client2);
 
             client
-                .CreateDatabaseIfNotExistsAsync("default", throughput: default, default, default)
+                .CreateDatabaseIfNotExistsAsync(options.DatabaseName, throughput: options.DatabaseThroughput, default, default)
                 .ReturnsForAnyArgs(databaseResponse);
 
             databaseResponse
@@ -54,12 +62,24 @@ namespace Atc.Cosmos.Tests.Internal
                 .CreateContainerIfNotExistsAsync(default, throughput: default, default, default)
                 .ReturnsForAnyArgs(containerResponse);
 
+            client2
+                .CreateDatabaseIfNotExistsAsync(secondOptions.DatabaseName, throughput: secondOptions.DatabaseThroughput, default, default)
+                .ReturnsForAnyArgs(databaseResponse2);
+
+            databaseResponse2
+                .Database
+                .Returns(database2);
+
+            database2
+                .CreateContainerIfNotExistsAsync(default, throughput: secondOptions.DatabaseThroughput, default, default)
+                .ReturnsForAnyArgs(containerResponse);
+
             containerRegistry
                 .DefaultOptions
                 .Returns(options);
             containerRegistry
                 .Options
-                .Returns(new[] { options });
+                .Returns(new[] { options, secondOptions });
         }
 
         [Theory, AutoNSubstituteData]
@@ -84,6 +104,55 @@ namespace Atc.Cosmos.Tests.Internal
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Database_Once(
+            ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer), new ScopedCosmosContainerInitializer(null, initializer) },
+                containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = client
+                .Received(1)
+                .CreateDatabaseIfNotExistsAsync(
+                    options.DatabaseName,
+                    options.DatabaseThroughput,
+                    null,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Database_ForEach_Options(
+            ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer), new ScopedCosmosContainerInitializer(secondOptions, initializer) },
+                containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = client
+                .Received(1)
+                .CreateDatabaseIfNotExistsAsync(
+                    options.DatabaseName,
+                    options.DatabaseThroughput,
+                    null,
+                    cancellationToken);
+            _ = client2
+                .Received(1)
+                .CreateDatabaseIfNotExistsAsync(
+                    secondOptions.DatabaseName,
+                    secondOptions.DatabaseThroughput,
+                    null,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task Should_Initialize_Initializers(
             [Substitute] ICosmosContainerInitializer initializer,
             CancellationToken cancellationToken)
@@ -103,6 +172,30 @@ namespace Atc.Cosmos.Tests.Internal
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task Should_Initialize_Initializers_By_Options(
+            [Substitute] ICosmosContainerInitializer initializer,
+            CancellationToken cancellationToken)
+        {
+            var sut = new CosmosInitializer(
+                clientProvider,
+                new[] { new ScopedCosmosContainerInitializer(null, initializer), new ScopedCosmosContainerInitializer(secondOptions, initializer) },
+                containerRegistry);
+
+            await sut.InitializeAsync(cancellationToken);
+
+            _ = initializer
+                .Received(1)
+                .InitializeAsync(
+                    database,
+                    cancellationToken);
+            _ = initializer
+                .Received(1)
+                .InitializeAsync(
+                    database2,
+                    cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task Should_Initialize_Database_Only_For_Scoped_Options(
             ICosmosContainerInitializer initializer,
             CancellationToken cancellationToken)
@@ -118,11 +211,11 @@ namespace Atc.Cosmos.Tests.Internal
 
             await sut.InitializeAsync(cancellationToken);
 
-            _ = client
+            _ = client2
                 .Received(1)
                 .CreateDatabaseIfNotExistsAsync(
-                    options.DatabaseName,
-                    options.DatabaseThroughput,
+                    secondOptions.DatabaseName,
+                    secondOptions.DatabaseThroughput,
                     null,
                     cancellationToken);
         }
@@ -146,7 +239,7 @@ namespace Atc.Cosmos.Tests.Internal
             _ = initializer
                 .Received(1)
                 .InitializeAsync(
-                    database,
+                    database2,
                     cancellationToken);
         }
 
