@@ -56,6 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
            Action<ICosmosBuilder> builder)
         {
             var registry = new CosmosContainerNameProviderFactory();
+            services.AddSingleton<ICosmosContainerRegistry, CosmosContainerRegistry>();
             services.AddSingleton<ICosmosContainerNameProviderFactory>(registry);
             services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>();
             services.AddSingleton(typeof(ICosmosReader<>), typeof(CosmosReader<>));
