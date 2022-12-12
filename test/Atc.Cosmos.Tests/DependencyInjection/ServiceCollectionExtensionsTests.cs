@@ -66,11 +66,17 @@ namespace Atc.Cosmos.Tests.DependencyInjection
         }
 
         [Theory]
-        [InlineData(typeof(ICosmosClientProvider))]
+        [InlineData(typeof(ICosmosContainerRegistry))]
+        [InlineData(typeof(ICosmosContainerNameProviderFactory))]
         [InlineData(typeof(ICosmosContainerProvider))]
         [InlineData(typeof(ICosmosReader<>))]
         [InlineData(typeof(ICosmosWriter<>))]
+        [InlineData(typeof(ICosmosBulkWriter<>))]
         [InlineData(typeof(ICosmosInitializer))]
+        [InlineData(typeof(IJsonCosmosSerializer))]
+        [InlineData(typeof(ICosmosClientProvider))]
+        [InlineData(typeof(ICosmosReaderFactory))]
+        [InlineData(typeof(ICosmosWriterFactory))]
         public void ConfigureCosmos_Adds_Dependencies(Type serviceType)
         {
             SUT.ConfigureCosmos(services, builder);
