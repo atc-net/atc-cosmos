@@ -124,6 +124,73 @@ namespace Atc.Cosmos.Tests.Testing
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_Should_Return_All_Documents_With_PartitionKey_When_Given_CatchAll_Query(
+            FakeCosmosReader<Record> sut,
+            Record[] queryResults,
+            string partitionKey)
+        {
+            foreach (var queryResult in queryResults)
+            {
+                queryResult.Pk = partitionKey;
+            }
+
+            sut.Documents.AddRange(queryResults);
+
+            var results = await sut
+                .QueryAsync(
+                    x => x.Where(_ => true),
+                    partitionKey)
+                .ToListAsync();
+
+            results
+                .Should()
+                .BeEquivalentTo(queryResults);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_Should_Return_No_Documents_With_Unused_PartitionKey(
+            FakeCosmosReader<Record> sut,
+            Record[] queryResults,
+            string partitionKey)
+        {
+            sut.Documents.AddRange(queryResults);
+
+            var results = await sut
+                .QueryAsync(
+                    x => x.Where(_ => true),
+                    partitionKey)
+                .ToListAsync();
+
+            results
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task QueryAsync_Should_Return_No_Documents_With_PartitionKey_When_Given_CatchNone_Query(
+            FakeCosmosReader<Record> sut,
+            Record[] queryResults,
+            string partitionKey)
+        {
+            foreach (var queryResult in queryResults)
+            {
+                queryResult.Pk = partitionKey;
+            }
+
+            sut.Documents.AddRange(queryResults);
+
+            var results = await sut
+                .QueryAsync(
+                    x => x.Where(_ => false),
+                    partitionKey)
+                .ToListAsync();
+
+            results
+                .Should()
+                .BeEmpty();
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task QueryAsync_Of_T_Should_Return_All_QueryResults_Of_Requested_Type(
             FakeCosmosReader<Record> sut,
             QueryDefinition query,

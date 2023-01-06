@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
@@ -85,6 +87,12 @@ namespace Atc.Cosmos.Internal
             string partitionKey,
             CancellationToken cancellationToken = default)
             => QueryAsync<T>(query, partitionKey, cancellationToken);
+
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => QueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), partitionKey, cancellationToken);
 
         public async IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
@@ -286,5 +294,9 @@ namespace Atc.Cosmos.Internal
                 yield return documents;
             }
         }
+
+        private QueryDefinition QueryBuilderToQueryDefinition<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder)
+            => queryBuilder(container.GetItemLinqQueryable<T>()).ToQueryDefinition();
     }
 }

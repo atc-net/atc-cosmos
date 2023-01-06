@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,6 +82,19 @@ namespace Atc.Cosmos
         /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
         public IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents from the configured Cosmos container using IQueryable.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="T"/> resources.</returns>
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             CancellationToken cancellationToken = default);
 

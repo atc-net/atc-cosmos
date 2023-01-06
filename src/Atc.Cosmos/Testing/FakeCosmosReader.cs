@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -120,6 +121,16 @@ namespace Atc.Cosmos.Testing
             => GetAsyncEnumerator(QueryResults
                 .OfType<TResult>()
                 .Clone(options));
+
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(
+                queryBuilder(
+                    Documents
+                        .Where(d => d.PartitionKey == partitionKey)
+                        .AsQueryable()));
 
         public virtual Task<PagedResult<T>> PagedQueryAsync(
             QueryDefinition query,

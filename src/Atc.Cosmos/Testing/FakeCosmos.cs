@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -118,6 +119,16 @@ namespace Atc.Cosmos.Testing
             => ((ICosmosReader<T>)Reader)
                 .QueryAsync<TResult>(
                     query,
+                    partitionKey,
+                    cancellationToken);
+
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .QueryAsync(
+                    queryBuilder,
                     partitionKey,
                     cancellationToken);
 
