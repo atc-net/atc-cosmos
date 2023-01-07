@@ -164,6 +164,19 @@ namespace Atc.Cosmos.Internal
             };
         }
 
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => PagedQueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
         public IAsyncEnumerable<T> CrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken = default)
@@ -186,6 +199,11 @@ namespace Atc.Cosmos.Internal
                 }
             }
         }
+
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), cancellationToken);
 
         public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
             QueryDefinition query,
@@ -224,6 +242,17 @@ namespace Atc.Cosmos.Internal
                 ContinuationToken = result.ContinuationToken,
             };
         }
+
+        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => CrossPartitionPagedQueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                pageSize,
+                continuationToken,
+                cancellationToken);
 
         public async IAsyncEnumerable<IEnumerable<T>> BatchReadAllAsync(
             string partitionKey,
@@ -274,6 +303,12 @@ namespace Atc.Cosmos.Internal
             }
         }
 
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => BatchQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), partitionKey, cancellationToken);
+
         public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken = default)
@@ -294,6 +329,11 @@ namespace Atc.Cosmos.Internal
                 yield return documents;
             }
         }
+
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => BatchCrossPartitionQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), cancellationToken);
 
         private QueryDefinition QueryBuilderToQueryDefinition<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder)

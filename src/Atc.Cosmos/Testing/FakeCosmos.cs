@@ -10,17 +10,17 @@ using Microsoft.Azure.Cosmos;
 namespace Atc.Cosmos.Testing
 {
     [SuppressMessage(
-       "Design",
-       "MA0016:Prefer return collection abstraction instead of implementation",
-       Justification = "By design")]
+        "Design",
+        "MA0016:Prefer return collection abstraction instead of implementation",
+        Justification = "By design")]
     [SuppressMessage(
-       "Design",
-       "CA1002:Do not expose generic lists",
-       Justification = "By design")]
+        "Design",
+        "CA1002:Do not expose generic lists",
+        Justification = "By design")]
     [SuppressMessage(
-       "Usage",
-       "CA2227:Collection properties should be read only",
-       Justification = "By design")]
+        "Usage",
+        "CA2227:Collection properties should be read only",
+        Justification = "By design")]
     public sealed class FakeCosmos<T> :
         ICosmosReader<T>,
         ICosmosWriter<T>,
@@ -30,15 +30,15 @@ namespace Atc.Cosmos.Testing
     {
         public FakeCosmos()
             : this(
-                  new FakeCosmosReader<T>(),
-                  new FakeCosmosWriter<T>())
+                new FakeCosmosReader<T>(),
+                new FakeCosmosWriter<T>())
         {
         }
 
         public FakeCosmos(JsonSerializerOptions options)
             : this(
-                  new FakeCosmosReader<T>(options),
-                  new FakeCosmosWriter<T>(options))
+                new FakeCosmosReader<T>(options),
+                new FakeCosmosWriter<T>(options))
         {
         }
 
@@ -160,6 +160,20 @@ namespace Atc.Cosmos.Testing
                     continuationToken,
                     cancellationToken);
 
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .PagedQueryAsync(
+                    queryBuilder,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
         IAsyncEnumerable<T> ICosmosReader<T>.CrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken)
@@ -174,6 +188,14 @@ namespace Atc.Cosmos.Testing
             => ((ICosmosReader<T>)Reader)
                 .CrossPartitionQueryAsync<TResult>(
                     query,
+                    cancellationToken);
+
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .CrossPartitionQueryAsync(
+                    queryBuilder,
                     cancellationToken);
 
         Task<PagedResult<T>> ICosmosReader<T>.CrossPartitionPagedQueryAsync(
@@ -196,6 +218,18 @@ namespace Atc.Cosmos.Testing
             => ((ICosmosReader<T>)Reader)
                 .CrossPartitionPagedQueryAsync<TResult>(
                     query,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .CrossPartitionPagedQueryAsync(
+                    queryBuilder,
                     pageSize,
                     continuationToken,
                     cancellationToken);
@@ -228,6 +262,16 @@ namespace Atc.Cosmos.Testing
                     partitionKey,
                     cancellationToken);
 
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .BatchQueryAsync(
+                    queryBuilder,
+                    partitionKey,
+                    cancellationToken);
+
         IAsyncEnumerable<IEnumerable<T>> ICosmosReader<T>.BatchCrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -236,6 +280,14 @@ namespace Atc.Cosmos.Testing
             QueryDefinition query,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .BatchCrossPartitionQueryAsync(
+                    queryBuilder,
+                    cancellationToken);
 
         Task<T?> ICosmosBulkReader<T>.FindAsync(
             string documentId,
@@ -489,12 +541,12 @@ namespace Atc.Cosmos.Testing
             string? filterPredicate,
             CancellationToken cancellationToken)
             => ((ICosmosWriter<T>)Writer)
-            .PatchAsync(
-                documentId,
-                partitionKey,
-                patchOperations,
-                filterPredicate,
-                cancellationToken);
+                .PatchAsync(
+                    documentId,
+                    partitionKey,
+                    patchOperations,
+                    filterPredicate,
+                    cancellationToken);
 
         Task ICosmosWriter<T>.PatchWithNoResponseAsync(
             string documentId,
@@ -511,12 +563,12 @@ namespace Atc.Cosmos.Testing
                     cancellationToken);
 
         Task ICosmosBulkWriter<T>.CreateAsync(
-             T document,
-             CancellationToken cancellationToken)
-             => ((ICosmosBulkWriter<T>)Writer)
-                 .CreateAsync(
-                     document,
-                     cancellationToken);
+            T document,
+            CancellationToken cancellationToken)
+            => ((ICosmosBulkWriter<T>)Writer)
+                .CreateAsync(
+                    document,
+                    cancellationToken);
 
         Task ICosmosBulkWriter<T>.WriteAsync(
             T document,

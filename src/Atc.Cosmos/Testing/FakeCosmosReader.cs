@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ namespace Atc.Cosmos.Testing
                 Documents
                     .Find(d
                         => d.DocumentId == documentId
-                        && d.PartitionKey == partitionKey)
+                           && d.PartitionKey == partitionKey)
                     .Clone(options));
 
         public virtual Task<T> ReadAsync(
@@ -80,8 +81,8 @@ namespace Atc.Cosmos.Testing
             CancellationToken cancellationToken = default)
         {
             var item = Documents.Find(d
-               => d.DocumentId == documentId
-               && d.PartitionKey == partitionKey);
+                => d.DocumentId == documentId
+                   && d.PartitionKey == partitionKey);
 
             if (item is null)
             {
@@ -167,6 +168,30 @@ namespace Atc.Cosmos.Testing
             });
         }
 
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var startIndex = GetStartIndex(continuationToken);
+            var items =
+                queryBuilder(
+                        Documents
+                            .Where(d => d.PartitionKey == partitionKey)
+                            .AsQueryable())
+                    .Skip(startIndex)
+                    .Take(pageSize ?? 3)
+                    .ToList();
+
+            return Task.FromResult(new PagedResult<TResult>
+            {
+                Items = items,
+                ContinuationToken = GetContinuationToken(startIndex, items.Count),
+            });
+        }
+
         public virtual IAsyncEnumerable<T> CrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken = default)
@@ -180,6 +205,11 @@ namespace Atc.Cosmos.Testing
             => GetAsyncEnumerator(QueryResults
                 .OfType<TResult>()
                 .Clone(options));
+
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => GetAsyncEnumerator(queryBuilder(Documents.AsQueryable()));
 
         public virtual Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
             QueryDefinition query,
@@ -213,6 +243,24 @@ namespace Atc.Cosmos.Testing
             });
         }
 
+        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var startIndex = GetStartIndex(continuationToken);
+            var items = queryBuilder(Documents.AsQueryable())
+                .Skip(startIndex)
+                .Take(pageSize ?? 3)
+                .ToList();
+
+            return Task.FromResult(new PagedResult<TResult>
+            {
+                Items = items, ContinuationToken = GetContinuationToken(startIndex, items.Count),
+            });
+        }
+
         public IAsyncEnumerable<IEnumerable<T>> BatchReadAllAsync(
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -236,6 +284,24 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Chunk(3));
 
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var queryResults = QueryAsync(queryBuilder, partitionKey, cancellationToken);
+            var buffer = new List<TResult>();
+            await foreach (var result in queryResults.WithCancellation(cancellationToken))
+            {
+                buffer.Add(result);
+                if (buffer.Count == 3)
+                {
+                    yield return buffer;
+                    buffer.Clear();
+                }
+            }
+        }
+
         public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken = default)
@@ -250,22 +316,39 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Chunk(3));
 
+        public async IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var queryResults = CrossPartitionQueryAsync(queryBuilder, cancellationToken);
+            var buffer = new List<TResult>();
+            await foreach (var result in queryResults.WithCancellation(cancellationToken))
+            {
+                buffer.Add(result);
+                if (buffer.Count == 3)
+                {
+                    yield return buffer;
+                    buffer.Clear();
+                }
+            }
+        }
+
         protected static int GetStartIndex(string? continuationToken)
             => continuationToken is not null
-            && int.TryParse(
-                continuationToken,
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out var index)
-            ? index
-            : 0;
+               && int.TryParse(
+                   continuationToken,
+                   NumberStyles.Number,
+                   CultureInfo.InvariantCulture,
+                   out var index)
+                ? index
+                : 0;
 
         protected static string? GetContinuationToken(
             int startIndex,
             int itemsCount)
             => itemsCount > 0
-             ? Invariant($"{startIndex + itemsCount}")
-             : null;
+                ? Invariant($"{startIndex + itemsCount}")
+                : null;
 
         protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)

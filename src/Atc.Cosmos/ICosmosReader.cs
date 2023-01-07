@@ -132,6 +132,23 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Query documents from the configured Cosmos container using pagination and a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="pageSize">The number of items to return per page.</param>
+        /// <param name="continuationToken">The continuationToken for getting the next page of a previous query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Query documents across partitions from the configured Cosmos container.
         /// </summary>
         /// <param name="query">Cosmos query to execute.</param>
@@ -150,6 +167,17 @@ namespace Atc.Cosmos
         /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
         public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
             QueryDefinition query,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents across partitions from the configured Cosmos container and returns a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -177,6 +205,21 @@ namespace Atc.Cosmos
         /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
         public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
             QueryDefinition query,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents across partitions from the configured Cosmos container using pagination and a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="pageSize">The number of items to return per page.</param>
+        /// <param name="continuationToken">The continuationToken for getting the next page of a previous query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <typeparamref name="TResult"/> containing the custom query result.</returns>
+        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             int? pageSize,
             string? continuationToken = default,
             CancellationToken cancellationToken = default);
@@ -218,6 +261,19 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Query documents from the configured Cosmos container and returns a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Query documents across partitions from the configured Cosmos container.
         /// </summary>
         /// <param name="query">Cosmos query to execute.</param>
@@ -236,6 +292,17 @@ namespace Atc.Cosmos
         /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
         public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
             QueryDefinition query,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Query documents across partitions from the configured Cosmos container and returns a custom result.
+        /// </summary>
+        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             CancellationToken cancellationToken = default);
     }
 }
