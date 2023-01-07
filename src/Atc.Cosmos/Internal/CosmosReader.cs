@@ -92,7 +92,10 @@ namespace Atc.Cosmos.Internal
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => QueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), partitionKey, cancellationToken);
+            => QueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                partitionKey,
+                cancellationToken);
 
         public async IAsyncEnumerable<TResult> QueryAsync<TResult>(
             QueryDefinition query,
@@ -203,7 +206,9 @@ namespace Atc.Cosmos.Internal
         public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             CancellationToken cancellationToken = default)
-            => CrossPartitionQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), cancellationToken);
+            => CrossPartitionQueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                cancellationToken);
 
         public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
             QueryDefinition query,
@@ -307,7 +312,10 @@ namespace Atc.Cosmos.Internal
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             CancellationToken cancellationToken = default)
-            => BatchQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), partitionKey, cancellationToken);
+            => BatchQueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                partitionKey,
+                cancellationToken);
 
         public IAsyncEnumerable<IEnumerable<T>> BatchCrossPartitionQueryAsync(
             QueryDefinition query,
@@ -333,7 +341,9 @@ namespace Atc.Cosmos.Internal
         public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             CancellationToken cancellationToken = default)
-            => BatchCrossPartitionQueryAsync<TResult>(QueryBuilderToQueryDefinition(queryBuilder), cancellationToken);
+            => BatchCrossPartitionQueryAsync<TResult>(
+                QueryBuilderToQueryDefinition(queryBuilder),
+                cancellationToken);
 
         private QueryDefinition QueryBuilderToQueryDefinition<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder)

@@ -88,7 +88,7 @@ namespace Atc.Cosmos
         /// <summary>
         /// Query documents from the configured Cosmos container using IQueryable.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
@@ -132,9 +132,9 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Query documents from the configured Cosmos container using pagination and a custom result.
+        /// Query documents from the configured Cosmos container using IQueryable and pagination.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="pageSize">The number of items to return per page.</param>
@@ -170,9 +170,9 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Query documents across partitions from the configured Cosmos container and returns a custom result.
+        /// Query documents across partitions from the configured Cosmos container using IQueryable.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
         /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>
@@ -210,9 +210,9 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Query documents across partitions from the configured Cosmos container using pagination and a custom result.
+        /// Query documents across partitions from the configured Cosmos container using IQueryable and pagination.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="pageSize">The number of items to return per page.</param>
         /// <param name="continuationToken">The continuationToken for getting the next page of a previous query.</param>
@@ -261,9 +261,9 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Query documents from the configured Cosmos container and returns a custom result.
+        /// Query documents from the configured Cosmos container using IQueryable and returns results in batches.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="partitionKey">Partition key of the resource.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
@@ -295,9 +295,9 @@ namespace Atc.Cosmos
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Query documents across partitions from the configured Cosmos container and returns a custom result.
+        /// Query documents across partitions from the configured Cosmos container using IQueryable and returns a results in batches.
         /// </summary>
-        /// <typeparam name="TResult">The type used for the custom query result.</typeparam>
+        /// <typeparam name="TResult">The type of the query result.</typeparam>
         /// <param name="queryBuilder">Query builder. Should return IQueryable corresponding to desired Cosmos query.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
         /// <returns>An <see cref="IAsyncEnumerable&lt;T&gt;"/> over the requested <typeparamref name="TResult"/> resources.</returns>

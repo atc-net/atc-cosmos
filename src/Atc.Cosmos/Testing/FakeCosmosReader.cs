@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -72,7 +73,7 @@ namespace Atc.Cosmos.Testing
                 Documents
                     .Find(d
                         => d.DocumentId == documentId
-                           && d.PartitionKey == partitionKey)
+                        && d.PartitionKey == partitionKey)
                     .Clone(options));
 
         public virtual Task<T> ReadAsync(
@@ -81,8 +82,8 @@ namespace Atc.Cosmos.Testing
             CancellationToken cancellationToken = default)
         {
             var item = Documents.Find(d
-                => d.DocumentId == documentId
-                   && d.PartitionKey == partitionKey);
+               => d.DocumentId == documentId
+               && d.PartitionKey == partitionKey);
 
             if (item is null)
             {
@@ -123,7 +124,7 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Clone(options));
 
-        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+        public virtual IAsyncEnumerable<TResult> QueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -168,7 +169,7 @@ namespace Atc.Cosmos.Testing
             });
         }
 
-        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+        public virtual Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             int? pageSize,
@@ -206,7 +207,7 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Clone(options));
 
-        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+        public virtual IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             CancellationToken cancellationToken = default)
             => GetAsyncEnumerator(queryBuilder(Documents.AsQueryable()));
@@ -243,7 +244,7 @@ namespace Atc.Cosmos.Testing
             });
         }
 
-        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+        public virtual Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             int? pageSize,
             string? continuationToken = default,
@@ -284,7 +285,7 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Chunk(3));
 
-        public async IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+        public virtual async IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             string partitionKey,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -296,9 +297,14 @@ namespace Atc.Cosmos.Testing
                 buffer.Add(result);
                 if (buffer.Count == 3)
                 {
-                    yield return buffer;
+                    yield return buffer.ToImmutableList();
                     buffer.Clear();
                 }
+            }
+
+            if (buffer.Any())
+            {
+                yield return buffer.ToImmutableList();
             }
         }
 
@@ -316,7 +322,7 @@ namespace Atc.Cosmos.Testing
                 .OfType<TResult>()
                 .Chunk(3));
 
-        public async IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+        public virtual async IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
@@ -327,28 +333,33 @@ namespace Atc.Cosmos.Testing
                 buffer.Add(result);
                 if (buffer.Count == 3)
                 {
-                    yield return buffer;
+                    yield return buffer.ToImmutableList();
                     buffer.Clear();
                 }
+            }
+
+            if (buffer.Any())
+            {
+                yield return buffer.ToImmutableList();
             }
         }
 
         protected static int GetStartIndex(string? continuationToken)
             => continuationToken is not null
-               && int.TryParse(
-                   continuationToken,
-                   NumberStyles.Number,
-                   CultureInfo.InvariantCulture,
-                   out var index)
-                ? index
-                : 0;
+            && int.TryParse(
+                continuationToken,
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out var index)
+            ? index
+            : 0;
 
         protected static string? GetContinuationToken(
             int startIndex,
             int itemsCount)
             => itemsCount > 0
-                ? Invariant($"{startIndex + itemsCount}")
-                : null;
+             ? Invariant($"{startIndex + itemsCount}")
+             : null;
 
         protected static async IAsyncEnumerable<TItem> GetAsyncEnumerator<TItem>(
             IEnumerable<TItem> items)

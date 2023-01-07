@@ -10,17 +10,17 @@ using Microsoft.Azure.Cosmos;
 namespace Atc.Cosmos.Testing
 {
     [SuppressMessage(
-        "Design",
-        "MA0016:Prefer return collection abstraction instead of implementation",
-        Justification = "By design")]
+       "Design",
+       "MA0016:Prefer return collection abstraction instead of implementation",
+       Justification = "By design")]
     [SuppressMessage(
-        "Design",
-        "CA1002:Do not expose generic lists",
-        Justification = "By design")]
+       "Design",
+       "CA1002:Do not expose generic lists",
+       Justification = "By design")]
     [SuppressMessage(
-        "Usage",
-        "CA2227:Collection properties should be read only",
-        Justification = "By design")]
+       "Usage",
+       "CA2227:Collection properties should be read only",
+       Justification = "By design")]
     public sealed class FakeCosmos<T> :
         ICosmosReader<T>,
         ICosmosWriter<T>,
@@ -30,15 +30,15 @@ namespace Atc.Cosmos.Testing
     {
         public FakeCosmos()
             : this(
-                new FakeCosmosReader<T>(),
-                new FakeCosmosWriter<T>())
+                  new FakeCosmosReader<T>(),
+                  new FakeCosmosWriter<T>())
         {
         }
 
         public FakeCosmos(JsonSerializerOptions options)
             : this(
-                new FakeCosmosReader<T>(options),
-                new FakeCosmosWriter<T>(options))
+                  new FakeCosmosReader<T>(options),
+                  new FakeCosmosWriter<T>(options))
         {
         }
 
@@ -541,12 +541,12 @@ namespace Atc.Cosmos.Testing
             string? filterPredicate,
             CancellationToken cancellationToken)
             => ((ICosmosWriter<T>)Writer)
-                .PatchAsync(
-                    documentId,
-                    partitionKey,
-                    patchOperations,
-                    filterPredicate,
-                    cancellationToken);
+            .PatchAsync(
+                documentId,
+                partitionKey,
+                patchOperations,
+                filterPredicate,
+                cancellationToken);
 
         Task ICosmosWriter<T>.PatchWithNoResponseAsync(
             string documentId,
@@ -563,12 +563,12 @@ namespace Atc.Cosmos.Testing
                     cancellationToken);
 
         Task ICosmosBulkWriter<T>.CreateAsync(
-            T document,
-            CancellationToken cancellationToken)
-            => ((ICosmosBulkWriter<T>)Writer)
-                .CreateAsync(
-                    document,
-                    cancellationToken);
+             T document,
+             CancellationToken cancellationToken)
+             => ((ICosmosBulkWriter<T>)Writer)
+                 .CreateAsync(
+                     document,
+                     cancellationToken);
 
         Task ICosmosBulkWriter<T>.WriteAsync(
             T document,

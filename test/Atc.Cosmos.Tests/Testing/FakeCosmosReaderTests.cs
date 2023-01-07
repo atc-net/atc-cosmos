@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Atc.Cosmos.Testing;
 using Atc.Test;
+using AutoFixture;
 using AutoFixture.Xunit2;
 using Dasync.Collections;
 using FluentAssertions;
@@ -126,15 +127,11 @@ namespace Atc.Cosmos.Tests.Testing
         [Theory, AutoNSubstituteData]
         public async Task QueryAsync_Should_Return_All_Documents_With_PartitionKey_When_Given_CatchAll_Query(
             FakeCosmosReader<Record> sut,
-            Record[] queryResults,
+            Record[] recordsForQuery,
             string partitionKey)
         {
-            foreach (var queryResult in queryResults)
-            {
-                queryResult.Pk = partitionKey;
-            }
-
-            sut.Documents.AddRange(queryResults);
+            sut.Documents.AddRange(recordsForQuery);
+            sut.Documents.ForEach(d => d.Pk = partitionKey);
 
             var results = await sut
                 .QueryAsync(
@@ -144,16 +141,16 @@ namespace Atc.Cosmos.Tests.Testing
 
             results
                 .Should()
-                .BeEquivalentTo(queryResults);
+                .BeEquivalentTo(sut.Documents);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task QueryAsync_Should_Return_No_Documents_With_Unused_PartitionKey(
             FakeCosmosReader<Record> sut,
-            Record[] queryResults,
+            Record[] recordsForQuery,
             string partitionKey)
         {
-            sut.Documents.AddRange(queryResults);
+            sut.Documents.AddRange(recordsForQuery);
 
             var results = await sut
                 .QueryAsync(
@@ -167,17 +164,13 @@ namespace Atc.Cosmos.Tests.Testing
         }
 
         [Theory, AutoNSubstituteData]
-        public async Task QueryAsync_Should_Return_No_Documents_With_PartitionKey_When_Given_CatchNone_Query(
+        public async Task QueryAsync_Should_Return_No_Documents_When_Given_CatchNone_Query(
             FakeCosmosReader<Record> sut,
-            Record[] queryResults,
+            Record[] recordsForQuery,
             string partitionKey)
         {
-            foreach (var queryResult in queryResults)
-            {
-                queryResult.Pk = partitionKey;
-            }
-
-            sut.Documents.AddRange(queryResults);
+            sut.Documents.AddRange(recordsForQuery);
+            sut.Documents.ForEach(d => d.Pk = partitionKey);
 
             var results = await sut
                 .QueryAsync(
@@ -261,6 +254,37 @@ namespace Atc.Cosmos.Tests.Testing
         }
 
         [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_With_LINQ_Should_Return_Result_In_Pages(
+            FakeCosmosReader<Record> sut,
+            Record[] recordsForQuery,
+            string partitionKey)
+        {
+            sut.Documents.Clear();
+            sut.Documents.AddRange(recordsForQuery);
+            sut.Documents.ForEach(x => x.Pk = partitionKey);
+
+            var page1 = await sut
+                .PagedQueryAsync(
+                    x => x.Where(_ => true),
+                    partitionKey,
+                    1,
+                    null);
+            var page2 = await sut
+                .PagedQueryAsync(
+                    x => x.Where(_ => true),
+                    partitionKey,
+                    1,
+                    page1.ContinuationToken);
+
+            page1.Items
+                .Should()
+                .BeEquivalentTo(new[] { recordsForQuery[0] });
+            page2.Items
+                .Should()
+                .BeEquivalentTo(new[] { recordsForQuery[1] });
+        }
+
+        [Theory, AutoNSubstituteData]
         public async Task PagedQueryAsync_Of_T_Should_Return_Result_In_Pages(
             FakeCosmosReader<Record> sut,
             QueryDefinition query,
@@ -288,6 +312,60 @@ namespace Atc.Cosmos.Tests.Testing
             page2.Items
                 .Should()
                 .BeEquivalentTo(new[] { queryResults[1] });
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task CrossPartitionQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(FakeCosmosReader<Record> sut)
+        {
+            var result = await sut.CrossPartitionQueryAsync(x => x.Where(_ => true)).ToListAsync();
+            result.Should().BeEquivalentTo(sut.Documents);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedCrossPartitionQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(FakeCosmosReader<Record> sut)
+        {
+            var requiredDocuments = new HashSet<Record>(sut.Documents);
+            string? continuationToken = null;
+
+            while (requiredDocuments.Any())
+            {
+                var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken);
+                continuationToken = result.ContinuationToken;
+                requiredDocuments.Should().Contain(result.Items);
+                requiredDocuments.Remove(result.Items.First());
+            }
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task BatchQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(
+            FakeCosmosReader<Record> sut,
+            Record[] recordsForQuery,
+            string partitionKey)
+        {
+            sut.Documents.AddRange(recordsForQuery);
+            sut.Documents.ForEach(x => x.Pk = partitionKey);
+
+            var result = await sut.BatchQueryAsync(x => x.Where(_ => true), partitionKey).ToListAsync();
+
+            result[0].Should().HaveCount(3); // Fake implementation of BatchQueryAsync will return batches of size 3
+            result[0].Should().NotBeEquivalentTo(recordsForQuery); // First 3 will be those already in sut.Documents before we inserted our own
+            result[1].Should().HaveCount(3);
+            result[1].Should().BeEquivalentTo(recordsForQuery); // The next 3 should be those query results that we inserted
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task BatchCrossPartitionQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(
+            FakeCosmosReader<Record> sut,
+            Record[] recordsForQuery)
+        {
+            sut.Documents.AddRange(recordsForQuery);
+
+            var result = await sut.BatchCrossPartitionQueryAsync(x => x.Where(_ => true)).ToListAsync();
+
+            result[0].Should().HaveCount(3); // Fake implementation of BatchCrossPartitionQueryAsync will return batches of size 3
+            result[0].Should().NotBeEquivalentTo(recordsForQuery); // First 3 will be those already in sut.Documents before we inserted our own
+            result[1].Should().HaveCount(3);
+            result[1].Should().BeEquivalentTo(recordsForQuery); // The next 3 should be those query results that we inserted
         }
 
         [Theory, AutoNSubstituteData]
