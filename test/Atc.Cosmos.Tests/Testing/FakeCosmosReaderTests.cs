@@ -332,7 +332,7 @@ namespace Atc.Cosmos.Tests.Testing
                 var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken);
                 continuationToken = result.ContinuationToken;
                 requiredDocuments.Should().Contain(result.Items);
-                requiredDocuments.Remove(result.Items.First());
+                requiredDocuments.Remove(result.Items[0]);
             }
         }
 
