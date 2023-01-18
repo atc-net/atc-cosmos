@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -121,6 +122,16 @@ namespace Atc.Cosmos.Testing
                     partitionKey,
                     cancellationToken);
 
+        public IAsyncEnumerable<TResult> QueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .QueryAsync(
+                    queryBuilder,
+                    partitionKey,
+                    cancellationToken);
+
         Task<PagedResult<T>> ICosmosReader<T>.PagedQueryAsync(
             QueryDefinition query,
             string partitionKey,
@@ -149,6 +160,20 @@ namespace Atc.Cosmos.Testing
                     continuationToken,
                     cancellationToken);
 
+        public Task<PagedResult<TResult>> PagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .PagedQueryAsync(
+                    queryBuilder,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
         IAsyncEnumerable<T> ICosmosReader<T>.CrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken)
@@ -163,6 +188,14 @@ namespace Atc.Cosmos.Testing
             => ((ICosmosReader<T>)Reader)
                 .CrossPartitionQueryAsync<TResult>(
                     query,
+                    cancellationToken);
+
+        public IAsyncEnumerable<TResult> CrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .CrossPartitionQueryAsync(
+                    queryBuilder,
                     cancellationToken);
 
         Task<PagedResult<T>> ICosmosReader<T>.CrossPartitionPagedQueryAsync(
@@ -185,6 +218,18 @@ namespace Atc.Cosmos.Testing
             => ((ICosmosReader<T>)Reader)
                 .CrossPartitionPagedQueryAsync<TResult>(
                     query,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+        public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            int? pageSize,
+            string? continuationToken = default,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .CrossPartitionPagedQueryAsync(
+                    queryBuilder,
                     pageSize,
                     continuationToken,
                     cancellationToken);
@@ -217,6 +262,16 @@ namespace Atc.Cosmos.Testing
                     partitionKey,
                     cancellationToken);
 
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .BatchQueryAsync(
+                    queryBuilder,
+                    partitionKey,
+                    cancellationToken);
+
         IAsyncEnumerable<IEnumerable<T>> ICosmosReader<T>.BatchCrossPartitionQueryAsync(
             QueryDefinition query,
             CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -225,6 +280,14 @@ namespace Atc.Cosmos.Testing
             QueryDefinition query,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+
+        public IAsyncEnumerable<IEnumerable<TResult>> BatchCrossPartitionQueryAsync<TResult>(
+            Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
+            CancellationToken cancellationToken = default)
+            => ((ICosmosReader<T>)Reader)
+                .BatchCrossPartitionQueryAsync(
+                    queryBuilder,
+                    cancellationToken);
 
         Task<T?> ICosmosBulkReader<T>.FindAsync(
             string documentId,
