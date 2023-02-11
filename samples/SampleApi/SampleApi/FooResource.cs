@@ -10,7 +10,7 @@ public class FooResource : CosmosResource
 
     public string Pk => PartitionKey;
 
-    public Dictionary<string, object> Bar { get; set; } = new Dictionary<string, object>();
+    public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
     protected override string GetDocumentId() => Id;
 

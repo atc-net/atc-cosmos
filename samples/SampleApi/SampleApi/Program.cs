@@ -16,7 +16,7 @@ app.MapGet(
             reader
                 .ReadAllAsync(FooResource.PartitionKey, cancellationToken)
                 .ToBlockingEnumerable(cancellationToken)
-                .Select(c => c.Bar))
+                .Select(c => c.Data))
     .WithName("ListFoo")
     .WithOpenApi();
 
@@ -28,7 +28,7 @@ app.MapGet(
         CancellationToken cancellationToken) =>
         {
             var foo = await reader.FindAsync(id, FooResource.PartitionKey, cancellationToken);
-            return foo is not null ? Results.Ok(foo.Bar) : Results.NotFound(id);
+            return foo is not null ? Results.Ok(foo.Data) : Results.NotFound(id);
         })
     .WithName("GetFoo")
     .WithOpenApi();
@@ -45,7 +45,7 @@ app.MapPost(
                 new FooResource
                 {
                     Id = id,
-                    Bar = data,
+                    Data = data,
                 },
                 cancellationToken);
             return Results.CreatedAtRoute("GetFoo", new { id });
