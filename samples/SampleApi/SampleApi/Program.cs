@@ -5,16 +5,7 @@ using SampleApi;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Configure Atc.Cosmos
-builder.Services.AddOptions<CosmosOptions>();
-builder.Services.ConfigureOptions<ConfigureCosmosOptions>();
-builder.Services.ConfigureCosmos(
-    cosmosBuilder =>
-    {
-        cosmosBuilder.AddContainer<FooContainerInitializer, FooResource>("foo");
-        cosmosBuilder.UseHostedService();
-    });
+builder.Services.ConfigureCosmosDb();
 
 var app = builder.Build();
 app.UseHttpsRedirection();
