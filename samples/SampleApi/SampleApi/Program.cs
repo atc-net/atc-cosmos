@@ -1,8 +1,6 @@
-using System.Text.Json;
 using Atc.Cosmos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
+using SampleApi;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
@@ -69,42 +67,3 @@ app.MapPost(
     .WithOpenApi();
 
 app.Run();
-
-public class FooContainerInitializer : ICosmosContainerInitializer
-{
-    public Task InitializeAsync(
-        Database database,
-        CancellationToken cancellationToken) =>
-        database.CreateContainerIfNotExistsAsync(
-            new ContainerProperties
-            {
-                PartitionKeyPath = "/pk",
-                Id = "foo",
-            },
-            cancellationToken: cancellationToken);
-}
-
-public class ConfigureCosmosOptions : IConfigureOptions<CosmosOptions>
-{
-    public void Configure(CosmosOptions options)
-    {
-        options.UseCosmosEmulator();
-        options.DatabaseName = "SampleApi";
-        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    }
-}
-
-public class FooResource : CosmosResource
-{
-    public const string PartitionKey = "foo";
-
-    public string Id { get; set; }
-
-    public string Pk => PartitionKey;
-
-    public Dictionary<string, object> Bar { get; set; } = new Dictionary<string, object>();
-
-    protected override string GetDocumentId() => Id;
-
-    protected override string GetPartitionKey() => Pk;
-}
