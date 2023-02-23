@@ -27,10 +27,10 @@ namespace Atc.Cosmos.Internal
         }
 
         public CosmosClient GetClient(CosmosOptions options)
-            => cosmosClientCache.AddOrUpdate(options, CreateClient(options, allowBulk: false), (o, c) => c);
+            => cosmosClientCache.AddOrUpdate(options, _ => CreateClient(options, allowBulk: false), (o, c) => c);
 
         public CosmosClient GetBulkClient(CosmosOptions options)
-            => cosmosBulkClientCache.AddOrUpdate(options, CreateClient(options, allowBulk: true), (o, c) => c);
+            => cosmosBulkClientCache.AddOrUpdate(options, _ => CreateClient(options, allowBulk: true), (o, c) => c);
 
         public void Dispose()
         {
