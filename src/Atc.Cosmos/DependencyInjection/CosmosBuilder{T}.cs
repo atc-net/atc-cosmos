@@ -20,6 +20,17 @@ namespace Atc.Cosmos.DependencyInjection
             int maxDegreeOfParallelism = 1)
             where TProcessor : class, IChangeFeedProcessor<T>
         {
+            var changeFeedProcessorOptions = new ChangeFeedProcessorOptions()
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism,
+            };
+            return WithChangeFeedProcessor<TProcessor>(changeFeedProcessorOptions);
+        }
+
+        public ICosmosBuilder<T> WithChangeFeedProcessor<TProcessor>(
+            ChangeFeedProcessorOptions changeFeedProcessorOptions)
+            where TProcessor : class, IChangeFeedProcessor<T>
+        {
             Services.AddSingleton<LeasesContainerInitializer>();
             Services.AddSingleton<IScopedCosmosContainerInitializer>(
                 s => new ScopedCosmosContainerInitializer(
@@ -32,7 +43,7 @@ namespace Atc.Cosmos.DependencyInjection
             Services.AddSingleton(s => new ChangeFeedListener<T, TProcessor>(
                 s.GetRequiredService<IChangeFeedFactory>(),
                 s.GetRequiredService<TProcessor>(),
-                maxDegreeOfParallelism));
+                changeFeedProcessorOptions.MaxDegreeOfParallelism));
 
             Services.AddSingleton<IChangeFeedListener, ChangeFeedListener<T, TProcessor>>(
                 s => s.GetRequiredService<ChangeFeedListener<T, TProcessor>>());
