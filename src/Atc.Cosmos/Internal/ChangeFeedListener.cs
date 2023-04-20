@@ -13,19 +13,29 @@ namespace Atc.Cosmos.Internal
     {
         private readonly ChangeFeedProcessor changeFeed;
         private readonly TProcessor processor;
-        private readonly int maxDegreeOfParallelism;
+        private readonly ChangeFeedProcessorOptions changeFeedProcessorOptions;
 
         public ChangeFeedListener(
             IChangeFeedFactory changeFeedFactory,
             TProcessor processor,
             int maxDegreeOfParallelism)
+            : this(changeFeedFactory, processor, new ChangeFeedProcessorOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism })
+        {
+        }
+
+        public ChangeFeedListener(
+            IChangeFeedFactory changeFeedFactory,
+            TProcessor processor,
+            ChangeFeedProcessorOptions changeFeedProcessorOptions)
         {
             this.changeFeed = changeFeedFactory
                 .Create<TResource>(
+                changeFeedProcessorOptions,
                 OnChanges,
-                processor.ErrorAsync);
+                processor.ErrorAsync,
+                null);
             this.processor = processor;
-            this.maxDegreeOfParallelism = maxDegreeOfParallelism;
+            this.changeFeedProcessorOptions = changeFeedProcessorOptions;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -42,7 +52,7 @@ namespace Atc.Cosmos.Internal
                 .GroupBy(c => c.PartitionKey, StringComparer.Ordinal);
 
             var batches = partitions
-                .Chunk(maxDegreeOfParallelism);
+                .Chunk(changeFeedProcessorOptions.MaxDegreeOfParallelism);
 
             foreach (var batch in batches)
             {

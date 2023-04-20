@@ -21,5 +21,15 @@ namespace Atc.Cosmos.DependencyInjection
         ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>(
             int maxDegreeOfParallelism = 1)
             where TProcessor : class, IChangeFeedProcessor<T>;
+
+        /// <summary>
+        /// Adds a <see cref="IChangeFeedProcessor{T}"/> to the container.
+        /// </summary>
+        /// <typeparam name="TProcessor">The <see cref="IChangeFeedProcessor{T}"/> type.</typeparam>
+        /// <param name="changeFeedProcessorOptions">Configuration options for change feed processor.</param>
+        /// <returns>The <see cref="ICosmosContainerBuilder{T}"/> instance.</returns>
+        ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>(
+            ChangeFeedProcessorOptions changeFeedProcessorOptions)
+            where TProcessor : class, IChangeFeedProcessor<T>;
     }
 }

@@ -36,5 +36,26 @@ namespace Atc.Cosmos.DependencyInjection
 
             return this;
         }
+
+        public ICosmosContainerBuilder<T> WithChangeFeedProcessor<TProcessor>(
+            ChangeFeedProcessorOptions changeFeedProcessorOptions)
+            where TProcessor : class, IChangeFeedProcessor<T>
+        {
+            Services.AddSingleton<ICosmosContainerInitializer, LeasesContainerInitializer>();
+            Services.TryAddSingleton<IChangeFeedFactory, ChangeFeedFactory>();
+            Services.AddSingleton<TProcessor>();
+
+            Services.AddSingleton(s => new ChangeFeedListener<T, TProcessor>(
+                s.GetRequiredService<IChangeFeedFactory>(),
+                s.GetRequiredService<TProcessor>(),
+                changeFeedProcessorOptions));
+
+            Services.AddSingleton<IChangeFeedListener, ChangeFeedListener<T, TProcessor>>(
+                s => s.GetRequiredService<ChangeFeedListener<T, TProcessor>>());
+            Services.AddSingleton<IChangeFeedListener<T>, ChangeFeedListener<T, TProcessor>>(
+                s => s.GetRequiredService<ChangeFeedListener<T, TProcessor>>());
+
+            return this;
+        }
     }
 }

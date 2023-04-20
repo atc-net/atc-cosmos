@@ -39,7 +39,7 @@ namespace Atc.Cosmos.Tests.Internal
             changeFeed = Substitute.For<ChangeFeedProcessor>();
             factory = Substitute.For<IChangeFeedFactory>();
             factory
-                .Create<Record>(default)
+                .Create<Record>(default, (Container.ChangesHandler<Record>)default)
                 .ReturnsForAnyArgs(changeFeed);
 
             sut = new ChangeFeedListener<Record, RecordProcessor>(
@@ -54,8 +54,10 @@ namespace Atc.Cosmos.Tests.Internal
             factory
                 .Received(1)
                 .Create<Record>(
+                    Arg.Any<ChangeFeedProcessorOptions>(),
                     Arg.Any<Container.ChangesHandler<Record>>(),
-                    Arg.Any<Container.ChangeFeedMonitorErrorDelegate>());
+                    Arg.Any<Container.ChangeFeedMonitorErrorDelegate>(),
+                    Arg.Any<string>());
         }
 
         [Theory, AutoNSubstituteData]
