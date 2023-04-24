@@ -22,6 +22,17 @@ namespace Atc.Cosmos
         /// </summary>
         public int MaxItemCount { get; set; } = 100;
 
+        /// <summary>
+        /// Gets or sets the time (exclusive) to start looking for changes after.
+        /// </summary>
+        /// <remarks>
+        /// This is only used when:
+        /// (1) Lease store is not initialized and is ignored if a lease exists and has continuation token.
+        /// (2) StartContinuation is not specified.
+        /// If not specified, then default value will be taken DateTime.Min.
+        /// </remarks>
+        public DateTime? StartTime { get; set; }
+
         /// The maximum parallel calls to the <see cref="IChangeFeedProcessor{T}"/>.
         /// Default value is 1.
         public int MaxDegreeOfParallelism { get; set; } = 1;
