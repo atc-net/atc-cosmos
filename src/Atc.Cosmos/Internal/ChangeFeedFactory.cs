@@ -38,7 +38,7 @@ namespace Atc.Cosmos.Internal
                     containerProvider.GetContainerWithName<T>(LeasesContainerInitializer.ContainerId))
                 .WithMaxItems(changeFeedProcessorOptions.MaxItemCount)
                 .WithPollInterval(changeFeedProcessorOptions.FeedPollDelay)
-                .WithStartTime(changeFeedProcessorOptions.StartTime ?? DateTime.MinValue.ToUniversalTime()/* Will start from the beginning of feed when no lease is found. */);
+                .WithStartTime(changeFeedProcessorOptions.StartTime);
 
             if (onError != null)
             {

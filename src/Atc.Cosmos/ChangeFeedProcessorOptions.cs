@@ -29,9 +29,9 @@ namespace Atc.Cosmos
         /// This is only used when:
         /// (1) Lease store is not initialized and is ignored if a lease exists and has continuation token.
         /// (2) StartContinuation is not specified.
-        /// If not specified, then default value will be taken DateTime.Min.
+        /// Default value is DateTime.Min.
         /// </remarks>
-        public DateTime? StartTime { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.MinValue.ToUniversalTime();
 
         /// The maximum parallel calls to the <see cref="IChangeFeedProcessor{T}"/>.
         /// Default value is 1.
