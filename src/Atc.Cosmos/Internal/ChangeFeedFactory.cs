@@ -18,7 +18,7 @@ namespace Atc.Cosmos.Internal
             Container.ChangeFeedMonitorErrorDelegate? onError = null,
             string? processorName = null)
         {
-            return Create<T>(ChangeFeedProcessorOptions.Default(), onChanges, onError, processorName);
+            return Create(ChangeFeedProcessorOptions.Default(), onChanges, onError, processorName);
         }
 
         public ChangeFeedProcessor Create<T>(
@@ -38,7 +38,7 @@ namespace Atc.Cosmos.Internal
                     containerProvider.GetContainerWithName<T>(LeasesContainerInitializer.ContainerId))
                 .WithMaxItems(changeFeedProcessorOptions.MaxItemCount)
                 .WithPollInterval(changeFeedProcessorOptions.FeedPollDelay)
-                .WithStartTime(DateTime.MinValue.ToUniversalTime()); // Will start from the beginning of feed when no lease is found.
+                .WithStartTime(changeFeedProcessorOptions.StartTime);
 
             if (onError != null)
             {
