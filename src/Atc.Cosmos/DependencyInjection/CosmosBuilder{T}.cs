@@ -43,7 +43,7 @@ namespace Atc.Cosmos.DependencyInjection
             Services.AddSingleton(s => new ChangeFeedListener<T, TProcessor>(
                 s.GetRequiredService<IChangeFeedFactory>(),
                 s.GetRequiredService<TProcessor>(),
-                changeFeedProcessorOptions.MaxDegreeOfParallelism));
+                changeFeedProcessorOptions));
 
             Services.AddSingleton<IChangeFeedListener, ChangeFeedListener<T, TProcessor>>(
                 s => s.GetRequiredService<ChangeFeedListener<T, TProcessor>>());
