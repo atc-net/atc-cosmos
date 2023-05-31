@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text;
 using Atc.Cosmos.Internal;
 using Atc.Cosmos.Serialization;
@@ -10,7 +9,6 @@ using AutoFixture.AutoNSubstitute;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
-using Microsoft.Win32;
 using NSubstitute;
 using Xunit;
 
@@ -34,11 +32,7 @@ namespace Atc.Cosmos.Tests.Internal
                 DatabaseThroughput = fixture.Create<int>(),
             };
 
-            cosmosClientOptions = new CosmosClientOptions
-            {
-                ApplicationName = fixture.Create<string>(),
-            };
-
+            cosmosClientOptions = new CosmosClientOptions();
             serializer = Substitute.For<IJsonCosmosSerializer>();
 
             sut = new CosmosClientProvider(
@@ -60,6 +54,18 @@ namespace Atc.Cosmos.Tests.Internal
 
         [Fact]
         public void Client_Should_Use_CosmosClientOptions()
+            => sut
+                .GetClient(cosmosOptions)
+                .ClientOptions
+                .Should()
+                .BeEquivalentTo(
+                    cosmosClientOptions,
+                    o => o
+                        .Excluding(o => o.AllowBulkExecution)
+                        .Excluding(o => o.Serializer));
+
+        [Fact]
+        public void Client_Should_NotSet_CosmosClientOptions_ApplicationName_When_NotSpecified()
             => sut
                 .GetClient(cosmosOptions)
                 .ClientOptions
