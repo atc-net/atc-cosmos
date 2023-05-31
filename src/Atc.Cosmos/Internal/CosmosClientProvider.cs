@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
@@ -70,7 +68,11 @@ namespace Atc.Cosmos.Internal
 
             if (cosmosClientOptions is { Value: { } o })
             {
-                result.ApplicationName = o.ApplicationName;
+                if (!string.IsNullOrEmpty(o.ApplicationName))
+                {
+                    result.ApplicationName = o.ApplicationName;
+                }
+
                 result.ApplicationPreferredRegions = o.ApplicationPreferredRegions;
                 result.ApplicationRegion = o.ApplicationRegion;
                 result.ConnectionMode = o.ConnectionMode;
