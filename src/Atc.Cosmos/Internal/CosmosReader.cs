@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
@@ -24,6 +23,10 @@ namespace Atc.Cosmos.Internal
             this.options = containerProvider.GetCosmosOptions<T>();
         }
 
+#if PREVIEW
+        protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
+#endif
+
         public async Task<T> ReadAsync(
             string documentId,
             string partitionKey,
@@ -33,6 +36,12 @@ namespace Atc.Cosmos.Internal
                 .ReadItemAsync<T>(
                     documentId,
                     new PartitionKey(partitionKey),
+                    new ItemRequestOptions
+                    {
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
@@ -68,6 +77,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -107,6 +119,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -149,6 +164,9 @@ namespace Atc.Cosmos.Internal
                     PartitionKey = new PartitionKey(partitionKey),
                     MaxItemCount = pageSize,
                     ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             if (!reader.HasMoreResults)
@@ -230,6 +248,9 @@ namespace Atc.Cosmos.Internal
                 {
                     MaxItemCount = pageSize,
                     ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             if (!reader.HasMoreResults)
@@ -268,6 +289,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -296,6 +320,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -326,7 +353,14 @@ namespace Atc.Cosmos.Internal
             QueryDefinition query,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var reader = container.GetItemQueryIterator<TResult>(query);
+            var reader = container.GetItemQueryIterator<TResult>(
+                query,
+                requestOptions: new QueryRequestOptions
+                {
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
+                });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
             {
@@ -347,6 +381,14 @@ namespace Atc.Cosmos.Internal
 
         private QueryDefinition QueryBuilderToQueryDefinition<TResult>(
             Func<IQueryable<T>, IQueryable<TResult>> queryBuilder)
-            => queryBuilder(container.GetItemLinqQueryable<T>()).ToQueryDefinition();
+            => queryBuilder(
+                    container.GetItemLinqQueryable<T>(
+                        requestOptions: new QueryRequestOptions
+                        {
+#if PREVIEW
+                            PriorityLevel = PriorityLevel,
+#endif
+                        }))
+                .ToQueryDefinition();
     }
 }
