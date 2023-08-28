@@ -87,7 +87,11 @@ namespace Atc.Cosmos.Tests
                 .ReadItemAsync<Record>(
                     documentId,
                     new PartitionKey(partitionKey),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
 

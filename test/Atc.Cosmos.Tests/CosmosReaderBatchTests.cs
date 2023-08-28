@@ -184,7 +184,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(false);
 
-            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(1)
@@ -207,7 +208,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(true, false);
 
-            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)
@@ -237,7 +239,8 @@ namespace Atc.Cosmos.Tests
                 .GetEnumerator()
                 .Returns(new List<Record> { record }.GetEnumerator());
 
-            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)
@@ -294,7 +297,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(false);
 
-            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(1)
@@ -317,7 +321,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(true, false);
 
-            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)
@@ -347,7 +352,8 @@ namespace Atc.Cosmos.Tests
                 .GetEnumerator()
                 .Returns(new List<Record> { record }.GetEnumerator());
 
-            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)
@@ -380,7 +386,7 @@ namespace Atc.Cosmos.Tests
         }
 
         [Theory, AutoNSubstituteData]
-        public void CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
+        public void CrossPartitionQueryAsync_Uses_QueryRequestOptions_With_PriorityLevel_High(
             QueryDefinition query,
             CancellationToken cancellationToken)
         {
@@ -388,7 +394,13 @@ namespace Atc.Cosmos.Tests
 
             container
                 .Received(1)
-                .GetItemQueryIterator<Record>(query, requestOptions: null);
+                .GetItemQueryIterator<Record>(
+                    query,
+#if PREVIEW
+                    requestOptions: Arg.Is<QueryRequestOptions>(c => c.PriorityLevel == PriorityLevel.High));
+#else
+                    requestOptions: Arg.Any<QueryRequestOptions>());
+#endif
         }
 
         [Theory, AutoNSubstituteData]
@@ -398,7 +410,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(false);
 
-            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(1)
@@ -420,7 +433,8 @@ namespace Atc.Cosmos.Tests
         {
             feedIterator.HasMoreResults.Returns(true, false);
 
-            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)
@@ -449,7 +463,8 @@ namespace Atc.Cosmos.Tests
                 .GetEnumerator()
                 .Returns(new List<Record> { record }.GetEnumerator());
 
-            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+            var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken)
+                .ToListAsync(cancellationToken);
 
             _ = feedIterator
                 .Received(2)

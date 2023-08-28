@@ -47,7 +47,7 @@ namespace Atc.Cosmos.Tests
                 .FromString<Record>(default)
                 .ReturnsForAnyArgs(new Fixture().Create<Record>());
 
-            sut = new CosmosBulkWriter<Record>(containerProvider, serializer);
+            sut = new CosmosBulkWriter<Record>(containerProvider);
         }
 
         [Fact]

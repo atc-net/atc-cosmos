@@ -92,7 +92,11 @@ namespace Atc.Cosmos.Tests
                 .UpsertItemAsync<object>(
                     record,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
 
@@ -110,13 +114,17 @@ namespace Atc.Cosmos.Tests
                 .UpsertItemAsync<object>(
                     record,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false && p.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
+#endif
                     cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task CreateAsync_Calls_CreateItem_On_Container(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             await sut.CreateAsync(record, cancellationToken);
             _ = container
@@ -124,13 +132,17 @@ namespace Atc.Cosmos.Tests
                 .CreateItemAsync<object>(
                     record,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task CreateWithNoResponseAsync_Calls_CreateItem_On_Container(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             await sut.CreateWithNoResponseAsync(record, cancellationToken);
             _ = container
@@ -138,13 +150,17 @@ namespace Atc.Cosmos.Tests
                 .CreateItemAsync<object>(
                     record,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false && p.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
+#endif
                     cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task ReplaceAsync_Calls_ReplaceItemAsync_On_Container(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             await sut.ReplaceAsync(record, cancellationToken);
             _ = container
@@ -153,13 +169,17 @@ namespace Atc.Cosmos.Tests
                     record,
                     record.Id,
                     new PartitionKey(record.Pk),
-                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)record).ETag),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag && o.PriorityLevel == PriorityLevel.High),
+#else
+                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag),
+#endif
                     cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task ReplaceWithNoResponseAsync_Calls_ReplaceItemAsync_On_Container(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             await sut.ReplaceWithNoResponseAsync(record, cancellationToken);
             _ = container
@@ -168,8 +188,12 @@ namespace Atc.Cosmos.Tests
                     record,
                     record.Id,
                     new PartitionKey(record.Pk),
-                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)record).ETag
-                                                 && o.EnableContentResponseOnWrite == false),
+                    Arg.Is<ItemRequestOptions>(
+                        o => o.IfMatchEtag == record.ETag
+#if PREVIEW
+                             && o.PriorityLevel == PriorityLevel.High
+#endif
+                             && o.EnableContentResponseOnWrite == false),
                     cancellationToken);
         }
 
@@ -192,7 +216,7 @@ namespace Atc.Cosmos.Tests
 
         [Theory, AutoNSubstituteData]
         public async Task DeleteAsync_Calls_DeleteItemAsync_On_Container(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
             _ = container
@@ -200,13 +224,17 @@ namespace Atc.Cosmos.Tests
                 .DeleteItemAsync<object>(
                     record.Id,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken: cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task Should_Return_True_When_Trying_To_Delete_Existing_Resource(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             var deleted = await sut.TryDeleteAsync(
                 record.Id,
@@ -222,13 +250,17 @@ namespace Atc.Cosmos.Tests
                 .DeleteItemAsync<object>(
                     record.Id,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken: cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task Should_Return_False_When_Trying_To_Delete_NonExisting_Resource(
-           CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             container
                 .DeleteItemAsync<object>(default, default, default, default)
@@ -249,7 +281,11 @@ namespace Atc.Cosmos.Tests
                 .DeleteItemAsync<object>(
                     record.Id,
                     new PartitionKey(record.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken: cancellationToken);
         }
 
@@ -317,16 +353,21 @@ namespace Atc.Cosmos.Tests
                     record,
                     record.Id,
                     new PartitionKey(record.Pk),
-                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)record).ETag),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(
+                        o => o.IfMatchEtag == record.ETag && o.PriorityLevel == PriorityLevel.High),
+#else
+                    Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag),
+#endif
                     cancellationToken);
         }
 
         [Theory, AutoNSubstituteData]
         public async Task UpdateOrCreateAsync_Finds_The_Resource(
-           Action<Record> updateDocument,
-           int retries,
-           Record defaultDocument,
-           CancellationToken cancellationToken)
+            Action<Record> updateDocument,
+            int retries,
+            Record defaultDocument,
+            CancellationToken cancellationToken)
         {
             await sut.UpdateOrCreateAsync(
                 () => defaultDocument,
@@ -432,7 +473,11 @@ namespace Atc.Cosmos.Tests
                 .CreateItemAsync<object>(
                     defaultDocument,
                     new PartitionKey(defaultDocument.Pk),
+#if PREVIEW
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
 
@@ -455,7 +500,11 @@ namespace Atc.Cosmos.Tests
                     record.Id,
                     new PartitionKey(record.Pk),
                     patchOperations,
+#if PREVIEW
+                    Arg.Is<PatchItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<PatchItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
 
@@ -478,7 +527,11 @@ namespace Atc.Cosmos.Tests
                     record.Id,
                     new PartitionKey(record.Pk),
                     patchOperations,
+#if PREVIEW
+                    Arg.Is<PatchItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
                     Arg.Any<PatchItemRequestOptions>(),
+#endif
                     cancellationToken);
         }
     }
