@@ -76,6 +76,7 @@ jobs:
           git push origin stable
 
       - name: 📦 Push packages to GitHub Package Registry
+        continue-on-error: true
         run: dotnet nuget push **/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s ${{ env.NUGET_REPO_URL }} --skip-duplicate --no-symbols
 
       - name: 🗳️ Upload build artifacts
