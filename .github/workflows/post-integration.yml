@@ -11,7 +11,7 @@ env:
   ATC_EMAIL: 'atcnet.org@gmail.com'
   ATC_NAME: 'Atc-Net'
   NUGET_REPO_URL: 'https://nuget.pkg.github.com/atc-net/index.json'
-  VERSION: 1.1.${{ github.run_number }}
+  VERSION: 1.1.0.${{ github.run_number }}
 
 jobs:
   merge-to-stable:
