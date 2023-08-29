@@ -1,18 +1,14 @@
 name: "Pre-Integration"
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+  push:
+
+env:
+  VERSION: 1.0.${{ github.run_number }}
 
 jobs:
-  dotnet5-build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  build:
+    runs-on: ubuntu-latest
     steps:
       - name: 🛒 Checkout repository
         uses: actions/checkout@v2
@@ -27,16 +23,24 @@ jobs:
       - name: 🧹 Clean
         run: dotnet clean -c Release && dotnet nuget locals all --clear
 
-      - name: 🔁 Restore packages
-        run: dotnet restore
-
       - name: 🛠️ Building library in release mode
-        run: dotnet build -c Release --no-restore
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}
 
-  dotnet-test:
+      - name: 🛠️ Building preview library in release mode
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}-preview -p:DefineConstants=PREVIEW
+
+      - name: 🗳️ Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Packages
+          path: |
+            packages/*.nupkg
+            README.md
+
+  test:
     runs-on: ubuntu-latest
     needs:
-      - dotnet5-build
+      - build
     steps:
       - name: 🛒 Checkout repository
         uses: actions/checkout@v2
