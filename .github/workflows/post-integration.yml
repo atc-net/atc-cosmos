@@ -51,7 +51,7 @@ jobs:
         run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}-preview -p:DefineConstants=PREVIEW
 
       - name: 🧪 Run unit tests
-        run: dotnet test -c Release --no-build
+        run: dotnet test -c Release
 
       - name: 🌩️ SonarCloud install scanner
         run: dotnet tool install --global dotnet-sonarscanner
