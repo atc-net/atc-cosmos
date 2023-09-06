@@ -38,6 +38,14 @@ Once the library is added to your project, you will have access to the following
 * [`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)
 * [`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)
 
+When using the preview version, you will have access to the following interfaces, used for reading and writing Cosmos document resources:
+* [`ILowPriorityCosmosReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosReader.cs)
+* [`ILowPriorityCosmosWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosWriter.cs)
+* [`ILowPriorityCosmosBulkReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkReader.cs)
+* [`ILowPriorityCosmosBulkWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkWriter.cs)
+
+The interfaces that are prefixed with `ILowPriority` require priority-based execution to be enabled on the CosmosDB account. Priority-based execution is currently is not enabled by default and to get started using it you need to fill out this [nomination form](https://forms.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_kUn4g8ufhFjXbbwUF1gXFUMUQzUzFZSVkzODRSRkxXM0RKVDNUSDBGNi4u). After submitting, a member of the CosmosDb team will reach out and enable the feature on the accounts you listed and contact you to let you know it’s ready for use.
+
 A document resource is represented by a class deriving from the [`CosmosResource`](src/Atc.Cosmos/CosmosResource.cs) base-class, or by implementing the underlying [`ICosmosResource`](src/Atc.Cosmos/ICosmosResource.cs) interface directly.
 
 To configure where each resource will be stored in Cosmos, the `ConfigureCosmos(builder)` extension method is used on the `IServiceCollection` when setting up dependency injection (usually in a `Startup.cs` file).
@@ -169,12 +177,22 @@ To do this you will need to:
 Once the setup is in place, the readers and writers are registered with the [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection/) container, and can be obtained via constructor injection on any service.
 
 The registered interfaces are:
+
 |Name|Description|
 |-|-|
 |[`ICosmosReader<T>`](src/Atc.Cosmos/ICosmosReader.cs)| Represents a reader that can read Cosmos resources. |
 |[`ICosmosWriter<T>`](src/Atc.Cosmos/ICosmosWriter.cs)| Represents a writer that can write Cosmos resources. |
 |[`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)| Represents a reader that can perform bulk reads on Cosmos resources. |
 |[`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)| Represents a writer that can perform bulk operations on Cosmos resources. |
+
+For the preview version, the registered interfaces also include:
+
+|Name|Description|
+|-|-|
+|[`ILowPriorityCosmosReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosReader.cs)| Represents a reader that can read Cosmos resources with low priority. |
+|[`ILowPriorityCosmosWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosWriter.cs)| Represents a writer that can write Cosmos resources with low priority. |
+|[`ILowPriorityCosmosBulkReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkReader.cs)| Represents a reader that can perform bulk reads on Cosmos resources with low priority. |
+|[`ILowPriorityCosmosBulkWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkWriter.cs)| Represents a writer that can perform bulk operations on Cosmos resources with low priority. |
 
 The bulk reader and writer are for optimizing performance when executing many operations towards Cosmos. It works by creating all the tasks and then use the `Task.WhenAll()` to await them. This will group operations by partition key and send them in batches of 100.
 
