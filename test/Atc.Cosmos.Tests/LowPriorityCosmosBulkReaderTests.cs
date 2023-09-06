@@ -1,3 +1,4 @@
+#if PREVIEW
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Xunit;
 
 namespace Atc.Cosmos.Tests
 {
-    public class CosmosBulkReaderTests
+    public class LowPriorityCosmosBulkReaderTests
     {
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
@@ -21,9 +22,9 @@ namespace Atc.Cosmos.Tests
         private readonly Record record;
         private readonly Container container;
         private readonly ICosmosContainerProvider containerProvider;
-        private readonly CosmosBulkReader<Record> sut;
+        private readonly LowPriorityCosmosBulkReader<Record> sut;
 
-        public CosmosBulkReaderTests()
+        public LowPriorityCosmosBulkReaderTests()
         {
             record = new Fixture().Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
@@ -54,12 +55,12 @@ namespace Atc.Cosmos.Tests
             containerProvider
                 .GetContainer<Record>(allowBulk: true)
                 .Returns(container, null);
-            sut = new CosmosBulkReader<Record>(containerProvider);
+            sut = new LowPriorityCosmosBulkReader<Record>(containerProvider);
         }
 
         [Fact]
         public void Implements_Interface()
-            => sut.Should().BeAssignableTo<ICosmosBulkReader<Record>>();
+            => sut.Should().BeAssignableTo<ILowPriorityCosmosBulkReader<Record>>();
 
         [Theory, AutoNSubstituteData]
         public async Task ReadAsync_Uses_The_Right_Container(
@@ -87,11 +88,7 @@ namespace Atc.Cosmos.Tests
                 .ReadItemAsync<Record>(
                     documentId,
                     new PartitionKey(partitionKey),
-#if PREVIEW
-                    Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.High),
-#else
-                    Arg.Any<ItemRequestOptions>(),
-#endif
+                    Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.Low),
                     cancellationToken);
         }
 
@@ -805,3 +802,4 @@ namespace Atc.Cosmos.Tests
         }
     }
 }
+#endif

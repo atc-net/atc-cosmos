@@ -1,3 +1,4 @@
+#if PREVIEW
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,19 +14,22 @@ using Xunit;
 
 namespace Atc.Cosmos.Tests
 {
-    public class CosmosBulkReaderTests
+    public class LowPriorityCosmosReaderTests
     {
+        private readonly CosmosOptions options;
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
         private readonly FeedResponse<Record> feedResponse;
         private readonly Record record;
         private readonly Container container;
         private readonly ICosmosContainerProvider containerProvider;
-        private readonly CosmosBulkReader<Record> sut;
+        private readonly LowPriorityCosmosReader<Record> sut;
 
-        public CosmosBulkReaderTests()
+        public LowPriorityCosmosReaderTests()
         {
-            record = new Fixture().Create<Record>();
+            var fixture = FixtureFactory.Create();
+            options = fixture.Create<CosmosOptions>();
+            record = fixture.Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
             itemResponse
                 .Resource
@@ -52,14 +56,18 @@ namespace Atc.Cosmos.Tests
 
             containerProvider = Substitute.For<ICosmosContainerProvider>();
             containerProvider
-                .GetContainer<Record>(allowBulk: true)
+                .GetContainer<Record>()
                 .Returns(container, null);
-            sut = new CosmosBulkReader<Record>(containerProvider);
+            containerProvider
+                .GetCosmosOptions<Record>()
+                .Returns(options);
+
+            sut = new LowPriorityCosmosReader<Record>(containerProvider);
         }
 
         [Fact]
         public void Implements_Interface()
-            => sut.Should().BeAssignableTo<ICosmosBulkReader<Record>>();
+            => sut.Should().BeAssignableTo<ILowPriorityCosmosReader<Record>>();
 
         [Theory, AutoNSubstituteData]
         public async Task ReadAsync_Uses_The_Right_Container(
@@ -71,11 +79,11 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
-        public async Task ReadAsync_Reads_Item_In_Container(
+        public async Task ReadAsync_Reads_Item_In_Container_Using_PriorityLevel_Low(
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken)
@@ -87,11 +95,7 @@ namespace Atc.Cosmos.Tests
                 .ReadItemAsync<Record>(
                     documentId,
                     new PartitionKey(partitionKey),
-#if PREVIEW
-                    Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.High),
-#else
-                    Arg.Any<ItemRequestOptions>(),
-#endif
+                    Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.Low),
                     cancellationToken);
         }
 
@@ -134,7 +138,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -176,7 +180,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -271,7 +275,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -415,7 +419,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -498,6 +502,228 @@ namespace Atc.Cosmos.Tests
         }
 
         [Theory, AutoNSubstituteData]
+        public void PagedQueryAsync_Uses_The_Right_Container(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void PagedQueryAsync_Gets_ItemQueryIterator(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            container
+                .Received(1)
+                .GetItemQueryIterator<Record>(
+                    query,
+                    continuationToken,
+                    requestOptions: Arg.Is<QueryRequestOptions>(o
+                        => o.PartitionKey == new PartitionKey(partitionKey)
+                        && o.MaxItemCount == pageSize
+                        && o.ResponseContinuationTokenLimitInKb == options.ContinuationTokenLimitInKb));
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Returns_Empty_When_No_More_Result(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .PagedQueryAsync(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public void PagedQueryAsync_With_Custom_Uses_The_Right_Container(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            _ = sut.PagedQueryAsync<Record>(
+                query,
+                partitionKey,
+                pageSize,
+                continuationToken,
+                cancellationToken);
+
+            containerProvider
+                .Received(1)
+                .GetContainer<Record>();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_With_Custom_Returns_Empty_No_More_Result(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            CancellationToken cancellationToken)
+        {
+            feedIterator.HasMoreResults.Returns(false);
+
+            var response = await sut
+                .PagedQueryAsync<Record>(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    continuationToken,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(0)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEmpty();
+            response.ContinuationToken
+                .Should()
+                .BeNull();
+        }
+
+        [Theory, AutoNSubstituteData]
+        public async Task PagedQueryAsync_With_Custom_Returns_Items_When_Query_Matches(
+            QueryDefinition query,
+            string partitionKey,
+            int pageSize,
+            string continuationToken,
+            List<Record> records,
+            CancellationToken cancellationToken)
+        {
+            feedIterator
+                .HasMoreResults
+                .Returns(true);
+            feedResponse
+                .ContinuationToken
+                .Returns(continuationToken);
+            feedResponse
+                .GetEnumerator()
+                .Returns(records.GetEnumerator());
+
+            var response = await sut
+                .PagedQueryAsync<Record>(
+                    query,
+                    partitionKey,
+                    pageSize,
+                    null,
+                    cancellationToken);
+
+            _ = feedIterator
+                .Received(1)
+                .HasMoreResults;
+
+            _ = feedIterator
+                .Received(1)
+                .ReadNextAsync(default);
+
+            response.Items
+                .Should()
+                .BeEquivalentTo(records);
+
+            response.ContinuationToken
+                .Should()
+                .Be(continuationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
         public void CrossPartitionQueryAsync_Uses_The_Right_Container(
             QueryDefinition query,
             CancellationToken cancellationToken)
@@ -506,7 +732,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -612,7 +838,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -635,7 +861,8 @@ namespace Atc.Cosmos.Tests
                     continuationToken,
                     requestOptions: Arg.Is<QueryRequestOptions>(o
                         => o.PartitionKey == null
-                        && o.MaxItemCount == pageSize));
+                        && o.MaxItemCount == pageSize
+                        && o.ResponseContinuationTokenLimitInKb == options.ContinuationTokenLimitInKb));
         }
 
         [Theory, AutoNSubstituteData]
@@ -727,7 +954,7 @@ namespace Atc.Cosmos.Tests
 
             containerProvider
                 .Received(1)
-                .GetContainer<Record>(allowBulk: true);
+                .GetContainer<Record>();
         }
 
         [Theory, AutoNSubstituteData]
@@ -805,3 +1032,4 @@ namespace Atc.Cosmos.Tests
         }
     }
 }
+#endif

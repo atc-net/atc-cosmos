@@ -28,7 +28,6 @@ namespace Atc.Cosmos.Internal
         public ICosmosBulkWriter<TResource> CreateBulkWriter<TResource>()
             where TResource : class, ICosmosResource
             => new CosmosBulkWriter<TResource>(
-                provider,
-                serializer);
+                provider);
     }
 }

@@ -11,6 +11,7 @@ env:
   ATC_EMAIL: 'atcnet.org@gmail.com'
   ATC_NAME: 'Atc-Net'
   NUGET_REPO_URL: 'https://nuget.pkg.github.com/atc-net/index.json'
+  VERSION: 1.1.0.${{ github.run_number }}
 
 jobs:
   merge-to-stable:
@@ -43,14 +44,14 @@ jobs:
       - name: 🧹 Clean
         run: dotnet clean -c Release && dotnet nuget locals all --clear
 
-      - name: 🔁 Restore packages
-        run: dotnet restore
+      - name: 🛠️ Building library in release mode
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}
 
-      - name: 🛠️ Build
-        run: dotnet build -c Release --no-restore /p:UseSourceLink=true
+      - name: 🛠️ Building preview library in release mode
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}-preview -p:DefineConstants=PREVIEW
 
       - name: 🧪 Run unit tests
-        run: dotnet test -c Release --no-build
+        run: dotnet test -c Release -p:DefineConstants=PREVIEW
 
       - name: 🌩️ SonarCloud install scanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -60,6 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
+        continue-on-error: true
         run: |
           dotnet sonarscanner begin /k:"atc-cosmos" /o:"atc-net" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build -c Release /p:UseSourceLink=true --no-restore
@@ -73,8 +75,14 @@ jobs:
           git merge --ff-only main
           git push origin stable
 
-      - name: 🗳️ Creating library package for pre-release
-        run: dotnet pack -c Release --no-restore -o ${GITHUB_WORKSPACE}/packages -p:RepositoryBranch=$BRANCH_NAME
-
       - name: 📦 Push packages to GitHub Package Registry
-        run: dotnet nuget push ${GITHUB_WORKSPACE}/packages/'Atc.Cosmos.'${NBGV_NuGetPackageVersion}'.nupkg' -k ${{ secrets.GITHUB_TOKEN }} -s ${{ env.NUGET_REPO_URL }} --skip-duplicate --no-symbols
+        continue-on-error: true
+        run: dotnet nuget push **/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s ${{ env.NUGET_REPO_URL }} --skip-duplicate --no-symbols
+
+      - name: 🗳️ Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Packages
+          path: |
+            packages/*.nupkg
+            README.md

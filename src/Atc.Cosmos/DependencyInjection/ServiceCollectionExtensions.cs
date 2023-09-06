@@ -61,12 +61,21 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>();
             services.AddSingleton(typeof(ICosmosReader<>), typeof(CosmosReader<>));
             services.AddSingleton(typeof(ICosmosWriter<>), typeof(CosmosWriter<>));
+            services.AddSingleton(typeof(ICosmosBulkReader<>), typeof(CosmosBulkReader<>));
             services.AddSingleton(typeof(ICosmosBulkWriter<>), typeof(CosmosBulkWriter<>));
             services.AddSingleton<ICosmosInitializer, CosmosInitializer>();
             services.AddSingleton<IJsonCosmosSerializer, JsonCosmosSerializer>();
             services.AddSingleton<ICosmosClientProvider, CosmosClientProvider>();
             services.AddSingleton<ICosmosReaderFactory, CosmosReaderFactory>();
             services.AddSingleton<ICosmosWriterFactory, CosmosWriterFactory>();
+#if PREVIEW
+            services.AddSingleton(typeof(ILowPriorityCosmosReader<>), typeof(LowPriorityCosmosReader<>));
+            services.AddSingleton(typeof(ILowPriorityCosmosWriter<>), typeof(LowPriorityCosmosWriter<>));
+            services.AddSingleton(typeof(ILowPriorityCosmosBulkReader<>), typeof(LowPriorityCosmosBulkReader<>));
+            services.AddSingleton(typeof(ILowPriorityCosmosBulkWriter<>), typeof(LowPriorityCosmosBulkWriter<>));
+            services.AddSingleton<ILowPriorityCosmosReaderFactory, LowPriorityCosmosReaderFactory>();
+            services.AddSingleton<ILowPriorityCosmosWriterFactory, LowPriorityCosmosWriterFactory>();
+#endif
 
             builder(new CosmosBuilder(services, registry, null));
             return services;

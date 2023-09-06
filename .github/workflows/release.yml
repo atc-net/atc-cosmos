@@ -7,6 +7,7 @@ env:
   ATC_EMAIL: 'atcnet.org@gmail.com'
   ATC_NAME: 'Atc-Net'
   NUGET_REPO_URL: 'https://api.nuget.org/v3/index.json'
+  VERSION: 1.1.${{ github.run_number }}
 
 jobs:
   release:
@@ -19,14 +20,6 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT_WORKFLOWS }}
 
-      - name: ⚛️ Sets environment variables - branch-name
-        uses: nelonoel/branch-name@v1.0.1
-
-      - name: ⚛️ Sets environment variables - Nerdbank.GitVersioning
-        uses: dotnet/nbgv@master
-        with:
-          setAllVars: true
-
       - name: ⚙️ Setup dotnet 6.0.x
         uses: actions/setup-dotnet@v1
         with:
@@ -35,11 +28,19 @@ jobs:
       - name: 🧹 Clean
         run: dotnet clean -c Release && dotnet nuget locals all --clear
 
-      - name: 🔁 Restore packages
-        run: dotnet restore
-
       - name: 🛠️ Building library in release mode
-        run: dotnet build -c Release --no-restore /p:UseSourceLink=true
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}
+
+      - name: 🛠️ Building preview library in release mode
+        run: dotnet pack -c Release -o packages -p:UseSourceLink=true -p:Version=${{ env.VERSION }} -p:PackageVersion=${{ env.VERSION }}-preview -p:DefineConstants=PREVIEW
+
+      - name: 🗳️ Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Packages
+          path: |
+            packages/*.nupkg
+            README.md
 
       - name: ⏩ Merge to release-branch
         run: |
@@ -49,8 +50,5 @@ jobs:
           git merge --ff-only stable
           git push origin release
 
-      - name: 🗳️ Creating library package for release
-        run: dotnet pack -c Release --no-restore -o ${GITHUB_WORKSPACE}/packages -p:RepositoryBranch=$BRANCH_NAME /p:PublicRelease=true
-
       - name: 📦 Push packages to NuGet
-        run: dotnet nuget push ${GITHUB_WORKSPACE}/packages/'Atc.Cosmos.'${NBGV_NuGetPackageVersion}'.nupkg' -k ${{ secrets.NUGET_KEY }} -s ${{ env.NUGET_REPO_URL }} --skip-duplicate --no-symbols
+        run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_KEY }} -s ${{ env.NUGET_REPO_URL }} --skip-duplicate --no-symbols

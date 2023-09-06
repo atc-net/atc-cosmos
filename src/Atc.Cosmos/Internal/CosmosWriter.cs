@@ -27,6 +27,10 @@ namespace Atc.Cosmos.Internal
             this.serializer = serializer;
         }
 
+#if PREVIEW
+        protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
+#endif
+
         public Task<T> CreateAsync(
             T document,
             CancellationToken cancellationToken = default)
@@ -34,7 +38,12 @@ namespace Atc.Cosmos.Internal
                 .CreateItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { },
+                    new ItemRequestOptions
+                    {
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
 
@@ -45,7 +54,13 @@ namespace Atc.Cosmos.Internal
                 .CreateItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    new ItemRequestOptions
+                    {
+                        EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken);
 
         public Task<T> WriteAsync(
@@ -55,7 +70,12 @@ namespace Atc.Cosmos.Internal
                 .UpsertItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { },
+                    new ItemRequestOptions
+                    {
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
 
@@ -66,7 +86,13 @@ namespace Atc.Cosmos.Internal
                 .UpsertItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    new ItemRequestOptions
+                    {
+                        EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken);
 
         public Task<T> ReplaceAsync(
@@ -80,6 +106,9 @@ namespace Atc.Cosmos.Internal
                     new ItemRequestOptions
                     {
                         IfMatchEtag = document.ETag,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
@@ -96,6 +125,9 @@ namespace Atc.Cosmos.Internal
                     {
                         IfMatchEtag = document.ETag,
                         EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken);
 
@@ -107,6 +139,12 @@ namespace Atc.Cosmos.Internal
                 .DeleteItemAsync<object>(
                     documentId,
                     new PartitionKey(partitionKey),
+                    new ItemRequestOptions
+                    {
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken: cancellationToken);
 
         public async Task<bool> TryDeleteAsync(
@@ -120,6 +158,12 @@ namespace Atc.Cosmos.Internal
                     .DeleteItemAsync<object>(
                         documentId,
                         new PartitionKey(partitionKey),
+                        new ItemRequestOptions
+                        {
+#if PREVIEW
+                            PriorityLevel = PriorityLevel,
+#endif
+                        },
                         cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -270,6 +314,9 @@ namespace Atc.Cosmos.Internal
                     new PatchItemRequestOptions
                     {
                         FilterPredicate = filterPredicate,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken)
                 .GetResourceWithEtag<T>(serializer);
@@ -289,6 +336,9 @@ namespace Atc.Cosmos.Internal
                     {
                         FilterPredicate = filterPredicate,
                         EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken);
 

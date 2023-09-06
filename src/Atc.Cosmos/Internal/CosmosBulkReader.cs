@@ -18,6 +18,10 @@ namespace Atc.Cosmos.Internal
             this.container = containerProvider.GetContainer<T>(allowBulk: true);
         }
 
+#if PREVIEW
+        protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
+#endif
+
         public async Task<T> ReadAsync(
             string documentId,
             string partitionKey,
@@ -27,6 +31,12 @@ namespace Atc.Cosmos.Internal
                 .ReadItemAsync<T>(
                     documentId,
                     new PartitionKey(partitionKey),
+                    new ItemRequestOptions
+                    {
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
@@ -62,6 +72,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -92,6 +105,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -133,6 +149,9 @@ namespace Atc.Cosmos.Internal
                 {
                     PartitionKey = new PartitionKey(partitionKey),
                     MaxItemCount = pageSize,
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             if (!reader.HasMoreResults)
@@ -193,6 +212,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     MaxItemCount = pageSize,
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             if (!reader.HasMoreResults)
@@ -220,6 +242,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -248,6 +273,9 @@ namespace Atc.Cosmos.Internal
                 requestOptions: new QueryRequestOptions
                 {
                     PartitionKey = new PartitionKey(partitionKey),
+#if PREVIEW
+                    PriorityLevel = PriorityLevel,
+#endif
                 });
 
             while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)

@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal
@@ -9,15 +8,16 @@ namespace Atc.Cosmos.Internal
         where T : class, ICosmosResource
     {
         private readonly Container container;
-        private readonly IJsonCosmosSerializer serializer;
 
         public CosmosBulkWriter(
-            ICosmosContainerProvider containerProvider,
-            IJsonCosmosSerializer serializer)
+            ICosmosContainerProvider containerProvider)
         {
             this.container = containerProvider.GetContainer<T>(allowBulk: true);
-            this.serializer = serializer;
         }
+
+#if PREVIEW
+        protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
+#endif
 
         public Task CreateAsync(
             T document,
@@ -26,7 +26,13 @@ namespace Atc.Cosmos.Internal
                 .CreateItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    new ItemRequestOptions
+                    {
+                        EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken);
 
         public Task WriteAsync(
@@ -36,7 +42,13 @@ namespace Atc.Cosmos.Internal
                 .UpsertItemAsync<object>(
                     document,
                     new PartitionKey(document.PartitionKey),
-                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    new ItemRequestOptions
+                    {
+                        EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken);
 
         public Task ReplaceAsync(
@@ -51,6 +63,9 @@ namespace Atc.Cosmos.Internal
                     {
                         IfMatchEtag = document.ETag,
                         EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken);
 
@@ -62,7 +77,13 @@ namespace Atc.Cosmos.Internal
                 .DeleteItemAsync<object>(
                     documentId,
                     new PartitionKey(partitionKey),
-                    new ItemRequestOptions { EnableContentResponseOnWrite = false },
+                    new ItemRequestOptions
+                    {
+                        EnableContentResponseOnWrite = false,
+#if PREVIEW
+                        PriorityLevel = PriorityLevel,
+#endif
+                    },
                     cancellationToken: cancellationToken);
     }
 }
