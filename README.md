@@ -38,6 +38,12 @@ Once the library is added to your project, you will have access to the following
 * [`ICosmosBulkReader<T>`](src/Atc.Cosmos/ICosmosBulkReader.cs)
 * [`ICosmosBulkWriter<T>`](src/Atc.Cosmos/ICosmosBulkWriter.cs)
 
+When using the preview version, you will have access to the following interfaces, used for reading and writing Cosmos document resources:
+* [`ILowPriorityCosmosReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosReader.cs)
+* [`ILowPriorityCosmosWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosWriter.cs)
+* [`ILowPriorityCosmosBulkReader<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkReader.cs)
+* [`ILowPriorityCosmosBulkWriter<T>`](src/Atc.Cosmos/ILowPriorityCosmosBulkWriter.cs)
+
 A document resource is represented by a class deriving from the [`CosmosResource`](src/Atc.Cosmos/CosmosResource.cs) base-class, or by implementing the underlying [`ICosmosResource`](src/Atc.Cosmos/ICosmosResource.cs) interface directly.
 
 To configure where each resource will be stored in Cosmos, the `ConfigureCosmos(builder)` extension method is used on the `IServiceCollection` when setting up dependency injection (usually in a `Startup.cs` file).
