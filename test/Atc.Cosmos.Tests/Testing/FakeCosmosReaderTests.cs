@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Atc.Cosmos.Testing;
 using Atc.Test;
-using AutoFixture;
 using AutoFixture.Xunit2;
 using Dasync.Collections;
 using FluentAssertions;
@@ -327,7 +326,7 @@ namespace Atc.Cosmos.Tests.Testing
             var requiredDocuments = new HashSet<Record>(sut.Documents);
             string? continuationToken = null;
 
-            while (requiredDocuments.Any())
+            while (requiredDocuments.Count > 0)
             {
                 var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken);
                 continuationToken = result.ContinuationToken;

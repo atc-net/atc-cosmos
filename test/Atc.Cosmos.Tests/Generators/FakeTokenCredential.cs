@@ -5,7 +5,7 @@ using Azure.Core;
 
 namespace Atc.Cosmos.Tests.Generators
 {
-    internal class FakeTokenCredential : TokenCredential
+    internal sealed class FakeTokenCredential : TokenCredential
     {
         private readonly AccessToken accessToken = new (
             "token",
