@@ -16,7 +16,6 @@ namespace Atc.Cosmos.Tests
 {
     public class LowPriorityCosmosReaderBatchTests
     {
-        private readonly CosmosOptions options;
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
         private readonly FeedResponse<Record> feedResponse;
@@ -28,7 +27,6 @@ namespace Atc.Cosmos.Tests
         public LowPriorityCosmosReaderBatchTests()
         {
             var fixture = FixtureFactory.Create();
-            options = fixture.Create<CosmosOptions>();
             record = fixture.Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
             itemResponse
