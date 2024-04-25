@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
@@ -41,7 +40,7 @@ namespace Atc.Cosmos.Internal
             => GetContainerForType(typeof(TType));
 
         public ICosmosContainerNameProvider GetContainerForType(Type resourceType)
-            => providers.FirstOrDefault(p => p.IsForType(resourceType))
+            => providers.Find(p => p.IsForType(resourceType))
             ?? throw new NotSupportedException(
                 $"Type {resourceType.Name} is not supported.");
 

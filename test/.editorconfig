@@ -56,3 +56,4 @@ dotnet_diagnostic.SA1202.severity = none            # Private helper methods mak
 dotnet_diagnostic.CA2201.severity = none            # Instantiating Exceptions as test data should be allowed.
 dotnet_diagnostic.MA0016.severity = none            # Prefer return collection abstraction instead of implementation
 dotnet_diagnostic.CA1002.severity = none            # Do not expose generic lists
+dotnet_diagnostic.S6608.severity = none             # S6608: Prefer indexing instead of "Enumerable" methods on types implementing "IList"

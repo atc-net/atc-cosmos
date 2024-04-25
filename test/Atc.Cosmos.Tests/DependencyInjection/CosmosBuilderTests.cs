@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.DependencyInjection;
@@ -7,7 +6,6 @@ using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
-using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,7 +16,7 @@ namespace Atc.Cosmos.Tests.DependencyInjection
 {
     public class CosmosBuilderTests
     {
-        private class RecordInitializer : ICosmosContainerInitializer
+        private sealed class RecordInitializer : ICosmosContainerInitializer
         {
             public Task InitializeAsync(
                 Database database,

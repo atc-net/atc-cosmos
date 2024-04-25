@@ -8,13 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.1-preview" Condition="$(IsPreview)" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.1" Condition="!$(IsPreview)" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" Condition="!$(IsPreview)" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">

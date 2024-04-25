@@ -8,16 +8,13 @@ using AutoFixture;
 using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Atc.Cosmos.Tests
 {
     public class CosmosBulkReaderBatchTests
     {
-        private readonly CosmosOptions options;
         private readonly ItemResponse<Record> itemResponse;
         private readonly FeedIterator<Record> feedIterator;
         private readonly FeedResponse<Record> feedResponse;
@@ -29,7 +26,6 @@ namespace Atc.Cosmos.Tests
         public CosmosBulkReaderBatchTests()
         {
             var fixture = FixtureFactory.Create();
-            options = fixture.Create<CosmosOptions>();
             record = fixture.Create<Record>();
             itemResponse = Substitute.For<ItemResponse<Record>>();
             itemResponse

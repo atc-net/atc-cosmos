@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
@@ -16,7 +14,6 @@ namespace Atc.Cosmos.Internal
     public class CosmosInitializer : ICosmosInitializer
     {
         private readonly ICosmosClientProvider provider;
-        private readonly ICosmosContainerRegistry registry;
         private readonly IReadOnlyDictionary<CosmosOptions, List<ICosmosContainerInitializer>> initializers;
 
         public CosmosInitializer(
@@ -25,7 +22,6 @@ namespace Atc.Cosmos.Internal
             ICosmosContainerRegistry registry)
         {
             this.provider = provider;
-            this.registry = registry;
             this.initializers = initializers
                 .GroupBy(i => i.Scope ?? registry.DefaultOptions)
                 .ToDictionary(i => i.Key, i => i.Select(n => n.Initializer).ToList());

@@ -302,7 +302,7 @@ namespace Atc.Cosmos.Testing
                 }
             }
 
-            if (buffer.Any())
+            if (buffer.Count > 0)
             {
                 yield return buffer.ToImmutableList();
             }
@@ -338,7 +338,7 @@ namespace Atc.Cosmos.Testing
                 }
             }
 
-            if (buffer.Any())
+            if (buffer.Count > 0)
             {
                 yield return buffer.ToImmutableList();
             }
