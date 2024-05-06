@@ -1,11 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using Atc.Cosmos.Serialization;
 using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos.Internal
 {
-    public class CosmosSerializerAdapter : CosmosSerializer
+    public class CosmosSerializerAdapter : CosmosLinqSerializer
     {
         public CosmosSerializerAdapter(IJsonCosmosSerializer serializer)
         {
@@ -20,5 +21,8 @@ namespace Atc.Cosmos.Internal
 
         public override Stream ToStream<T>(T input)
             => Serializer.ToStream(input);
+
+        public override string SerializeMemberName(MemberInfo memberInfo)
+            => Serializer.SerializeMemberName(memberInfo);
     }
 }

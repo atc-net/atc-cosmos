@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 
@@ -72,6 +73,10 @@ namespace Atc.Cosmos.Serialization
 
             return streamPayload;
         }
+
+        public string SerializeMemberName(MemberInfo memberInfo)
+            => options.PropertyNamingPolicy?.ConvertName(memberInfo.Name) ??
+               memberInfo.Name;
 
         [return: MaybeNull]
         public T FromString<T>(string json)
