@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
@@ -8,9 +7,7 @@ using AutoFixture;
 using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Atc.Cosmos.Tests
@@ -121,7 +118,7 @@ namespace Atc.Cosmos.Tests
         {
             container
                 .ReadItemAsync<Record>(default, default, default, default)
-                .ThrowsForAnyArgs(exception);
+                .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
 
             FluentActions
                 .Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
@@ -151,7 +148,7 @@ namespace Atc.Cosmos.Tests
         {
             container
                 .ReadItemAsync<Record>(default, default, default, default)
-                .ThrowsForAnyArgs(exception);
+                .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
 
             var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
 
