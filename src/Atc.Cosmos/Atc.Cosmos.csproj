@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.41.0-preview.0" Condition="$(IsPreview)" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.40.0" Condition="!$(IsPreview)" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.43.1" Condition="!$(IsPreview)" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
