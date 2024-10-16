@@ -153,6 +153,18 @@ namespace Atc.Cosmos.Testing
 
             return true;
         }
+#if PREVIEW
+
+        public virtual Task DeletePartitionAsync(
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+        {
+            Documents.RemoveAll(d
+                => d.PartitionKey == partitionKey);
+
+            return Task.CompletedTask;
+        }
+#endif
 
         public virtual Task<T> UpdateAsync(
             string documentId,

@@ -211,6 +211,45 @@ namespace Atc.Cosmos.Tests.Testing
                 .Should()
                 .NotContain(existingDocument);
         }
+#if PREVIEW
+
+        [Theory, AutoNSubstituteData]
+        public async Task DeletePartitionAsyncAsync_Should_Delete_Existing_Documents(
+            FakeCosmosWriter<Record> sut,
+            Record record1,
+            Record record2,
+            Record record3)
+        {
+            var existingDocument1 = new Record
+            {
+                Id = record1.Id,
+                Pk = record1.Pk,
+            };
+            sut.Documents.Add(existingDocument1);
+            var existingDocument2 = new Record
+            {
+                Id = record2.Id,
+                Pk = record1.Pk,
+            };
+            sut.Documents.Add(existingDocument2);
+            var existingDocument3 = new Record
+            {
+                Id = record3.Id,
+                Pk = record3.Pk,
+            };
+            sut.Documents.Add(existingDocument3);
+
+            await sut.DeletePartitionAsync(record1.Pk);
+
+            sut.Documents
+                .Should()
+                .NotContain(existingDocument1)
+                .And
+                .NotContain(existingDocument2)
+                .And
+                .Contain(existingDocument3);
+        }
+#endif
 
         [Theory, AutoNSubstituteData]
         public void UpdateAsync_Should_Throw_If_Document_Does_Not_Exists(
