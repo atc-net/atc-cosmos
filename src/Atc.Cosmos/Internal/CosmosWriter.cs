@@ -175,6 +175,21 @@ namespace Atc.Cosmos.Internal
 
             return true;
         }
+#if PREVIEW
+
+        public Task DeletePartitionAsync(
+            string partitionKey,
+            CancellationToken cancellationToken = default)
+            => container
+                .DeleteAllItemsByPartitionKeyStreamAsync(
+                    new PartitionKey(partitionKey),
+                    new ItemRequestOptions
+                    {
+                        PriorityLevel = PriorityLevel,
+                    },
+                    cancellationToken: cancellationToken)
+                .ProcessResponseMessage();
+#endif
 
         public Task<T> UpdateAsync(
             string documentId,

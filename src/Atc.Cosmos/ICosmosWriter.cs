@@ -149,6 +149,26 @@ namespace Atc.Cosmos
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken = default);
+#if PREVIEW
+
+        /// <summary>
+        /// Preview Feature DeleteAllItemsByPartitionKey.<br/>
+        /// Deletes all resources in the Container with the specified <see cref="PartitionKey"/>.
+        /// Starts an asynchronous Cosmos DB background operation which deletes all resources in the Container with the specified value.
+        /// The asynchronous Cosmos DB background operation runs using a percentage of user RUs.
+        /// </summary>
+        /// <remarks>
+        /// A <see cref="CosmosException"/>
+        /// with StatusCode <see cref="HttpStatusCode.BadRequest"/>
+        /// will be thrown if the DeleteAllItemsByPartitionKey feature is not enabled.
+        /// </remarks>
+        /// <param name="partitionKey">Partition key of the resource.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task DeletePartitionAsync(
+            string partitionKey,
+            CancellationToken cancellationToken = default);
+#endif
 
         /// <summary>
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
