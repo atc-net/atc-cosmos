@@ -220,7 +220,7 @@ To do this you will need to:
 
 ## Preview Features
 
-The library also has a preview version that exposes some Cosmos preview features.
+The library also has a preview version that exposes some of CosmosDB preview features.
 
 ### Priority Based Execution
 
@@ -247,7 +247,41 @@ az extension add --name cosmosdb-preview
 az cosmosdb update  --resource-group $ResourceGroup --name $AccountName --enable-priority-based-execution true
 ```
 
-See [MS Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/priority-based-execution) for further details.
+See [MS Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/priority-based-execution) for more details.
+
+### Delete resources by partition key
+
+The preview version of the library extends the `ICosmosWriter` and `ILowPriorityCosmosWriter` with and additional method `DeletePartitionAsync` to delete all resources in a container based on a partition key. The deletion will be executed in a CosmosDB background service using a percentage of the RU's available. The effect are available immediatly as all resources in the partition will not be available through reads or queries.
+
+In order to use this new method the "Delete All Items By Partition Key" feature needs to be enabled on the CosmosDB account. 
+
+This can be done through Azure CLI:
+
+```bash
+# Delete All Items By Partition Key
+az cosmosdb update  --resource-group $ResourceGroup --name $AccountName --capabilities DeleteAllItemsByPartitionKey
+```
+
+or wih bicep:
+
+```bicep
+resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
+  name: cosmosName
+  properties: {
+    databaseAccountOfferType: 'Standard'
+    locations: location
+    capabilities: [
+      {
+        name: 'DeleteAllItemsByPartitionKey'
+      }
+    ]
+  }
+}
+```
+
+If the feature is not enabled when calling this method then a `CosmosException` will be thrown.
+
+See [MS Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-delete-by-partition-key) for more details.
 
 ## Unit Testing
 The reader and writer interfaces can easily be mocked, but in some cases it is nice to have a fake version of a reader or writer to mimic the behavior of the read and write operations. For this purpose the `Atc.Cosmos.Testing` namespace contains the following fakes:
