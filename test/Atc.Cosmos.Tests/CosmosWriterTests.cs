@@ -49,6 +49,14 @@ namespace Atc.Cosmos.Tests
             container
                 .PatchItemAsync<object>(default, default, default, default)
                 .ReturnsForAnyArgs(response);
+#if PREVIEW
+
+            var responseMessage = Substitute.For<ResponseMessage>();
+            responseMessage.StatusCode.Returns(HttpStatusCode.Accepted);
+            container
+                .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
+                .ReturnsForAnyArgs(responseMessage);
+#endif
 
             reader = Substitute.For<ICosmosReader<Record>>();
             reader
@@ -288,6 +296,34 @@ namespace Atc.Cosmos.Tests
 #endif
                     cancellationToken: cancellationToken);
         }
+#if PREVIEW
+
+        [Theory, AutoNSubstituteData]
+        public async Task DeletePartitionAsync_Calls_DeleteAllItemsByPartitionKeyStreamAsync_On_Container(
+            CancellationToken cancellationToken)
+        {
+            await sut.DeletePartitionAsync(record.Pk, cancellationToken);
+            _ = container
+                .Received(1)
+                .DeleteAllItemsByPartitionKeyStreamAsync(
+                    new PartitionKey(record.Pk),
+                    Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+                    cancellationToken: cancellationToken);
+        }
+
+        [Theory, AutoNSubstituteData]
+        public Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Sucessful(
+            CancellationToken cancellationToken)
+        {
+            using var responseMessage = new ResponseMessage(HttpStatusCode.BadRequest);
+            container
+                .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
+                .ReturnsForAnyArgs(responseMessage);
+
+            Func<Task> act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
+            return act.Should().ThrowAsync<CosmosException>();
+        }
+#endif
 
         [Theory, AutoNSubstituteData]
         public async Task UpdateAsync_Reads_The_Resource(
