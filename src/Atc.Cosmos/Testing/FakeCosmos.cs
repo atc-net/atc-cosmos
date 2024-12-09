@@ -481,7 +481,6 @@ namespace Atc.Cosmos.Testing
                     documentId,
                     partitionKey,
                     cancellationToken);
-#if PREVIEW
 
         Task ICosmosWriter<T>.DeletePartitionAsync(
             string partitionKey,
@@ -490,7 +489,6 @@ namespace Atc.Cosmos.Testing
                 .DeletePartitionAsync(
                     partitionKey,
                     cancellationToken);
-#endif
 
         Task<T> ICosmosWriter<T>.UpdateAsync(
             string documentId,
