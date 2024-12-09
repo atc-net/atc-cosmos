@@ -211,7 +211,6 @@ namespace Atc.Cosmos.Tests.Testing
                 .Should()
                 .NotContain(existingDocument);
         }
-#if PREVIEW
 
         [Theory, AutoNSubstituteData]
         public async Task DeletePartitionAsyncAsync_Should_Delete_Existing_Documents(
@@ -249,7 +248,6 @@ namespace Atc.Cosmos.Tests.Testing
                 .And
                 .Contain(existingDocument3);
         }
-#endif
 
         [Theory, AutoNSubstituteData]
         public void UpdateAsync_Should_Throw_If_Document_Does_Not_Exists(

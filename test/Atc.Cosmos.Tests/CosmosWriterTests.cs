@@ -296,7 +296,6 @@ namespace Atc.Cosmos.Tests
 #endif
                     cancellationToken: cancellationToken);
         }
-#if PREVIEW
 
         [Theory, AutoNSubstituteData]
         public async Task DeletePartitionAsync_Calls_DeleteAllItemsByPartitionKeyStreamAsync_On_Container(
@@ -323,7 +322,6 @@ namespace Atc.Cosmos.Tests
             Func<Task> act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
             return act.Should().ThrowAsync<CosmosException>();
         }
-#endif
 
         [Theory, AutoNSubstituteData]
         public async Task UpdateAsync_Reads_The_Resource(

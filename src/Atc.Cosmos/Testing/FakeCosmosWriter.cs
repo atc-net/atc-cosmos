@@ -153,7 +153,6 @@ namespace Atc.Cosmos.Testing
 
             return true;
         }
-#if PREVIEW
 
         public virtual Task DeletePartitionAsync(
             string partitionKey,
@@ -164,7 +163,6 @@ namespace Atc.Cosmos.Testing
 
             return Task.CompletedTask;
         }
-#endif
 
         public virtual Task<T> UpdateAsync(
             string documentId,

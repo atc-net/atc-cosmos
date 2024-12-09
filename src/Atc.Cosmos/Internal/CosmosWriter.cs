@@ -175,7 +175,6 @@ namespace Atc.Cosmos.Internal
 
             return true;
         }
-#if PREVIEW
 
         public Task DeletePartitionAsync(
             string partitionKey,
@@ -185,11 +184,12 @@ namespace Atc.Cosmos.Internal
                     new PartitionKey(partitionKey),
                     new ItemRequestOptions
                     {
+#if PREVIEW
                         PriorityLevel = PriorityLevel,
+#endif
                     },
                     cancellationToken: cancellationToken)
                 .ProcessResponseMessage();
-#endif
 
         public Task<T> UpdateAsync(
             string documentId,

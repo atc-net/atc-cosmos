@@ -149,7 +149,6 @@ namespace Atc.Cosmos
             string documentId,
             string partitionKey,
             CancellationToken cancellationToken = default);
-#if PREVIEW
 
         /// <summary>
         /// Preview Feature DeleteAllItemsByPartitionKey.<br/>
@@ -168,7 +167,6 @@ namespace Atc.Cosmos
         public Task DeletePartitionAsync(
             string partitionKey,
             CancellationToken cancellationToken = default);
-#endif
 
         /// <summary>
         /// Updates a <typeparamref name="T"/> resource that is read from the configured
