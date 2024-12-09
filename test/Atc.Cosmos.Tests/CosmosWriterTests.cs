@@ -306,7 +306,11 @@ namespace Atc.Cosmos.Tests
                 .Received(1)
                 .DeleteAllItemsByPartitionKeyStreamAsync(
                     new PartitionKey(record.Pk),
+#if PREVIEW
                     Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
+#else
+                    Arg.Any<ItemRequestOptions>(),
+#endif
                     cancellationToken: cancellationToken);
         }
 
