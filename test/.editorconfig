@@ -57,3 +57,4 @@ dotnet_diagnostic.CA2201.severity = none            # Instantiating Exceptions a
 dotnet_diagnostic.MA0016.severity = none            # Prefer return collection abstraction instead of implementation
 dotnet_diagnostic.CA1002.severity = none            # Do not expose generic lists
 dotnet_diagnostic.S6608.severity = none             # S6608: Prefer indexing instead of "Enumerable" methods on types implementing "IList"
+dotnet_diagnostic.CA1515.severity = none             # Dont care about public types. This is tests
