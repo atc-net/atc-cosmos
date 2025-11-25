@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Atc.Cosmos.Internal;
 using Atc.Test;
 using AutoFixture;
-using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using NSubstitute;

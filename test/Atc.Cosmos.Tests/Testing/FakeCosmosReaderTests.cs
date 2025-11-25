@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Atc.Cosmos.Testing;
 using Atc.Test;
 using AutoFixture.Xunit2;
-using Dasync.Collections;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Xunit;
