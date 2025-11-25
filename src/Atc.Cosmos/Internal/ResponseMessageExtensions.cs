@@ -8,7 +8,7 @@ namespace Atc.Cosmos.Internal
         public static async Task ProcessResponseMessage(this Task<ResponseMessage> responseMessage)
         {
             using ResponseMessage message = await responseMessage.ConfigureAwait(false);
-            message.EnsureSuccessStatusCode();
+            message?.EnsureSuccessStatusCode();
         }
     }
 }
