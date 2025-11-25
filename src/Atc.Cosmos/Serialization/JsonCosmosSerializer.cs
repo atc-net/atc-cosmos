@@ -23,10 +23,7 @@ namespace Atc.Cosmos.Serialization
         [return: MaybeNull]
         public T FromStream<T>(Stream stream)
         {
-            if (stream is null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            ArgumentNullException.ThrowIfNull(stream);
 
             using (stream)
             {

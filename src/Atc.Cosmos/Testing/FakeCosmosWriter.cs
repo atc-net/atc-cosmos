@@ -254,7 +254,7 @@ namespace Atc.Cosmos.Testing
                     .Find(d
                         => d.DocumentId == documentId
                         && d.PartitionKey == partitionKey)
-                    .Clone(options));
+                    .Clone(options)!);
         }
 
         public Task PatchWithNoResponseAsync(
