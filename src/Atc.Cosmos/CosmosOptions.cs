@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Azure.Core;
+using Microsoft.Azure.Cosmos;
 
 namespace Atc.Cosmos
 {
@@ -67,5 +68,10 @@ namespace Atc.Cosmos
         /// When <see cref="TokenCredential"/> is provided the property <see cref="AccountKey"/> is not needed.
         /// </remarks>
         public TokenCredential? Credential { get; set; }
+
+        /// <summary>
+        /// Gets or sets the TelemetryOptions/>.
+        /// </summary>
+        public CosmosClientTelemetryOptions TelemetryOptions { get; set; } = new ();
     }
 }
