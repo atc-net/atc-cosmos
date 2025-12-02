@@ -7,28 +7,19 @@ using Microsoft.Extensions.Options;
 
 namespace Atc.Cosmos.Internal
 {
-    public sealed class CosmosClientProvider : IDisposable, ICosmosClientProvider
+    public sealed class CosmosClientProvider(
+        IOptions<CosmosClientOptions> cosmosClientOptions,
+        IJsonCosmosSerializer serializer)
+        : IDisposable, ICosmosClientProvider
     {
-        private readonly IOptions<CosmosClientOptions> cosmosClientOptions;
-        private readonly IJsonCosmosSerializer serializer;
-        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache;
-        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache;
-
-        public CosmosClientProvider(
-            IOptions<CosmosClientOptions> cosmosClientOptions,
-            IJsonCosmosSerializer serializer)
-        {
-            this.cosmosClientOptions = cosmosClientOptions;
-            this.serializer = serializer;
-            cosmosClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
-            cosmosBulkClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
-        }
+        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache = new ();
+        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache = new ();
 
         public CosmosClient GetClient(CosmosOptions options)
-            => cosmosClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: false), (o, c) => c);
+            => cosmosClientCache.AddOrUpdate(options, CreateClient, (_, c) => c);
 
         public CosmosClient GetBulkClient(CosmosOptions options)
-            => cosmosBulkClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: true), (o, c) => c);
+            => cosmosBulkClientCache.AddOrUpdate(options, CreateBulkClient, (_, c) => c);
 
         public void Dispose()
         {
@@ -43,6 +34,10 @@ namespace Atc.Cosmos.Internal
             }
         }
 
+        private CosmosClient CreateBulkClient(CosmosOptions cosmosOptions) => CreateClient(cosmosOptions, true);
+
+        private CosmosClient CreateClient(CosmosOptions cosmosOptions) => CreateClient(cosmosOptions, false);
+
         private CosmosClient CreateClient(CosmosOptions cosmosOptions, bool allowBulk)
         {
             var connectionString =
@@ -51,15 +46,15 @@ namespace Atc.Cosmos.Internal
 
             var options = CreateCosmosClientOptions();
             options.AllowBulkExecution = allowBulk;
-            options.Serializer = cosmosClientOptions.Value.Serializer
-                ?? new CosmosSerializerAdapter(serializer);
+            options.Serializer = cosmosClientOptions.Value.Serializer ?? new CosmosSerializerAdapter(serializer);
+            options.CosmosClientTelemetryOptions = cosmosClientOptions.Value.CosmosClientTelemetryOptions;
 
             return cosmosOptions.Credential is not null
-                 ? new CosmosClient(
-                     cosmosOptions.AccountEndpoint,
-                     cosmosOptions.Credential,
-                     options)
-                 : new CosmosClient(connectionString, options);
+                ? new CosmosClient(
+                    cosmosOptions.AccountEndpoint,
+                    cosmosOptions.Credential,
+                    options)
+                : new CosmosClient(connectionString, options);
         }
 
         private CosmosClientOptions CreateCosmosClientOptions()
@@ -97,6 +92,7 @@ namespace Atc.Cosmos.Internal
                 result.EnableTcpConnectionEndpointRediscovery = o.EnableTcpConnectionEndpointRediscovery;
                 result.GatewayModeMaxConnectionLimit = o.GatewayModeMaxConnectionLimit;
                 result.MaxRetryAttemptsOnRateLimitedRequests = o.MaxRetryAttemptsOnRateLimitedRequests;
+                result.CosmosClientTelemetryOptions = o.CosmosClientTelemetryOptions;
             }
 
             return result;
