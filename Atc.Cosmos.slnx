@@ -1,0 +1,10 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Debug Preview" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release Preview" />
+  </Configurations>
+  <Project Path="src/Atc.Cosmos/Atc.Cosmos.csproj" />
+  <Project Path="test/Atc.Cosmos.Tests/Atc.Cosmos.Tests.csproj" />
+</Solution>
