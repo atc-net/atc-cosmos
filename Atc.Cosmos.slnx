@@ -5,6 +5,17 @@
     <BuildType Name="Release" />
     <BuildType Name="Release Preview" />
   </Configurations>
-  <Project Path="src/Atc.Cosmos/Atc.Cosmos.csproj" />
-  <Project Path="test/Atc.Cosmos.Tests/Atc.Cosmos.Tests.csproj" />
+  <Folder Name="/sample/" />
+  <Folder Name="/sample/src/">
+    <Project Path="sample/SampleApi/SampleApi/SampleApi.csproj" />
+  </Folder>
+  <Folder Name="/sample/test/">
+    <Project Path="sample/SampleApi/SampleApi.Tests/SampleApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Atc.Cosmos/Atc.Cosmos.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Atc.Cosmos.Tests/Atc.Cosmos.Tests.csproj" />
+  </Folder>
 </Solution>
