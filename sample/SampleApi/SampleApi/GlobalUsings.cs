@@ -1,0 +1,17 @@
+// Global using directives
+
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Text.Json;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Atc.Cosmos;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Http.HttpResults;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.Azure.Cosmos;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Options;
+global using SampleApi;

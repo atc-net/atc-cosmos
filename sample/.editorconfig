@@ -49,3 +49,7 @@ dotnet_diagnostic.S1075.severity = none             # Refactor your code not to 
 ##########################################
 # Custom - Code Analyzers Rules
 ##########################################
+
+dotnet_diagnostic.MA0016.severity = none            # Prefer collection abstractions
+
+dotnet_diagnostic.CA2227.severity = none            # read-only

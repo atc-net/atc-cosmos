@@ -1,7 +1,3 @@
-using Atc.Cosmos;
-using Microsoft.AspNetCore.Mvc;
-using SampleApi;
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,13 +18,15 @@ app.MapGet(
 
 app.MapGet(
     "/foo/{id}",
-    async (
+    async Task<Results<Ok<Dictionary<string, object>>, NotFound<string>>> (
         ICosmosReader<FooResource> reader,
         string id,
         CancellationToken cancellationToken) =>
         {
             var foo = await reader.FindAsync(id, FooResource.PartitionKey, cancellationToken);
-            return foo is not null ? Results.Ok(foo.Data) : Results.NotFound(id);
+            return foo is not null
+                ? TypedResults.Ok(foo.Data)
+                : TypedResults.NotFound(id);
         })
     .WithName("GetFoo")
     .WithOpenApi();
@@ -48,7 +46,7 @@ app.MapPost(
                     Data = data,
                 },
                 cancellationToken);
-            return Results.CreatedAtRoute("GetFoo", new { id });
+            return TypedResults.CreatedAtRoute("GetFoo", new { id });
         })
     .WithName("PostFoo")
     .WithOpenApi();
@@ -56,4 +54,4 @@ app.MapPost(
 app.UseHttpsRedirection();
 app.UseSwaggerUI();
 app.UseSwagger();
-app.Run();
+await app.RunAsync();

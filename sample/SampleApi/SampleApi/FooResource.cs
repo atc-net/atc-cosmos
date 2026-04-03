@@ -1,5 +1,3 @@
-using Atc.Cosmos;
-
 namespace SampleApi;
 
 public class FooResource : CosmosResource
@@ -8,9 +6,9 @@ public class FooResource : CosmosResource
 
     public string Id { get; set; } = null!;
 
-    public string Pk => PartitionKey;
+    public static string Pk => PartitionKey;
 
-    public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
+    public Dictionary<string, object> Data { get; set; } = [];
 
     protected override string GetDocumentId() => Id;
 

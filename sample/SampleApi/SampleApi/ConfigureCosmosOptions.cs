@@ -1,7 +1,3 @@
-using System.Text.Json;
-using Atc.Cosmos;
-using Microsoft.Extensions.Options;
-
 namespace SampleApi;
 
 public class ConfigureCosmosOptions : IConfigureOptions<CosmosOptions>
