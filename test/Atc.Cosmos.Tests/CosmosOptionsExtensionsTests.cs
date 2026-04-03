@@ -1,32 +1,24 @@
-using Atc.Test;
-using FluentAssertions;
-using Xunit;
-using SUT = Atc.Cosmos.CosmosOptionsExtensions;
+namespace Atc.Cosmos.Tests;
 
-namespace Atc.Cosmos.Tests
+public sealed class CosmosOptionsExtensionsTests
 {
-    public class CosmosOptionsExtensionsTests
+    [Theory, AutoNSubstituteData]
+    public void UseCosmosEmulator_Sets_AccountEndpoint(CosmosOptions options)
     {
-        [Theory, AutoNSubstituteData]
-        public void UseCosmosEmulator_Sets_AccountEndpoint(
-            CosmosOptions options)
-        {
-            SUT.UseCosmosEmulator(options);
+        options.UseCosmosEmulator();
 
-            options.AccountEndpoint
-                .Should()
-                .Be("https://localhost:8081");
-        }
+        options.AccountEndpoint
+            .Should()
+            .Be("https://localhost:8081");
+    }
 
-        [Theory, AutoNSubstituteData]
-        public void UseCosmosEmulator_Sets_AccountKey(
-            CosmosOptions options)
-        {
-            SUT.UseCosmosEmulator(options);
+    [Theory, AutoNSubstituteData]
+    public void UseCosmosEmulator_Sets_AccountKey(CosmosOptions options)
+    {
+        options.UseCosmosEmulator();
 
-            options.AccountKey
-                .Should()
-                .Be("C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==");
-        }
+        options.AccountKey
+            .Should()
+            .Be("C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==");
     }
 }

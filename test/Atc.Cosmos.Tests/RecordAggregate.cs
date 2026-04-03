@@ -1,7 +1,6 @@
-namespace Atc.Cosmos.Tests
+namespace Atc.Cosmos.Tests;
+
+public class RecordAggregate
 {
-    public class RecordAggregate
-    {
-        public int Count { get; set; }
-    }
+    public int Count { get; set; }
 }
