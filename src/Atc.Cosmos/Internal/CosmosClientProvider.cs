@@ -1,105 +1,99 @@
-using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using Atc.Cosmos.Serialization;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
+namespace Atc.Cosmos.Internal;
 
-namespace Atc.Cosmos.Internal
+public sealed class CosmosClientProvider : IDisposable, ICosmosClientProvider
 {
-    public sealed class CosmosClientProvider : IDisposable, ICosmosClientProvider
+    private readonly IOptions<CosmosClientOptions> cosmosClientOptions;
+    private readonly IJsonCosmosSerializer serializer;
+    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache;
+    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache;
+
+    public CosmosClientProvider(
+        IOptions<CosmosClientOptions> cosmosClientOptions,
+        IJsonCosmosSerializer serializer)
     {
-        private readonly IOptions<CosmosClientOptions> cosmosClientOptions;
-        private readonly IJsonCosmosSerializer serializer;
-        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache;
-        private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache;
+        this.cosmosClientOptions = cosmosClientOptions;
+        this.serializer = serializer;
+        cosmosClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
+        cosmosBulkClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
+    }
 
-        public CosmosClientProvider(
-            IOptions<CosmosClientOptions> cosmosClientOptions,
-            IJsonCosmosSerializer serializer)
+    public CosmosClient GetClient(CosmosOptions options)
+        => cosmosClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: false), (o, c) => c);
+
+    public CosmosClient GetBulkClient(CosmosOptions options)
+        => cosmosBulkClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: true), (o, c) => c);
+
+    public void Dispose()
+    {
+        foreach (var client in cosmosClientCache.ToList())
         {
-            this.cosmosClientOptions = cosmosClientOptions;
-            this.serializer = serializer;
-            cosmosClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
-            cosmosBulkClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
+            client.Value.Dispose();
         }
 
-        public CosmosClient GetClient(CosmosOptions options)
-            => cosmosClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: false), (o, c) => c);
-
-        public CosmosClient GetBulkClient(CosmosOptions options)
-            => cosmosBulkClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: true), (o, c) => c);
-
-        public void Dispose()
+        foreach (var client in cosmosBulkClientCache.ToList())
         {
-            foreach (var client in cosmosClientCache.ToList())
+            client.Value.Dispose();
+        }
+    }
+
+    private CosmosClient CreateClient(
+        CosmosOptions cosmosOptions,
+        bool allowBulk)
+    {
+        var connectionString =
+            $"AccountEndpoint={cosmosOptions.AccountEndpoint};" +
+            $"AccountKey={cosmosOptions.AccountKey}";
+
+        var options = CreateCosmosClientOptions();
+        options.AllowBulkExecution = allowBulk;
+        options.Serializer = cosmosClientOptions.Value.Serializer
+                             ?? new CosmosSerializerAdapter(serializer);
+
+        return cosmosOptions.Credential is not null
+            ? new CosmosClient(
+                cosmosOptions.AccountEndpoint,
+                cosmosOptions.Credential,
+                options)
+            : new CosmosClient(connectionString, options);
+    }
+
+    private CosmosClientOptions CreateCosmosClientOptions()
+    {
+        var result = new CosmosClientOptions();
+
+        if (cosmosClientOptions is { Value: { } o })
+        {
+            if (!string.IsNullOrEmpty(o.ApplicationName))
             {
-                client.Value.Dispose();
+                result.ApplicationName = o.ApplicationName;
             }
 
-            foreach (var client in cosmosBulkClientCache.ToList())
+            result.ApplicationPreferredRegions = o.ApplicationPreferredRegions;
+            result.ApplicationRegion = o.ApplicationRegion;
+            result.ConnectionMode = o.ConnectionMode;
+            result.ConsistencyLevel = o.ConsistencyLevel;
+
+            foreach (var handler in o.CustomHandlers)
             {
-                client.Value.Dispose();
-            }
-        }
-
-        private CosmosClient CreateClient(CosmosOptions cosmosOptions, bool allowBulk)
-        {
-            var connectionString =
-                $"AccountEndpoint={cosmosOptions.AccountEndpoint};" +
-                $"AccountKey={cosmosOptions.AccountKey}";
-
-            var options = CreateCosmosClientOptions();
-            options.AllowBulkExecution = allowBulk;
-            options.Serializer = cosmosClientOptions.Value.Serializer
-                ?? new CosmosSerializerAdapter(serializer);
-
-            return cosmosOptions.Credential is not null
-                 ? new CosmosClient(
-                     cosmosOptions.AccountEndpoint,
-                     cosmosOptions.Credential,
-                     options)
-                 : new CosmosClient(connectionString, options);
-        }
-
-        private CosmosClientOptions CreateCosmosClientOptions()
-        {
-            var result = new CosmosClientOptions();
-
-            if (cosmosClientOptions is { Value: { } o })
-            {
-                if (!string.IsNullOrEmpty(o.ApplicationName))
-                {
-                    result.ApplicationName = o.ApplicationName;
-                }
-
-                result.ApplicationPreferredRegions = o.ApplicationPreferredRegions;
-                result.ApplicationRegion = o.ApplicationRegion;
-                result.ConnectionMode = o.ConnectionMode;
-                result.ConsistencyLevel = o.ConsistencyLevel;
-
-                foreach (var handler in o.CustomHandlers)
-                {
-                    result.CustomHandlers.Add(handler);
-                }
-
-                result.HttpClientFactory = o.HttpClientFactory;
-                result.IdleTcpConnectionTimeout = o.IdleTcpConnectionTimeout;
-                result.LimitToEndpoint = o.LimitToEndpoint;
-                result.MaxRequestsPerTcpConnection = o.MaxRequestsPerTcpConnection;
-                result.MaxRetryWaitTimeOnRateLimitedRequests = o.MaxRetryWaitTimeOnRateLimitedRequests;
-                result.MaxTcpConnectionsPerEndpoint = o.MaxTcpConnectionsPerEndpoint;
-                result.OpenTcpConnectionTimeout = o.OpenTcpConnectionTimeout;
-                result.PortReuseMode = o.PortReuseMode;
-                result.RequestTimeout = o.RequestTimeout;
-                result.SerializerOptions = o.SerializerOptions;
-                result.WebProxy = o.WebProxy;
-                result.EnableTcpConnectionEndpointRediscovery = o.EnableTcpConnectionEndpointRediscovery;
-                result.GatewayModeMaxConnectionLimit = o.GatewayModeMaxConnectionLimit;
-                result.MaxRetryAttemptsOnRateLimitedRequests = o.MaxRetryAttemptsOnRateLimitedRequests;
+                result.CustomHandlers.Add(handler);
             }
 
-            return result;
+            result.HttpClientFactory = o.HttpClientFactory;
+            result.IdleTcpConnectionTimeout = o.IdleTcpConnectionTimeout;
+            result.LimitToEndpoint = o.LimitToEndpoint;
+            result.MaxRequestsPerTcpConnection = o.MaxRequestsPerTcpConnection;
+            result.MaxRetryWaitTimeOnRateLimitedRequests = o.MaxRetryWaitTimeOnRateLimitedRequests;
+            result.MaxTcpConnectionsPerEndpoint = o.MaxTcpConnectionsPerEndpoint;
+            result.OpenTcpConnectionTimeout = o.OpenTcpConnectionTimeout;
+            result.PortReuseMode = o.PortReuseMode;
+            result.RequestTimeout = o.RequestTimeout;
+            result.SerializerOptions = o.SerializerOptions;
+            result.WebProxy = o.WebProxy;
+            result.EnableTcpConnectionEndpointRediscovery = o.EnableTcpConnectionEndpointRediscovery;
+            result.GatewayModeMaxConnectionLimit = o.GatewayModeMaxConnectionLimit;
+            result.MaxRetryAttemptsOnRateLimitedRequests = o.MaxRetryAttemptsOnRateLimitedRequests;
         }
+
+        return result;
     }
 }

@@ -1,87 +1,79 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using Microsoft.Extensions.Options;
+namespace Atc.Cosmos.Serialization;
 
-namespace Atc.Cosmos.Serialization
+/// <summary>
+/// Implementation used for serializing a stream to and from Json using the <seealso cref="System.Text.Json.JsonSerializer"/>
+/// from within Cosmos SDK.
+/// </summary>
+public class JsonCosmosSerializer : IJsonCosmosSerializer
 {
-    /// <summary>
-    /// Implementation used for serializing a stream to and from Json using the <seealso cref="System.Text.Json.JsonSerializer"/>
-    /// from within Cosmos SDK.
-    /// </summary>
-    public class JsonCosmosSerializer : IJsonCosmosSerializer
-    {
-        private readonly JsonSerializerOptions options;
+    private readonly JsonSerializerOptions options;
 
-        public JsonCosmosSerializer(IOptions<CosmosOptions> options)
+    public JsonCosmosSerializer(IOptions<CosmosOptions> options)
+    {
+        this.options = options.Value.SerializerOptions;
+    }
+
+    [return: MaybeNull]
+    public T FromStream<T>(Stream stream)
+    {
+        if (stream is null)
         {
-            this.options = options.Value.SerializerOptions;
+            throw new ArgumentNullException(nameof(stream));
         }
 
-        [return: MaybeNull]
-        public T FromStream<T>(Stream stream)
+        using (stream)
         {
-            if (stream is null)
+            if (stream.CanSeek && stream.Length == 0)
             {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            using (stream)
-            {
-                if (stream.CanSeek && stream.Length == 0)
-                {
-                    return default;
-                }
-
-                // This part is taken from one of the Cosmos samples.
-                if (typeof(Stream).IsAssignableFrom(typeof(T)))
-                {
-                    return (T)(object)stream;
-                }
-
-                // Response data from cosmos always comes as a memory stream.
-                // Note: This might change in v4, but so far it doesn't look like it.
-                if (stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out ArraySegment<byte> buffer))
-                {
-                    return JsonSerializer.Deserialize<T>(buffer, options);
-                }
-
                 return default;
             }
-        }
 
-        public Stream ToStream<T>(T input)
-        {
-            if (input is null)
+            // This part is taken from one of the Cosmos samples.
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
             {
-                throw new ArgumentNullException(nameof(input));
+                return (T)(object)stream;
             }
 
-            var streamPayload = new MemoryStream();
+            // Response data from cosmos always comes as a memory stream.
+            // Note: This might change in v4, but so far it doesn't look like it.
+            if (stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out ArraySegment<byte> buffer))
+            {
+                return JsonSerializer.Deserialize<T>(buffer, options);
+            }
 
-            using var utf8JsonWriter = new Utf8JsonWriter(
-                streamPayload,
-                new JsonWriterOptions
-                {
-                    Indented = options.WriteIndented,
-                });
+            return default;
+        }
+    }
 
-            JsonSerializer.Serialize(utf8JsonWriter, input, options);
-            streamPayload.Position = 0;
-
-            return streamPayload;
+    public Stream ToStream<T>(T input)
+    {
+        if (input is null)
+        {
+            throw new ArgumentNullException(nameof(input));
         }
 
-        public string SerializeMemberName(MemberInfo memberInfo)
-            => options.PropertyNamingPolicy?.ConvertName(memberInfo.Name) ??
-               memberInfo.Name;
+        var streamPayload = new MemoryStream();
 
-        [return: MaybeNull]
-        public T FromString<T>(string json)
-            => JsonSerializer.Deserialize<T>(
-                json,
-                options);
+        using var utf8JsonWriter = new Utf8JsonWriter(
+            streamPayload,
+            new JsonWriterOptions
+            {
+                Indented = options.WriteIndented,
+            });
+
+        JsonSerializer.Serialize(utf8JsonWriter, input, options);
+        streamPayload.Position = 0;
+
+        return streamPayload;
     }
+
+    public string SerializeMemberName(MemberInfo memberInfo)
+        => options.PropertyNamingPolicy?.ConvertName(memberInfo.Name) ??
+           memberInfo.Name;
+
+    [return: MaybeNull]
+    public T FromString<T>(string json)
+        => JsonSerializer.Deserialize<T>(
+            json,
+            options);
 }

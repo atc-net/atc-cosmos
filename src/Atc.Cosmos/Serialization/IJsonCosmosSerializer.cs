@@ -1,19 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Reflection;
+namespace Atc.Cosmos.Serialization;
 
-namespace Atc.Cosmos.Serialization
+public interface IJsonCosmosSerializer
 {
-    public interface IJsonCosmosSerializer
-    {
-        [return: MaybeNull]
-        T FromStream<T>(Stream stream);
+    [return: MaybeNull]
+    T FromStream<T>(Stream stream);
 
-        Stream ToStream<T>(T input);
+    Stream ToStream<T>(T input);
 
-        string SerializeMemberName(MemberInfo memberInfo);
+    string SerializeMemberName(MemberInfo memberInfo);
 
-        [return: MaybeNull]
-        T FromString<T>(string json);
-    }
+    [return: MaybeNull]
+    T FromString<T>(string json);
 }

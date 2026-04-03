@@ -1,18 +1,15 @@
-using System.Text.Json.Serialization;
+namespace Atc.Cosmos.AutoIncrement;
 
-namespace Atc.Cosmos.AutoIncrement
+public class AutoIncrementCounter : CosmosResource
 {
-    public class AutoIncrementCounter : CosmosResource
-    {
-        [JsonPropertyName("id")]
-        public string CounterName { get; set; } = default!;
+    [JsonPropertyName("id")]
+    public string CounterName { get; set; } = null!;
 
-        public int Count { get; set; }
+    public int Count { get; set; }
 
-        protected override string GetDocumentId()
-            => CounterName;
+    protected override string GetDocumentId()
+        => CounterName;
 
-        protected override string GetPartitionKey()
-            => CounterName;
-    }
+    protected override string GetPartitionKey()
+        => CounterName;
 }
