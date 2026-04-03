@@ -1,37 +1,27 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+namespace Atc.Cosmos.Internal;
 
-namespace Atc.Cosmos.Internal
+public class ChangeFeedService : IHostedService
 {
-    public class ChangeFeedService : IHostedService
+    private readonly IEnumerable<IChangeFeedListener> listeners;
+
+    public ChangeFeedService(IEnumerable<IChangeFeedListener> listeners)
+        => this.listeners = listeners;
+
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        private readonly IEnumerable<IChangeFeedListener> listeners;
+        var tasks = listeners
+            .Select(l => l.StartAsync(cancellationToken))
+            .ToArray();
 
-        public ChangeFeedService(
-            IEnumerable<IChangeFeedListener> listeners)
-        {
-            this.listeners = listeners;
-        }
+        return Task.WhenAll(tasks);
+    }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            var tasks = listeners
-               .Select(l => l.StartAsync(cancellationToken))
-               .ToArray();
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        var tasks = listeners
+            .Select(l => l.StopAsync(cancellationToken))
+            .ToArray();
 
-            return Task.WhenAll(tasks);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            var tasks = listeners
-               .Select(l => l.StopAsync(cancellationToken))
-               .ToArray();
-
-            return Task.WhenAll(tasks);
-        }
+        return Task.WhenAll(tasks);
     }
 }

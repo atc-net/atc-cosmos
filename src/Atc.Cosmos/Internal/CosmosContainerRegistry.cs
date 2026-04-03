@@ -1,63 +1,54 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Options;
+namespace Atc.Cosmos.Internal;
 
-namespace Atc.Cosmos.Internal
+public class CosmosContainerRegistry : ICosmosContainerRegistry
 {
-    public class CosmosContainerRegistry : ICosmosContainerRegistry
+    private readonly IOptions<CosmosOptions> defaultOptions;
+    private readonly List<ICosmosContainerNameProvider> providers;
+
+    public CosmosContainerRegistry(
+        IOptions<CosmosOptions> defaultOptions,
+        IEnumerable<ICosmosContainerNameProvider> nameProviders)
     {
-        private readonly IOptions<CosmosOptions> defaultOptions;
-        private readonly List<ICosmosContainerNameProvider> providers;
+        this.defaultOptions = defaultOptions;
+        this.providers = nameProviders
+            .Select(PatchDefaultOptions)
+            .ToList();
 
-        public CosmosContainerRegistry(
-            IOptions<CosmosOptions> defaultOptions,
-            IEnumerable<ICosmosContainerNameProvider> nameProviders)
+        Options = providers
+            .Select(p => p.Options!)
+            .Union([defaultOptions.Value])
+            .Distinct()
+            .ToList();
+
+        if (Options.Any(options => !IsValid(options)))
         {
-            this.defaultOptions = defaultOptions;
-            this.providers = nameProviders
-                .Select(PatchDefaultOptions)
-                .ToList();
-
-            Options = providers
-                .Select(p => p.Options!)
-                .Union(new[] { defaultOptions.Value })
-                .Distinct()
-                .ToList();
-
-            if (Options.Any(options => !IsValid(options)))
-            {
-                throw new InvalidOperationException(
-                    $"Invalid configuration in {nameof(CosmosOptions)}.");
-            }
+            throw new InvalidOperationException(
+                $"Invalid configuration in {nameof(CosmosOptions)}.");
         }
+    }
 
-        public CosmosOptions DefaultOptions => defaultOptions.Value;
+    public CosmosOptions DefaultOptions => defaultOptions.Value;
 
-        public IReadOnlyList<CosmosOptions> Options { get; }
+    public IReadOnlyList<CosmosOptions> Options { get; }
 
-        public ICosmosContainerNameProvider GetContainerForType<TType>()
-            => GetContainerForType(typeof(TType));
+    public ICosmosContainerNameProvider GetContainerForType<TType>()
+        => GetContainerForType(typeof(TType));
 
-        public ICosmosContainerNameProvider GetContainerForType(Type resourceType)
-            => providers.Find(p => p.IsForType(resourceType))
-            ?? throw new NotSupportedException(
-                $"Type {resourceType.Name} is not supported.");
+    public ICosmosContainerNameProvider GetContainerForType(Type resourceType)
+        => providers.Find(p => p.IsForType(resourceType))
+           ?? throw new NotSupportedException(
+               $"Type {resourceType.Name} is not supported.");
 
-        private static bool IsValid(CosmosOptions options)
-            => options is not null
-            && !string.IsNullOrEmpty(options.AccountEndpoint)
-            && (!string.IsNullOrEmpty(options.AccountKey) || options.Credential is not null)
-            && !string.IsNullOrEmpty(options.DatabaseName);
+    private static bool IsValid(CosmosOptions options)
+        => options is not null
+           && !string.IsNullOrEmpty(options.AccountEndpoint)
+           && (!string.IsNullOrEmpty(options.AccountKey) || options.Credential is not null)
+           && !string.IsNullOrEmpty(options.DatabaseName);
 
-        private ICosmosContainerNameProvider PatchDefaultOptions(ICosmosContainerNameProvider provider)
-        {
-            if (provider.Options == null)
-            {
-                provider.Options = defaultOptions.Value;
-            }
-
-            return provider;
-        }
+    private ICosmosContainerNameProvider PatchDefaultOptions(
+        ICosmosContainerNameProvider provider)
+    {
+        provider.Options ??= defaultOptions.Value;
+        return provider;
     }
 }

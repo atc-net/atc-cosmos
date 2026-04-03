@@ -1,42 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+namespace Atc.Cosmos.Internal;
 
-namespace Atc.Cosmos.Internal
+public class CosmosContainerNameProvider : ICosmosContainerNameProvider
 {
-    public class CosmosContainerNameProvider : ICosmosContainerNameProvider
+    private readonly Type containerType;
+
+    public CosmosContainerNameProvider(
+        Type resourceType,
+        string containerName,
+        CosmosOptions? options)
     {
-        private readonly Type containerType;
+        containerType = resourceType;
+        ContainerName = containerName;
+        Options = options;
+    }
 
-        public CosmosContainerNameProvider(
-            Type resourceType,
-            string containerName,
-            CosmosOptions? options)
+    public CosmosOptions? Options { get; set; }
+
+    public string ContainerName { get; }
+
+    public bool IsForType(Type resourceType)
+    {
+        if (containerType.IsGenericTypeDefinition)
         {
-            containerType = resourceType;
-            ContainerName = containerName;
-            Options = options;
-        }
-
-        public CosmosOptions? Options { get; set; }
-
-        public string ContainerName { get; }
-
-        public bool IsForType(Type resourceType)
-        {
-            if (containerType.IsGenericTypeDefinition)
-            {
-                if (resourceType.GetGenericTypeDefinition() == containerType)
-                {
-                    return true;
-                }
-            }
-            else if (containerType == resourceType)
+            if (resourceType.GetGenericTypeDefinition() == containerType)
             {
                 return true;
             }
-
-            return false;
         }
+        else if (containerType == resourceType)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

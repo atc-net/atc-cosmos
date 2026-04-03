@@ -1,32 +1,24 @@
-using System.Threading;
-using System.Threading.Tasks;
+namespace Atc.Cosmos.AutoIncrement;
 
-namespace Atc.Cosmos.AutoIncrement
+public class AutoIncrementProvider(
+    ICosmosWriter<AutoIncrementCounter> writer)
+    : IAutoIncrementProvider
 {
-    public class AutoIncrementProvider : IAutoIncrementProvider
+    public async Task<int> GetNextAsync(
+        string counterName,
+        CancellationToken cancellationToken)
     {
-        private readonly ICosmosWriter<AutoIncrementCounter> writer;
+        var result = await writer
+            .UpdateOrCreateAsync(
+                () => new AutoIncrementCounter
+                {
+                    CounterName = counterName,
+                },
+                d => d.Count++,
+                retries: 5,
+                cancellationToken)
+            .ConfigureAwait(false);
 
-        public AutoIncrementProvider(
-            ICosmosWriter<AutoIncrementCounter> writer)
-        {
-            this.writer = writer;
-        }
-
-        public async Task<int> GetNextAsync(string counterName, CancellationToken cancellationToken)
-        {
-            var result = await writer
-                .UpdateOrCreateAsync(
-                    () => new AutoIncrementCounter
-                    {
-                        CounterName = counterName,
-                    },
-                    d => d.Count++,
-                    retries: 5,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            return result.Count;
-        }
+        return result.Count;
     }
 }
