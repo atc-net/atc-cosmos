@@ -1,6 +1,3 @@
-using Atc.Cosmos;
-using Microsoft.Azure.Cosmos;
-
 namespace SampleApi;
 
 public class FooContainerInitializer : ICosmosContainerInitializer

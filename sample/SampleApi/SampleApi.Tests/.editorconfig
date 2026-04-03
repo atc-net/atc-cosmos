@@ -1,0 +1,6 @@
+[*.{cs,csx,cake}]
+
+dotnet_diagnostic.CA1707.severity = none            # Allow underscores in test method names
+dotnet_diagnostic.CA1062.severity = none            # No null-checking test method parameters
+dotnet_diagnostic.MA0004.severity = none            # No ConfigureAwait in tests
+dotnet_diagnostic.MA0016.severity = none            # Prefer return collection abstraction instead of implementation
