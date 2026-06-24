@@ -1,7 +1,3 @@
-#if PREVIEW
-using Atc.Cosmos.Internal;
-using Atc.Cosmos.Serialization;
-
 namespace Atc.Cosmos;
 
 public class LowPriorityCosmosWriterFactory : ILowPriorityCosmosWriterFactory
@@ -31,4 +27,3 @@ public class LowPriorityCosmosWriterFactory : ILowPriorityCosmosWriterFactory
         where TResource : class, ICosmosResource
         => new LowPriorityCosmosBulkWriter<TResource>(provider, serializer);
 }
-#endif

@@ -1,9 +1,7 @@
 <Solution>
   <Configurations>
     <BuildType Name="Debug" />
-    <BuildType Name="Debug Preview" />
     <BuildType Name="Release" />
-    <BuildType Name="Release Preview" />
   </Configurations>
   <Folder Name="/sample/" />
   <Folder Name="/sample/src/">

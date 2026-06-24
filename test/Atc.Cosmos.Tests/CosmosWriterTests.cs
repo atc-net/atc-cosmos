@@ -34,14 +34,12 @@ public sealed class CosmosWriterTests
         container
             .PatchItemAsync<object>(default, default, default, default)
             .ReturnsForAnyArgs(response);
-#if PREVIEW
 
         var responseMessage = Substitute.For<ResponseMessage>();
         responseMessage.StatusCode.Returns(HttpStatusCode.Accepted);
         container
             .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
             .ReturnsForAnyArgs(responseMessage);
-#endif
 
         reader = Substitute.For<ICosmosReader<Record>>();
         reader
@@ -87,11 +85,7 @@ public sealed class CosmosWriterTests
             .UpsertItemAsync<object>(
                 record,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken);
     }
 
@@ -110,11 +104,7 @@ public sealed class CosmosWriterTests
             .UpsertItemAsync<object>(
                 record,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false && p.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
-#endif
                 cancellationToken);
     }
 
@@ -129,11 +119,7 @@ public sealed class CosmosWriterTests
             .CreateItemAsync<object>(
                 record,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken);
     }
 
@@ -148,11 +134,7 @@ public sealed class CosmosWriterTests
             .CreateItemAsync<object>(
                 record,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false && p.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Is<ItemRequestOptions>(p => p.EnableContentResponseOnWrite == false),
-#endif
                 cancellationToken);
     }
 
@@ -168,11 +150,7 @@ public sealed class CosmosWriterTests
                 record,
                 record.Id,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag && o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag),
-#endif
                 cancellationToken);
     }
 
@@ -190,9 +168,7 @@ public sealed class CosmosWriterTests
                 new PartitionKey(record.Pk),
                 Arg.Is<ItemRequestOptions>(
                     o => o.IfMatchEtag == record.ETag
-#if PREVIEW
                          && o.PriorityLevel == PriorityLevel.High
-#endif
                          && o.EnableContentResponseOnWrite == false),
                 cancellationToken);
     }
@@ -225,11 +201,7 @@ public sealed class CosmosWriterTests
             .DeleteItemAsync<object>(
                 record.Id,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken: cancellationToken);
     }
 
@@ -251,11 +223,7 @@ public sealed class CosmosWriterTests
             .DeleteItemAsync<object>(
                 record.Id,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken: cancellationToken);
     }
 
@@ -282,11 +250,7 @@ public sealed class CosmosWriterTests
             .DeleteItemAsync<object>(
                 record.Id,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken: cancellationToken);
     }
 
@@ -300,11 +264,7 @@ public sealed class CosmosWriterTests
             .Received(1)
             .DeleteAllItemsByPartitionKeyStreamAsync(
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken: cancellationToken);
     }
 
@@ -385,12 +345,8 @@ public sealed class CosmosWriterTests
                 record,
                 record.Id,
                 new PartitionKey(record.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(
                     o => o.IfMatchEtag == record.ETag && o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == record.ETag),
-#endif
                 cancellationToken);
     }
 
@@ -505,11 +461,7 @@ public sealed class CosmosWriterTests
             .CreateItemAsync<object>(
                 defaultDocument,
                 new PartitionKey(defaultDocument.Pk),
-#if PREVIEW
                 Arg.Is<ItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<ItemRequestOptions>(),
-#endif
                 cancellationToken);
     }
 
@@ -532,11 +484,7 @@ public sealed class CosmosWriterTests
                 record.Id,
                 new PartitionKey(record.Pk),
                 patchOperations,
-#if PREVIEW
                 Arg.Is<PatchItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<PatchItemRequestOptions>(),
-#endif
                 cancellationToken);
     }
 
@@ -559,11 +507,7 @@ public sealed class CosmosWriterTests
                 record.Id,
                 new PartitionKey(record.Pk),
                 patchOperations,
-#if PREVIEW
                 Arg.Is<PatchItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
-#else
-                Arg.Any<PatchItemRequestOptions>(),
-#endif
                 cancellationToken);
     }
 }

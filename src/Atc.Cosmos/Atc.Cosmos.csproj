@@ -4,7 +4,6 @@
     <PackageId>Atc.Cosmos</PackageId>
     <PackageTags>cosmos;cosmos-sql;netcore;repository</PackageTags>
     <Description>Library for configuring containers in Cosmos and providing an easy way to read and write document resources.</Description>
-    <VersionSuffix Condition="$(IsPreview)">preview</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,8 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.47.0-preview.0" Condition="$(IsPreview)" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.0" Condition="!$(IsPreview)" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.61.0" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">

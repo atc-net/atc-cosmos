@@ -18,9 +18,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
         this.serializer = serializer;
     }
 
-#if PREVIEW
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
-#endif
 
     public Task<T> CreateAsync(
         T document,
@@ -31,9 +29,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new PartitionKey(document.PartitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken)
             .GetResourceWithEtag<T>(serializer);
@@ -48,9 +44,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -63,9 +57,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new PartitionKey(document.PartitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken)
             .GetResourceWithEtag<T>(serializer);
@@ -80,9 +72,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -97,9 +87,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new ItemRequestOptions
                 {
                     IfMatchEtag = document.ETag,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken)
             .GetResourceWithEtag<T>(serializer);
@@ -116,9 +104,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 {
                     IfMatchEtag = document.ETag,
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -132,9 +118,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new PartitionKey(partitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken: cancellationToken);
 
@@ -151,9 +135,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                     new PartitionKey(partitionKey),
                     new ItemRequestOptions
                     {
-#if PREVIEW
                         PriorityLevel = PriorityLevel,
-#endif
                     },
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
@@ -175,9 +157,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new PartitionKey(partitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken: cancellationToken)
             .ProcessResponseMessage();
@@ -320,9 +300,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 new PatchItemRequestOptions
                 {
                     FilterPredicate = filterPredicate,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken)
             .GetResourceWithEtag<T>(serializer);
@@ -342,9 +320,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
                 {
                     FilterPredicate = filterPredicate,
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 

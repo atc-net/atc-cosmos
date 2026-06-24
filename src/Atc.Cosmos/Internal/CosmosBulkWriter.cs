@@ -8,9 +8,7 @@ public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
     public CosmosBulkWriter(ICosmosContainerProvider containerProvider)
         => container = containerProvider.GetContainer<T>(allowBulk: true);
 
-#if PREVIEW
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
-#endif
 
     public Task CreateAsync(
         T document,
@@ -22,9 +20,7 @@ public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -38,9 +34,7 @@ public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -56,9 +50,7 @@ public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
                 {
                     IfMatchEtag = document.ETag,
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken);
 
@@ -73,9 +65,7 @@ public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = false,
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken: cancellationToken);
 }

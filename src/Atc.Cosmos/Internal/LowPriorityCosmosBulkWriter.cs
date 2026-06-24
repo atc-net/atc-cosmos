@@ -1,8 +1,3 @@
-#if PREVIEW
-using Atc.Cosmos.Internal;
-using Atc.Cosmos.Serialization;
-using Microsoft.Azure.Cosmos;
-
 namespace Atc.Cosmos;
 
 public class LowPriorityCosmosBulkWriter<T>
@@ -18,4 +13,3 @@ public class LowPriorityCosmosBulkWriter<T>
 
     protected override PriorityLevel PriorityLevel => PriorityLevel.Low;
 }
-#endif
