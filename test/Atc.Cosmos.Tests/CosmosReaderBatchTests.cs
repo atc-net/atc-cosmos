@@ -379,11 +379,7 @@ public sealed class CosmosReaderBatchTests
             .Received(1)
             .GetItemQueryIterator<Record>(
                 query,
-#if PREVIEW
                 requestOptions: Arg.Is<QueryRequestOptions>(c => c.PriorityLevel == PriorityLevel.High));
-#else
-                requestOptions: Arg.Any<QueryRequestOptions>());
-#endif
     }
 
     [Theory, AutoNSubstituteData]

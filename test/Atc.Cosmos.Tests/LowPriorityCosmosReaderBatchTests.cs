@@ -1,6 +1,5 @@
-#if PREVIEW
-
 namespace Atc.Cosmos.Tests;
+
 public sealed class LowPriorityCosmosReaderBatchTests
 {
     private readonly ItemResponse<Record> itemResponse;
@@ -456,4 +455,3 @@ public sealed class LowPriorityCosmosReaderBatchTests
             .Be(record);
     }
 }
-#endif

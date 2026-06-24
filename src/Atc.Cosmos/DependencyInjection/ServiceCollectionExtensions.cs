@@ -59,16 +59,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICosmosClientProvider, CosmosClientProvider>();
         services.AddSingleton<ICosmosReaderFactory, CosmosReaderFactory>();
         services.AddSingleton<ICosmosWriterFactory, CosmosWriterFactory>();
-#if PREVIEW
-            services.AddSingleton(typeof(ILowPriorityCosmosReader<>), typeof(LowPriorityCosmosReader<>));
-            services.AddSingleton(typeof(ILowPriorityCosmosWriter<>), typeof(LowPriorityCosmosWriter<>));
-            services.AddSingleton(typeof(ILowPriorityCosmosBulkReader<>), typeof(LowPriorityCosmosBulkReader<>));
-            services.AddSingleton(typeof(ILowPriorityCosmosBulkWriter<>), typeof(LowPriorityCosmosBulkWriter<>));
-            services.AddSingleton<ILowPriorityCosmosReaderFactory, LowPriorityCosmosReaderFactory>();
-            services.AddSingleton<ILowPriorityCosmosWriterFactory, LowPriorityCosmosWriterFactory>();
-#endif
+        services.AddSingleton(typeof(ILowPriorityCosmosReader<>), typeof(LowPriorityCosmosReader<>));
+        services.AddSingleton(typeof(ILowPriorityCosmosWriter<>), typeof(LowPriorityCosmosWriter<>));
+        services.AddSingleton(typeof(ILowPriorityCosmosBulkReader<>), typeof(LowPriorityCosmosBulkReader<>));
+        services.AddSingleton(typeof(ILowPriorityCosmosBulkWriter<>), typeof(LowPriorityCosmosBulkWriter<>));
+        services.AddSingleton<ILowPriorityCosmosReaderFactory, LowPriorityCosmosReaderFactory>();
+        services.AddSingleton<ILowPriorityCosmosWriterFactory, LowPriorityCosmosWriterFactory>();
 
-        builder(new CosmosBuilder(services, registry, null));
+        builder(new CosmosBuilder(services, registry, options: null));
         return services;
     }
 

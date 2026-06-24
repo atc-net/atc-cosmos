@@ -1,4 +1,3 @@
-#if PREVIEW
 namespace Atc.Cosmos;
 
 /// <summary>
@@ -22,4 +21,3 @@ public interface ILowPriorityCosmosReaderFactory
     ILowPriorityCosmosBulkReader<TResource> CreateBulkReader<TResource>()
         where TResource : class, ICosmosResource;
 }
-#endif

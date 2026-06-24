@@ -1,4 +1,3 @@
-#if PREVIEW
 namespace Atc.Cosmos;
 
 /// <summary>
@@ -13,4 +12,3 @@ public interface ILowPriorityCosmosWriter<T>
     where T : class, ICosmosResource
 {
 }
-#endif

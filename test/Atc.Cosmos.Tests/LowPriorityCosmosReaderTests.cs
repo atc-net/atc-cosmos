@@ -1,6 +1,5 @@
-#if PREVIEW
-
 namespace Atc.Cosmos.Tests;
+
 public sealed class LowPriorityCosmosReaderTests
 {
     private readonly CosmosOptions options;
@@ -99,7 +98,7 @@ public sealed class LowPriorityCosmosReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void ReadAsync_Throws_Expection_When_Record_IsNot_Found(
+    public Task ReadAsync_Throws_Expection_When_Record_IsNot_Found(
         CosmosException exception,
         string documentId,
         string partitionKey,
@@ -109,7 +108,7 @@ public sealed class LowPriorityCosmosReaderTests
             .ReadItemAsync<Record>(default, default, default, default)
             .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
 
-        FluentActions
+        return FluentActions
             .Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
             .Should()
             .ThrowAsync<CosmosException>();
@@ -1018,4 +1017,3 @@ public sealed class LowPriorityCosmosReaderTests
             .Be(continuationToken);
     }
 }
-#endif

@@ -17,7 +17,7 @@ A .NET library for configuring containers in Azure Cosmos DB and providing an ea
   - [Using the Readers and Writers](#using-the-readers-and-writers)
   - [Change Feeds](#change-feeds)
   - [Delete by Partition Key](#delete-by-partition-key)
-  - [Preview Features](#preview-features)
+  - [Priority Based Execution](#priority-based-execution)
   - [Unit Testing](#unit-testing)
   - [Sample](#sample)
   - [Requirements](#requirements)
@@ -182,13 +182,9 @@ The library supports adding change feed processors for a container.
 
 The `ICosmosWriter<T>.DeletePartitionAsync()` method allows you to delete all documents within a partition by partition key. This uses the Cosmos DB [delete all items by partition key](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-delete-by-partition-key) feature.
 
-## Preview Features
+## Priority Based Execution
 
-The library has a preview version that exposes CosmosDB preview features.
-
-### Priority Based Execution
-
-When using the preview version, you will have access to low priority readers and writers:
+The library exposes low priority readers and writers:
 
 | Interface | Description |
 |-----------|-------------|
@@ -200,7 +196,6 @@ When using the preview version, you will have access to low priority readers and
 The "Priority Based Execution" feature needs to be enabled on the CosmosDB account, either in the Azure Portal under Settings > Features, or via Azure CLI:
 
 ```bash
-az extension add --name cosmosdb-preview
 az cosmosdb update --resource-group $ResourceGroup --name $AccountName --enable-priority-based-execution true
 ```
 

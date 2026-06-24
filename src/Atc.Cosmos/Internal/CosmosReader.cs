@@ -13,9 +13,7 @@ public class CosmosReader<T> : ICosmosReader<T>
         this.options = containerProvider.GetCosmosOptions<T>();
     }
 
-#if PREVIEW
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
-#endif
 
     public async Task<T> ReadAsync(
         string documentId,
@@ -28,9 +26,7 @@ public class CosmosReader<T> : ICosmosReader<T>
                 new PartitionKey(partitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
                     PriorityLevel = PriorityLevel,
-#endif
                 },
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -67,9 +63,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -109,9 +103,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -154,9 +146,7 @@ public class CosmosReader<T> : ICosmosReader<T>
                 PartitionKey = new PartitionKey(partitionKey),
                 MaxItemCount = pageSize,
                 ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         if (!reader.HasMoreResults)
@@ -238,9 +228,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             {
                 MaxItemCount = pageSize,
                 ResponseContinuationTokenLimitInKb = options.ContinuationTokenLimitInKb,
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         if (!reader.HasMoreResults)
@@ -279,9 +267,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -310,9 +296,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -347,9 +331,7 @@ public class CosmosReader<T> : ICosmosReader<T>
             query,
             requestOptions: new QueryRequestOptions
             {
-#if PREVIEW
                 PriorityLevel = PriorityLevel,
-#endif
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -375,9 +357,7 @@ public class CosmosReader<T> : ICosmosReader<T>
                 container.GetItemLinqQueryable<T>(
                     requestOptions: new QueryRequestOptions
                     {
-#if PREVIEW
                         PriorityLevel = PriorityLevel,
-#endif
                     }))
             .ToQueryDefinition();
 }

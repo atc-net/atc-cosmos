@@ -13,9 +13,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
 #pragma warning restore IDE0003
     }
 
-#if PREVIEW
-        protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
-#endif
+    protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
 
     public async Task<T> ReadAsync(
         string documentId,
@@ -28,9 +26,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
                 new PartitionKey(partitionKey),
                 new ItemRequestOptions
                 {
-#if PREVIEW
-                        PriorityLevel = PriorityLevel,
-#endif
+                    PriorityLevel = PriorityLevel,
                 },
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -67,9 +63,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -100,9 +94,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -144,9 +136,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             {
                 PartitionKey = new PartitionKey(partitionKey),
                 MaxItemCount = pageSize,
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         if (!reader.HasMoreResults)
@@ -207,9 +197,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             requestOptions: new QueryRequestOptions
             {
                 MaxItemCount = pageSize,
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         if (!reader.HasMoreResults)
@@ -237,9 +225,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)
@@ -268,9 +254,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
             requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(partitionKey),
-#if PREVIEW
-                    PriorityLevel = PriorityLevel,
-#endif
+                PriorityLevel = PriorityLevel,
             });
 
         while (reader.HasMoreResults && !cancellationToken.IsCancellationRequested)

@@ -1,6 +1,5 @@
-#if PREVIEW
-
 namespace Atc.Cosmos.Tests;
+
 public sealed class LowPriorityCosmosWriterTests
 {
     private readonly Record record;
@@ -262,7 +261,7 @@ public sealed class LowPriorityCosmosWriterTests
     }
 
     [Theory, AutoNSubstituteData]
-    public Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Sucessful(
+    public async Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Sucessful(
         CancellationToken cancellationToken)
     {
         using var responseMessage = new ResponseMessage(HttpStatusCode.BadRequest);
@@ -271,7 +270,7 @@ public sealed class LowPriorityCosmosWriterTests
             .ReturnsForAnyArgs(responseMessage);
 
         Func<Task> act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
-        return act.Should().ThrowAsync<CosmosException>();
+        await act.Should().ThrowAsync<CosmosException>();
     }
 
     [Theory, AutoNSubstituteData]
@@ -503,4 +502,3 @@ public sealed class LowPriorityCosmosWriterTests
                 cancellationToken);
     }
 }
-#endif
