@@ -1,16 +1,11 @@
-namespace Atc.Cosmos;
+namespace Atc.Cosmos.Internal;
 
-public class LowPriorityCosmosWriter<T>
-    : CosmosWriter<T>, ILowPriorityCosmosWriter<T>
+public class LowPriorityCosmosWriter<T>(
+    ICosmosContainerProvider containerProvider,
+    ILowPriorityCosmosReader<T> reader,
+    IJsonCosmosSerializer serializer)
+    : CosmosWriter<T>(containerProvider, reader, serializer), ILowPriorityCosmosWriter<T>
     where T : class, ICosmosResource
 {
-    public LowPriorityCosmosWriter(
-        ICosmosContainerProvider containerProvider,
-        ILowPriorityCosmosReader<T> reader,
-        IJsonCosmosSerializer serializer)
-        : base(containerProvider, reader, serializer)
-    {
-    }
-
     protected override PriorityLevel PriorityLevel => PriorityLevel.Low;
 }

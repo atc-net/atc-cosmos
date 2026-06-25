@@ -1,15 +1,9 @@
-namespace Atc.Cosmos;
+namespace Atc.Cosmos.Internal;
 
-public class LowPriorityCosmosBulkWriter<T>
-    : CosmosBulkWriter<T>, ILowPriorityCosmosBulkWriter<T>
+public class LowPriorityCosmosBulkWriter<T>(
+    ICosmosContainerProvider containerProvider)
+    : CosmosBulkWriter<T>(containerProvider), ILowPriorityCosmosBulkWriter<T>
     where T : class, ICosmosResource
 {
-    public LowPriorityCosmosBulkWriter(
-        ICosmosContainerProvider containerProvider,
-        IJsonCosmosSerializer serializer)
-        : base(containerProvider)
-    {
-    }
-
     protected override PriorityLevel PriorityLevel => PriorityLevel.Low;
 }

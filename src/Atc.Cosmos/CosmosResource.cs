@@ -8,10 +8,7 @@ namespace Atc.Cosmos;
 /// interface, the public interface of the class is not polluted with
 /// Cosmos specific properties, as these are implemented explicitly.
 /// </remarks>
-[SuppressMessage(
-    "Design",
-    "CA1033:Interface methods should be callable by child types",
-    Justification = "By design")]
+[SuppressMessage("Design", "CA1033:Interface methods should be callable by child types", Justification = "By design")]
 public abstract class CosmosResource : ICosmosResource
 {
     [JsonIgnore]

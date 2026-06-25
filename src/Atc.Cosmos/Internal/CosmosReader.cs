@@ -1,17 +1,12 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosReader<T> : ICosmosReader<T>
+public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
+    : ICosmosReader<T>
     where T : class, ICosmosResource
 {
     private const string ReadAllQuery = "SELECT * FROM c";
-    private readonly Container container;
-    private readonly CosmosOptions options;
-
-    public CosmosReader(ICosmosContainerProvider containerProvider)
-    {
-        this.container = containerProvider.GetContainer<T>();
-        this.options = containerProvider.GetCosmosOptions<T>();
-    }
+    private readonly Container container = containerProvider.GetContainer<T>();
+    private readonly CosmosOptions options = containerProvider.GetCosmosOptions<T>();
 
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
 
@@ -50,7 +45,7 @@ public class CosmosReader<T> : ICosmosReader<T>
         }
         catch (CosmosException)
         {
-            return default;
+            return null;
         }
     }
 
@@ -122,7 +117,7 @@ public class CosmosReader<T> : ICosmosReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => PagedQueryAsync<T>(
             query,
@@ -135,7 +130,7 @@ public class CosmosReader<T> : ICosmosReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var reader = container.GetItemQueryIterator<TResult>(
@@ -169,7 +164,7 @@ public class CosmosReader<T> : ICosmosReader<T>
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => PagedQueryAsync<TResult>(
             QueryBuilderToQueryDefinition(queryBuilder),
@@ -211,14 +206,14 @@ public class CosmosReader<T> : ICosmosReader<T>
     public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => CrossPartitionPagedQueryAsync<T>(query, pageSize, continuationToken, cancellationToken);
 
     public async Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var reader = container.GetItemQueryIterator<TResult>(
@@ -250,7 +245,7 @@ public class CosmosReader<T> : ICosmosReader<T>
     public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => CrossPartitionPagedQueryAsync<TResult>(
             QueryBuilderToQueryDefinition(queryBuilder),

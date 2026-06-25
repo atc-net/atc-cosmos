@@ -1,22 +1,13 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosWriter<T> : ICosmosWriter<T>
+public class CosmosWriter<T>(
+    ICosmosContainerProvider containerProvider,
+    ICosmosReader<T> reader,
+    IJsonCosmosSerializer serializer)
+    : ICosmosWriter<T>
     where T : class, ICosmosResource
 {
-    private readonly Container container;
-    private readonly ICosmosReader<T> reader;
-    private readonly IJsonCosmosSerializer serializer;
-
-    public CosmosWriter(
-        ICosmosContainerProvider containerProvider,
-        ICosmosReader<T> reader,
-        IJsonCosmosSerializer serializer)
-    {
-        this.container = containerProvider
-            .GetContainer<T>(allowBulk: false);
-        this.reader = reader;
-        this.serializer = serializer;
-    }
+    private readonly Container container = containerProvider.GetContainer<T>(allowBulk: false);
 
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
 
@@ -225,10 +216,7 @@ public class CosmosWriter<T> : ICosmosWriter<T>
             retries,
             cancellationToken);
 
-    [SuppressMessage(
-        "Major Code Smell",
-        "S4457:Parameter validation in \"async\"/\"await\" methods should be wrapped",
-        Justification = "By design")]
+    [SuppressMessage("Major Code Smell", "S4457:Parameter validation in \"async\"/\"await\" methods should be wrapped", Justification = "By design")]
     public async Task<T> UpdateOrCreateAsync(
         Func<T> getDefaultDocument,
         Func<T, Task> updateDocument,

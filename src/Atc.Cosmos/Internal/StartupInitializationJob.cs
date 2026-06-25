@@ -4,15 +4,8 @@ namespace Atc.Cosmos.Internal;
 /// Responsible for initializing cosmos database and containers doing aspnet core startup
 /// before the API is serving requests.
 /// </summary>
-public class StartupInitializationJob : IHostedService
+public class StartupInitializationJob(ICosmosInitializer initializer) : IHostedService
 {
-    private readonly ICosmosInitializer initializer;
-
-    public StartupInitializationJob(ICosmosInitializer initializer)
-    {
-        this.initializer = initializer;
-    }
-
     public Task StartAsync(CancellationToken cancellationToken)
         => initializer.InitializeAsync(cancellationToken);
 

@@ -14,8 +14,7 @@ public static class ItemResponseExtensions
     public static async Task<T> GetResourceWithEtag<T>(
         this Task<ItemResponse<T>> responseTask)
         where T : ICosmosResource
-        => GetResourceWithEtag(
-            await responseTask.ConfigureAwait(false));
+        => GetResourceWithEtag(await responseTask.ConfigureAwait(false));
 
     public static T GetResourceWithEtag<T>(
         this ItemResponse<object> response,

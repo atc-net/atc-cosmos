@@ -103,7 +103,7 @@ public interface ICosmosReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -120,7 +120,7 @@ public interface ICosmosReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -137,7 +137,7 @@ public interface ICosmosReader<T>
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -183,7 +183,7 @@ public interface ICosmosReader<T>
     public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -198,7 +198,7 @@ public interface ICosmosReader<T>
     public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -213,7 +213,7 @@ public interface ICosmosReader<T>
     public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -1,14 +1,7 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosReaderFactory : ICosmosReaderFactory
+public class CosmosReaderFactory(ICosmosContainerProvider provider) : ICosmosReaderFactory
 {
-    private readonly ICosmosContainerProvider provider;
-
-    public CosmosReaderFactory(ICosmosContainerProvider provider)
-    {
-        this.provider = provider;
-    }
-
     public ICosmosReader<TResource> CreateReader<TResource>()
         where TResource : class, ICosmosResource
         => new CosmosReader<TResource>(provider);

@@ -9,18 +9,9 @@ namespace Atc.Cosmos.Testing;
 /// The type of <see cref="ICosmosResource"/>
 /// to be read by this reader.
 /// </typeparam>
-[SuppressMessage(
-   "Design",
-   "MA0016:Prefer return collection abstraction instead of implementation",
-   Justification = "By design")]
-[SuppressMessage(
-   "Design",
-   "CA1002:Do not expose generic lists",
-   Justification = "By design")]
-[SuppressMessage(
-   "Usage",
-   "CA2227:Collection properties should be read only",
-   Justification = "By design")]
+[SuppressMessage("Design", "MA0016:Prefer return collection abstraction instead of implementation", Justification = "By design")]
+[SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "By design")]
+[SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "By design")]
 public class FakeCosmosWriter<T> :
     ICosmosWriter<T>,
     ICosmosBulkWriter<T>
@@ -33,22 +24,18 @@ public class FakeCosmosWriter<T> :
     }
 
     public FakeCosmosWriter(JsonSerializerOptions options)
-    {
-        this.options = options;
-    }
+        => this.options = options;
 
     /// <summary>
     /// Gets or sets the list of documents to be modified by the fake writer.
     /// </summary>
-    public List<T> Documents { get; set; }
-        = new List<T>();
+    public List<T> Documents { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the list of custom results to be returned by the
     /// <see cref="PatchAsync(string, string, IReadOnlyList{PatchOperation}, string?, CancellationToken)"/> method.
     /// </summary>
-    public List<T> PatchResults { get; set; }
-        = new List<T>();
+    public List<T> PatchResults { get; set; } = [];
 
     public virtual Task<T> CreateAsync(
         T document,

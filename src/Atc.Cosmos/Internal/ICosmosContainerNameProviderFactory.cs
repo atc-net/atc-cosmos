@@ -16,7 +16,7 @@ public interface ICosmosContainerNameProviderFactory
     /// <returns>The newly created <see cref="ICosmosContainerNameProvider"/> instance.</returns>
     ICosmosContainerNameProvider Register<T>(
         string containerName,
-        CosmosOptions? options = default)
+        CosmosOptions? options = null)
         where T : ICosmosResource;
 
     /// <summary>
@@ -31,5 +31,5 @@ public interface ICosmosContainerNameProviderFactory
     ICosmosContainerNameProvider Register(
         Type resourceType,
         string containerName,
-        CosmosOptions? options = default);
+        CosmosOptions? options = null);
 }

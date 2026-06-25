@@ -1,14 +1,9 @@
-namespace Atc.Cosmos;
+namespace Atc.Cosmos.Internal;
 
-public class LowPriorityCosmosReaderFactory : ILowPriorityCosmosReaderFactory
+public class LowPriorityCosmosReaderFactory(
+    ICosmosContainerProvider provider)
+    : ILowPriorityCosmosReaderFactory
 {
-    private readonly ICosmosContainerProvider provider;
-
-    public LowPriorityCosmosReaderFactory(ICosmosContainerProvider provider)
-    {
-        this.provider = provider;
-    }
-
     public ILowPriorityCosmosReader<TResource> CreateReader<TResource>()
         where TResource : class, ICosmosResource
         => new LowPriorityCosmosReader<TResource>(provider);

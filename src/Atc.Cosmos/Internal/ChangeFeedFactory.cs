@@ -1,12 +1,8 @@
 namespace Atc.Cosmos.Internal;
 
-public class ChangeFeedFactory : IChangeFeedFactory
+public class ChangeFeedFactory(ICosmosContainerProvider containerProvider)
+    : IChangeFeedFactory
 {
-    private readonly ICosmosContainerProvider containerProvider;
-
-    public ChangeFeedFactory(ICosmosContainerProvider containerProvider)
-        => this.containerProvider = containerProvider;
-
     public ChangeFeedProcessor Create<T>(
         Container.ChangesHandler<T> onChanges,
         Container.ChangeFeedMonitorErrorDelegate? onError = null,

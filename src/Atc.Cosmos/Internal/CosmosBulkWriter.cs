@@ -1,12 +1,10 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosBulkWriter<T> : ICosmosBulkWriter<T>
+public class CosmosBulkWriter<T>(ICosmosContainerProvider containerProvider)
+    : ICosmosBulkWriter<T>
     where T : class, ICosmosResource
 {
-    private readonly Container container;
-
-    public CosmosBulkWriter(ICosmosContainerProvider containerProvider)
-        => container = containerProvider.GetContainer<T>(allowBulk: true);
+    private readonly Container container = containerProvider.GetContainer<T>(allowBulk: true);
 
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
 

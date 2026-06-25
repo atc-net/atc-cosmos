@@ -1,14 +1,9 @@
-namespace Atc.Cosmos;
+namespace Atc.Cosmos.Internal;
 
-public class LowPriorityCosmosBulkReader<T>
-    : CosmosBulkReader<T>, ILowPriorityCosmosBulkReader<T>
+public class LowPriorityCosmosBulkReader<T>(
+    ICosmosContainerProvider containerProvider)
+    : CosmosBulkReader<T>(containerProvider), ILowPriorityCosmosBulkReader<T>
     where T : class, ICosmosResource
 {
-    public LowPriorityCosmosBulkReader(
-        ICosmosContainerProvider containerProvider)
-        : base(containerProvider)
-    {
-    }
-
     protected override PriorityLevel PriorityLevel => PriorityLevel.Low;
 }
