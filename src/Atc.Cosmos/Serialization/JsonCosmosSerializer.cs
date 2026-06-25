@@ -4,17 +4,13 @@ namespace Atc.Cosmos.Serialization;
 /// Implementation used for serializing a stream to and from Json using the <seealso cref="System.Text.Json.JsonSerializer"/>
 /// from within Cosmos SDK.
 /// </summary>
-public class JsonCosmosSerializer : IJsonCosmosSerializer
+public class JsonCosmosSerializer(
+    IOptions<CosmosOptions> options)
+    : IJsonCosmosSerializer
 {
-    private readonly JsonSerializerOptions options;
+    private readonly JsonSerializerOptions options = options.Value.SerializerOptions;
 
-    public JsonCosmosSerializer(IOptions<CosmosOptions> options)
-    {
-        this.options = options.Value.SerializerOptions;
-    }
-
-    [return: MaybeNull]
-    public T FromStream<T>(Stream stream)
+    public T? FromStream<T>(Stream stream)
     {
         if (stream is null)
         {
@@ -23,7 +19,7 @@ public class JsonCosmosSerializer : IJsonCosmosSerializer
 
         using (stream)
         {
-            if (stream.CanSeek && stream.Length == 0)
+            if (stream is { CanSeek: true, Length: 0 })
             {
                 return default;
             }
@@ -34,14 +30,23 @@ public class JsonCosmosSerializer : IJsonCosmosSerializer
                 return (T)(object)stream;
             }
 
-            // Response data from cosmos always comes as a memory stream.
-            // Note: This might change in v4, but so far it doesn't look like it.
-            if (stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out ArraySegment<byte> buffer))
+            // Fast path: response data from cosmos usually comes as a memory
+            // stream whose buffer can be read directly without copying.
+            if (stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var buffer))
             {
                 return JsonSerializer.Deserialize<T>(buffer, options);
             }
 
-            return default;
+            // The Cosmos SDK does not guarantee the response is a MemoryStream
+            // with a publicly visible buffer (e.g. the Binary Encoding feature
+            // added in newer SDK versions wraps it), so fall back to copying
+            // the stream into a buffer before deserializing.
+            using var copy = new MemoryStream();
+            stream.CopyTo(copy);
+
+            return JsonSerializer.Deserialize<T>(
+                new ReadOnlySpan<byte>(copy.GetBuffer(), 0, (int)copy.Length),
+                options);
         }
     }
 
@@ -71,8 +76,7 @@ public class JsonCosmosSerializer : IJsonCosmosSerializer
         => options.PropertyNamingPolicy?.ConvertName(memberInfo.Name) ??
            memberInfo.Name;
 
-    [return: MaybeNull]
-    public T FromString<T>(string json)
+    public T? FromString<T>(string json)
         => JsonSerializer.Deserialize<T>(
             json,
             options);
