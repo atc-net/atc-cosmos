@@ -1,9 +1,9 @@
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 builder.Services.ConfigureCosmosDb();
 
 var app = builder.Build();
+
 app.MapGet(
     "/foo",
     (
@@ -12,9 +12,8 @@ app.MapGet(
             reader
                 .ReadAllAsync(FooResource.PartitionKey, cancellationToken)
                 .ToBlockingEnumerable(cancellationToken)
-                .Select(c => c.Data))
-    .WithName("ListFoo")
-    .WithOpenApi();
+                .Select(c => new { c.Id, c.Data }))
+    .WithName("ListFoo");
 
 app.MapGet(
     "/foo/{id}",
@@ -28,8 +27,7 @@ app.MapGet(
                 ? TypedResults.Ok(foo.Data)
                 : TypedResults.NotFound(id);
         })
-    .WithName("GetFoo")
-    .WithOpenApi();
+    .WithName("GetFoo");
 
 app.MapPost(
     "/foo",
@@ -48,10 +46,9 @@ app.MapPost(
                 cancellationToken);
             return TypedResults.CreatedAtRoute("GetFoo", new { id });
         })
-    .WithName("PostFoo")
-    .WithOpenApi();
+    .WithName("PostFoo");
 
 app.UseHttpsRedirection();
-app.UseSwaggerUI();
-app.UseSwagger();
+app.MapOpenApi();
+app.MapScalarApiReference();
 await app.RunAsync();

@@ -6,7 +6,7 @@ public class FooResource : CosmosResource
 
     public string Id { get; set; } = null!;
 
-    public static string Pk => PartitionKey;
+    public string Pk { get; } = PartitionKey;
 
     public Dictionary<string, object> Data { get; set; } = [];
 
