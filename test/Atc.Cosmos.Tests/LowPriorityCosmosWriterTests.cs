@@ -6,7 +6,6 @@ public sealed class LowPriorityCosmosWriterTests
     private readonly Container container;
     private readonly ICosmosContainerProvider containerProvider;
     private readonly ILowPriorityCosmosReader<Record> reader;
-    private readonly IJsonCosmosSerializer serializer;
     private readonly LowPriorityCosmosWriter<Record> sut;
 
     public LowPriorityCosmosWriterTests()
@@ -16,42 +15,50 @@ public sealed class LowPriorityCosmosWriterTests
         container = Substitute.For<Container>();
 
         containerProvider = Substitute.For<ICosmosContainerProvider>();
+
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container, null);
 
         var response = Substitute.For<ItemResponse<object>>();
         response.Resource.Returns(new Fixture().Create<string>());
+
         container
-            .CreateItemAsync<object>(default, default, default, default)
+            .CreateItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .ReplaceItemAsync<object>(default, default, default, default, default)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .UpsertItemAsync<object>(default, default, default, default)
+            .UpsertItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .PatchItemAsync<object>(default, default, default, default)
+            .PatchItemAsync<object>(id: null, partitionKey: default, patchOperations: null, requestOptions: null)
             .ReturnsForAnyArgs(response);
 
         var responseMessage = Substitute.For<ResponseMessage>();
         responseMessage.StatusCode.Returns(HttpStatusCode.Accepted);
+
         container
-            .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
+            .DeleteAllItemsByPartitionKeyStreamAsync(partitionKey: default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(responseMessage);
 
         reader = Substitute.For<ILowPriorityCosmosReader<Record>>();
+
         reader
-            .ReadAsync(default, default, default)
+            .ReadAsync(documentId: Arg.Any<string>(), partitionKey: Arg.Any<string>(), CancellationToken.None)
             .ReturnsForAnyArgs(record);
 
-        serializer = Substitute.For<IJsonCosmosSerializer>();
-        serializer
-            .FromString<Record>(default)
+        var serializer1 = Substitute.For<IJsonCosmosSerializer>();
+
+        serializer1
+            .FromString<Record>(json: Arg.Any<string>())
             .ReturnsForAnyArgs(new Fixture().Create<Record>());
 
-        sut = new LowPriorityCosmosWriter<Record>(containerProvider, reader, serializer);
+        sut = new LowPriorityCosmosWriter<Record>(containerProvider, reader, serializer1);
     }
 
     [Fact]
@@ -62,7 +69,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task WriteAsync_Uses_The_Right_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.WriteAsync(record, cancellationToken);
+
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(
@@ -73,11 +83,15 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task WriteAsync_UpsertItem_In_Container(
         CancellationToken cancellationToken)
     {
+        // Arrange
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container);
 
+        // Act
         await sut.WriteAsync(record, cancellationToken);
+
+        // Assert
         await container
             .Received(1)
             .UpsertItemAsync<object>(
@@ -91,11 +105,15 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task WriteWithNoResponseAsync_UpsertItem_In_Container(
         CancellationToken cancellationToken)
     {
+        // Arrange
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container);
 
+        // Act
         await sut.WriteWithNoResponseAsync(record, cancellationToken);
+
+        // Assert
         await container
             .Received(1)
             .UpsertItemAsync<object>(
@@ -110,7 +128,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task CreateAsync_Calls_CreateItem_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.CreateAsync(record, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -124,7 +145,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task CreateWithNoResponseAsync_Calls_CreateItem_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.CreateWithNoResponseAsync(record, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -138,7 +162,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task ReplaceAsync_Calls_ReplaceItemAsync_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.ReplaceAsync(record, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -154,7 +181,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task ReplaceWithNoResponseAsync_Calls_ReplaceItemAsync_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.ReplaceWithNoResponseAsync(record, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -171,6 +201,7 @@ public sealed class LowPriorityCosmosWriterTests
     public void Multiple_Operations_Uses_Same_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.CreateAsync(record, cancellationToken);
@@ -178,17 +209,18 @@ public sealed class LowPriorityCosmosWriterTests
         _ = sut.ReplaceAsync(record, cancellationToken);
         _ = sut.ReplaceAsync(record, cancellationToken);
 
-        container
-            .ReceivedCalls()
-            .Should()
-            .HaveCount(6);
+        // Assert
+        container.ReceivedCalls().Should().HaveCount(6);
     }
 
     [Theory, AutoNSubstituteData]
     public async Task DeleteAsync_Calls_DeleteItemAsync_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .DeleteItemAsync<object>(
@@ -202,14 +234,14 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task Should_Return_True_When_Trying_To_Delete_Existing_Resource(
        CancellationToken cancellationToken)
     {
+        // Act
         var deleted = await sut.TryDeleteAsync(
             record.Id,
             record.Pk,
             cancellationToken);
 
-        deleted
-            .Should()
-            .BeTrue();
+        // Assert
+        deleted.Should().BeTrue();
 
         _ = container
             .Received(1)
@@ -224,19 +256,19 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task Should_Return_False_When_Trying_To_Delete_NonExisting_Resource(
        CancellationToken cancellationToken)
     {
+        // Arrange
         container
-            .DeleteItemAsync<object>(default, default, default, default)
-            .ReturnsForAnyArgs<ItemResponse<object>>(
-                r => throw new CosmosException("fake", HttpStatusCode.NotFound, 0, "1", 1));
+            .DeleteItemAsync<object>(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs<ItemResponse<object>>(_ => throw new CosmosException("fake", HttpStatusCode.NotFound, 0, "1", 1));
 
+        // Act
         var deleted = await sut.TryDeleteAsync(
             record.Id,
             record.Pk,
             cancellationToken);
 
-        deleted
-            .Should()
-            .BeFalse();
+        // Assert
+        deleted.Should().BeFalse();
 
         _ = container
             .Received(1)
@@ -251,7 +283,10 @@ public sealed class LowPriorityCosmosWriterTests
     public async Task DeletePartitionAsync_Calls_DeleteAllItemsByPartitionKeyStreamAsync_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.DeletePartitionAsync(record.Pk, cancellationToken);
+
+        // Assert
         _ = container
             .Received(1)
             .DeleteAllItemsByPartitionKeyStreamAsync(
@@ -261,15 +296,18 @@ public sealed class LowPriorityCosmosWriterTests
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Sucessful(
+    public async Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Successful(
         CancellationToken cancellationToken)
     {
+        // Arrange
         using var responseMessage = new ResponseMessage(HttpStatusCode.BadRequest);
+
         container
-            .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
+            .DeleteAllItemsByPartitionKeyStreamAsync(partitionKey: default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(responseMessage);
 
-        Func<Task> act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
+        // Act & assert
+        var act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
         await act.Should().ThrowAsync<CosmosException>();
     }
 
@@ -281,6 +319,7 @@ public sealed class LowPriorityCosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -288,6 +327,7 @@ public sealed class LowPriorityCosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         _ = reader
             .Received(1)
             .ReadAsync(
@@ -304,6 +344,7 @@ public sealed class LowPriorityCosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -311,6 +352,7 @@ public sealed class LowPriorityCosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(record);
@@ -324,6 +366,7 @@ public sealed class LowPriorityCosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -331,6 +374,7 @@ public sealed class LowPriorityCosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -348,12 +392,14 @@ public sealed class LowPriorityCosmosWriterTests
        Record defaultDocument,
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = reader
             .Received(1)
             .FindAsync(
@@ -370,16 +416,19 @@ public sealed class LowPriorityCosmosWriterTests
         Record foundResource,
         CancellationToken cancellationToken)
     {
+        // Arrange
         reader
-            .FindAsync(default, default, default)
+            .FindAsync(documentId: Arg.Any<string>(), partitionKey: Arg.Any<string>(), CancellationToken.None)
             .ReturnsForAnyArgs(foundResource);
 
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(foundResource);
@@ -392,12 +441,14 @@ public sealed class LowPriorityCosmosWriterTests
         Record defaultDocument,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(defaultDocument);
@@ -412,17 +463,21 @@ public sealed class LowPriorityCosmosWriterTests
         string etag,
         CancellationToken cancellationToken)
     {
-        ((ICosmosResource)foundResource).ETag = etag;
+        // Arrange
+        foundResource.ETag = etag;
+
         reader
-            .FindAsync(default, default, default)
+            .FindAsync(documentId: Arg.Any<string>(), partitionKey: Arg.Any<string>(), CancellationToken.None)
             .ReturnsForAnyArgs(foundResource);
 
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -440,13 +495,17 @@ public sealed class LowPriorityCosmosWriterTests
         Record defaultDocument,
         CancellationToken cancellationToken)
     {
+        // Arrange
         defaultDocument.ETag = null;
+
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -462,6 +521,7 @@ public sealed class LowPriorityCosmosWriterTests
         string filterPredicate,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.PatchAsync(
             record.Id,
             record.Pk,
@@ -469,6 +529,7 @@ public sealed class LowPriorityCosmosWriterTests
             filterPredicate,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .PatchItemAsync<object>(
@@ -485,6 +546,7 @@ public sealed class LowPriorityCosmosWriterTests
         string filterPredicate,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.PatchWithNoResponseAsync(
             record.Id,
             record.Pk,
@@ -492,6 +554,7 @@ public sealed class LowPriorityCosmosWriterTests
             filterPredicate,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .PatchItemAsync<object>(

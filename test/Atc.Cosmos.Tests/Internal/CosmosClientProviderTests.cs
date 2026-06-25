@@ -10,6 +10,7 @@ public sealed class CosmosClientProviderTests : IDisposable
     public CosmosClientProviderTests()
     {
         var fixture = FixtureFactory.Create();
+
         cosmosOptions = new CosmosOptions
         {
             AccountEndpoint = fixture.Create<Uri>().AbsoluteUri,
@@ -65,16 +66,17 @@ public sealed class CosmosClientProviderTests : IDisposable
     [Fact]
     public void Client_Should_Use_Default_Serializer_If_None_Specified()
     {
+        // Arrange
         cosmosClientOptions.Serializer = null;
 
+        // Act
         var actualSerializer = sut
             .GetClient(cosmosOptions)
             .ClientOptions
             .Serializer;
 
-        actualSerializer
-            .Should()
-            .BeAssignableTo<CosmosSerializerAdapter>();
+        // Assert
+        actualSerializer.Should().BeAssignableTo<CosmosSerializerAdapter>();
 
         ((CosmosSerializerAdapter)actualSerializer)
            .Serializer
@@ -86,14 +88,11 @@ public sealed class CosmosClientProviderTests : IDisposable
     public void Client_Should_Use_CustomSerializer_If_Specified(
         [Substitute] CosmosSerializer serializer)
     {
+        // Arrange
         cosmosClientOptions.Serializer = serializer;
 
-        sut
-            .GetClient(cosmosOptions)
-            .ClientOptions
-            .Serializer
-            .Should()
-            .Be(serializer);
+        // Act & assert
+        sut.GetClient(cosmosOptions).ClientOptions.Serializer.Should().Be(serializer);
     }
 
     [Fact]
@@ -141,16 +140,17 @@ public sealed class CosmosClientProviderTests : IDisposable
     [Fact]
     public void BulkClient_Should_Use_Default_Serializer_If_None_Specified()
     {
+        // Arrange
         cosmosClientOptions.Serializer = null;
 
+        // Act
         var actualSerializer = sut
             .GetBulkClient(cosmosOptions)
             .ClientOptions
             .Serializer;
 
-        actualSerializer
-            .Should()
-            .BeAssignableTo<CosmosSerializerAdapter>();
+        // Assert
+        actualSerializer.Should().BeAssignableTo<CosmosSerializerAdapter>();
 
         ((CosmosSerializerAdapter)actualSerializer)
            .Serializer
@@ -162,30 +162,27 @@ public sealed class CosmosClientProviderTests : IDisposable
     public void BulkClient_Should_Use_CustomSerializer_If_Specified(
         [Substitute] CosmosSerializer serializer)
     {
+        // Arrange
         cosmosClientOptions.Serializer = serializer;
 
-        sut
-            .GetBulkClient(cosmosOptions)
-            .ClientOptions
-            .Serializer
-            .Should()
-            .Be(serializer);
+        // Act & assert
+        sut.GetBulkClient(cosmosOptions).ClientOptions.Serializer.Should().Be(serializer);
     }
 
     [Fact]
     public void Client_Should_Use_TokenCredential_When_Specified()
     {
+        // Arrange
         cosmosOptions.Credential = new FakeTokenCredential();
+
         using var provider = new CosmosClientProvider(
             Options.Create(cosmosClientOptions),
             serializer);
 
+        // Act & assert
         // As there is not possiblility to assert if a CosmosClient
         // has been instanciated with a TokenCredential or auth key
         // we simply ensure that we get a client object.
-        provider
-            .GetClient(cosmosOptions)
-            .Should()
-            .NotBeNull();
+        provider.GetClient(cosmosOptions).Should().NotBeNull();
     }
 }

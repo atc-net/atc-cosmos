@@ -6,13 +6,17 @@ public sealed class AutoIncrementProviderTests
     private readonly AutoIncrementProvider sut;
     private readonly AutoIncrementCounter counter;
 
-    [SuppressMessage("Minor Code Smell", "S1905:Redundant casts should not be used", Justification = "Require By NSubstitute")]
     public AutoIncrementProviderTests()
     {
         counter = new Fixture().Create<AutoIncrementCounter>();
         writer = Substitute.For<ICosmosWriter<AutoIncrementCounter>>();
+
         writer
-            .UpdateOrCreateAsync(default!, (Action<AutoIncrementCounter>)default!, default, default)
+            .UpdateOrCreateAsync(
+                Arg.Any<Func<AutoIncrementCounter>>(),
+                Arg.Any<Action<AutoIncrementCounter>>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(counter);
 
         sut = new AutoIncrementProvider(writer);
@@ -23,8 +27,10 @@ public sealed class AutoIncrementProviderTests
         string counterName,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.GetNextAsync(counterName, cancellationToken);
 
+        // Assert
         _ = writer
             .Received(1)
             .UpdateOrCreateAsync(
@@ -39,8 +45,10 @@ public sealed class AutoIncrementProviderTests
         string counterName,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.GetNextAsync(counterName, cancellationToken);
 
+        // Assert
         writer
             .ReceivedCallWithArgument<Func<AutoIncrementCounter>>()
             .Invoke()
@@ -54,19 +62,20 @@ public sealed class AutoIncrementProviderTests
     [Theory, AutoNSubstituteData]
     public async Task GetNextAsync_Calls_UpdateOrCreateAsync_With_Correct_Updater(
         string counterName,
-        AutoIncrementCounter counter,
+        AutoIncrementCounter counterToUpdate,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.GetNextAsync(counterName, cancellationToken);
 
-        var expectedCcunt = counter.Count + 1;
+        // Assert
+        var expectedCount = counterToUpdate.Count + 1;
+
         writer
             .ReceivedCallWithArgument<Action<AutoIncrementCounter>>()
-            .Invoke(counter);
+            .Invoke(counterToUpdate);
 
-        counter.Count
-            .Should()
-            .Be(expectedCcunt);
+        counterToUpdate.Count.Should().Be(expectedCount);
     }
 
     [Theory, AutoNSubstituteData]
@@ -75,12 +84,13 @@ public sealed class AutoIncrementProviderTests
         int updatedCount,
         CancellationToken cancellationToken)
     {
+        // Arrange
         counter.Count = updatedCount;
 
+        // Act
         var result = await sut.GetNextAsync(counterName, cancellationToken);
 
-        result
-            .Should()
-            .Be(updatedCount);
+        // Assert
+        result.Should().Be(updatedCount);
     }
 }

@@ -7,12 +7,15 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         Record record)
     {
+        // Arrange
         sut.Documents.Add(record);
 
+        // Act
         var result = await sut.FindAsync(
             record.Id,
             record.Pk);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
@@ -24,13 +27,13 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         Record record)
     {
+        // Act
         var result = await sut.FindAsync(
             record.Id,
             record.Pk);
 
-        result
-            .Should()
-            .BeNull();
+        // Assert
+        result.Should().BeNull();
     }
 
     [Theory, AutoNSubstituteData]
@@ -38,12 +41,15 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         Record record)
     {
+        // Arrange
         sut.Documents.Add(record);
 
+        // Act
         var result = await sut.ReadAsync(
             record.Id,
             record.Pk);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
@@ -65,15 +71,16 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.ForEach(d => d.Pk = partitionKey);
 
+        // Act
         var results = await sut
             .ReadAllAsync(partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEquivalentTo(sut.Documents);
+        // Assert
+        results.Should().BeEquivalentTo(sut.Documents);
     }
 
     [Theory, AutoNSubstituteData]
@@ -81,13 +88,13 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         string partitionKey)
     {
+        // Act
         var results = await sut
             .ReadAllAsync(partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEmpty();
+        // Assert
+        results.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -97,17 +104,18 @@ public sealed class FakeCosmosReaderTests
         Record[] queryResults,
         string partitionKey)
     {
+        // Arrange
         sut.QueryResults.AddRange(queryResults);
 
+        // Act
         var results = await sut
             .QueryAsync(
                 query,
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEquivalentTo(queryResults);
+        // Assert
+        results.Should().BeEquivalentTo(queryResults);
     }
 
     [Theory, AutoNSubstituteData]
@@ -116,18 +124,19 @@ public sealed class FakeCosmosReaderTests
         Record[] recordsForQuery,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.AddRange(recordsForQuery);
         sut.Documents.ForEach(d => d.Pk = partitionKey);
 
+        // Act
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => true),
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEquivalentTo(sut.Documents);
+        // Assert
+        results.Should().BeEquivalentTo(sut.Documents);
     }
 
     [Theory, AutoNSubstituteData]
@@ -136,17 +145,18 @@ public sealed class FakeCosmosReaderTests
         Record[] recordsForQuery,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.AddRange(recordsForQuery);
 
+        // Act
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => true),
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEmpty();
+        // Assert
+        results.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -155,18 +165,19 @@ public sealed class FakeCosmosReaderTests
         Record[] recordsForQuery,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.AddRange(recordsForQuery);
         sut.Documents.ForEach(d => d.Pk = partitionKey);
 
+        // Act
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => false),
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEmpty();
+        // Assert
+        results.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -176,17 +187,18 @@ public sealed class FakeCosmosReaderTests
         string partitionKey,
         List<RecordAggregate> queryResults)
     {
+        // Arrange
         sut.QueryResults = queryResults.Cast<object>().ToList();
 
+        // Act
         var results = await sut
             .QueryAsync<RecordAggregate>(
                 query,
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEquivalentTo(queryResults);
+        // Assert
+        results.Should().BeEquivalentTo(queryResults);
     }
 
     [Theory, AutoNSubstituteData]
@@ -196,17 +208,18 @@ public sealed class FakeCosmosReaderTests
         string partitionKey,
         List<object> queryResults)
     {
+        // Arrange
         sut.QueryResults = queryResults;
 
+        // Act
         var results = await sut
             .QueryAsync<RecordAggregate>(
                 query,
                 partitionKey)
             .ToListAsync();
 
-        results
-            .Should()
-            .BeEmpty();
+        // Assert
+        results.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -216,13 +229,16 @@ public sealed class FakeCosmosReaderTests
         Record[] queryResults,
         string partitionKey)
     {
+        // Arrange
         sut.QueryResults.AddRange(queryResults);
 
+        // Act
         var page1 = await sut
             .PagedQueryAsync(
                 query,
                 partitionKey,
                 1);
+
         var page2 = await sut
             .PagedQueryAsync(
                 query,
@@ -230,12 +246,9 @@ public sealed class FakeCosmosReaderTests
                 1,
                 page1.ContinuationToken);
 
-        page1.Items
-            .Should()
-            .BeEquivalentTo([queryResults[0]]);
-        page2.Items
-            .Should()
-            .BeEquivalentTo([queryResults[1]]);
+        // Assert
+        page1.Items.Should().BeEquivalentTo([queryResults[0]]);
+        page2.Items.Should().BeEquivalentTo([queryResults[1]]);
     }
 
     [Theory, AutoNSubstituteData]
@@ -244,15 +257,18 @@ public sealed class FakeCosmosReaderTests
         Record[] recordsForQuery,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.Clear();
         sut.Documents.AddRange(recordsForQuery);
         sut.Documents.ForEach(x => x.Pk = partitionKey);
 
+        // Act
         var page1 = await sut
             .PagedQueryAsync(
                 x => x.Where(_ => true),
                 partitionKey,
                 1);
+
         var page2 = await sut
             .PagedQueryAsync(
                 x => x.Where(_ => true),
@@ -260,12 +276,9 @@ public sealed class FakeCosmosReaderTests
                 1,
                 page1.ContinuationToken);
 
-        page1.Items
-            .Should()
-            .BeEquivalentTo([recordsForQuery[0]]);
-        page2.Items
-            .Should()
-            .BeEquivalentTo([recordsForQuery[1]]);
+        // Assert
+        page1.Items.Should().BeEquivalentTo([recordsForQuery[0]]);
+        page2.Items.Should().BeEquivalentTo([recordsForQuery[1]]);
     }
 
     [Theory, AutoNSubstituteData]
@@ -275,13 +288,16 @@ public sealed class FakeCosmosReaderTests
         RecordAggregate[] queryResults,
         string partitionKey)
     {
+        // Arrange
         sut.QueryResults.AddRange(queryResults);
 
+        // Act
         var page1 = await sut
             .PagedQueryAsync<RecordAggregate>(
                 query,
                 partitionKey,
                 1);
+
         var page2 = await sut
             .PagedQueryAsync<RecordAggregate>(
                 query,
@@ -289,19 +305,21 @@ public sealed class FakeCosmosReaderTests
                 1,
                 page1.ContinuationToken);
 
-        page1.Items
-            .Should()
-            .BeEquivalentTo([queryResults[0]]);
-        page2.Items
-            .Should()
-            .BeEquivalentTo([queryResults[1]]);
+        // Assert
+        page1.Items.Should().BeEquivalentTo([queryResults[0]]);
+        page2.Items.Should().BeEquivalentTo([queryResults[1]]);
     }
 
     [Theory, AutoNSubstituteData]
     public async Task CrossPartitionQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(
         FakeCosmosReader<Record> sut)
     {
-        var result = await sut.CrossPartitionQueryAsync(x => x.Where(_ => true)).ToListAsync();
+        // Act
+        var result = await sut
+            .CrossPartitionQueryAsync(x => x.Where(_ => true))
+            .ToListAsync();
+
+        // Assert
         result.Should().BeEquivalentTo(sut.Documents);
     }
 
@@ -309,9 +327,11 @@ public sealed class FakeCosmosReaderTests
     public async Task PagedCrossPartitionQuery_Should_Return_All_Documents_When_Given_CatchAll_Query(
         FakeCosmosReader<Record> sut)
     {
+        // Arrange
         var requiredDocuments = new HashSet<Record>(sut.Documents);
         string? continuationToken = null;
 
+        // Act & assert
         while (requiredDocuments.Count > 0)
         {
             var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken);
@@ -327,11 +347,16 @@ public sealed class FakeCosmosReaderTests
         Record[] recordsForQuery,
         string partitionKey)
     {
+        // Arrange
         sut.Documents.AddRange(recordsForQuery);
         sut.Documents.ForEach(x => x.Pk = partitionKey);
 
-        var result = await sut.BatchQueryAsync(x => x.Where(_ => true), partitionKey).ToListAsync();
+        // Act
+        var result = await sut
+            .BatchQueryAsync(x => x.Where(_ => true), partitionKey)
+            .ToListAsync();
 
+        // Assert
         result[0].Should().HaveCount(3); // Fake implementation of BatchQueryAsync will return batches of size 3
         result[0].Should().NotBeEquivalentTo(recordsForQuery); // First 3 will be those already in sut.Documents before we inserted our own
         result[1].Should().HaveCount(3);
@@ -343,10 +368,15 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         Record[] recordsForQuery)
     {
+        // Arrange
         sut.Documents.AddRange(recordsForQuery);
 
-        var result = await sut.BatchCrossPartitionQueryAsync(x => x.Where(_ => true)).ToListAsync();
+        // Act
+        var result = await sut
+            .BatchCrossPartitionQueryAsync(x => x.Where(_ => true))
+            .ToListAsync();
 
+        // Assert
         result[0].Should().HaveCount(3); // Fake implementation of BatchCrossPartitionQueryAsync will return batches of size 3
         result[0].Should().NotBeEquivalentTo(recordsForQuery); // First 3 will be those already in sut.Documents before we inserted our own
         result[1].Should().HaveCount(3);
@@ -359,6 +389,7 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.Reader.Should().BeSameAs(sut);
     }
 
@@ -368,6 +399,7 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.BulkReader.Should().BeSameAs(sut);
     }
 }

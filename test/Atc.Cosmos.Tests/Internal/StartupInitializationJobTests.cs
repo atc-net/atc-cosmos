@@ -8,8 +8,10 @@ public sealed class StartupInitializationJobTests
         StartupInitializationJob sut,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.StartAsync(cancellationToken);
 
+        // Assert
         await initializer
             .Received(1)
             .InitializeAsync(

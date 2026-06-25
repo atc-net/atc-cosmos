@@ -11,24 +11,27 @@ public sealed class CosmosContainerProviderTests
         [Substitute] ICosmosContainerRegistry containerRegistry,
         string containerName)
     {
+        // Arrange
         containerRegistry
             .DefaultOptions
             .Returns(options.Value);
+
         clientProvider
             .GetClient(options.Value)
             .Returns(cosmosClient);
+
         cosmosClient
-            .GetContainer(default, default)
+            .GetContainer(databaseId: null, containerId: null)
             .ReturnsForAnyArgs(container);
 
         var sut = new CosmosContainerProvider(
             clientProvider,
             containerRegistry);
 
-        sut.GetContainer(containerName)
-            .Should()
-            .Be(container);
+        // Act & assert
+        sut.GetContainer(containerName).Should().Be(container);
 
+        // Assert
         clientProvider
             .Received(1)
             .GetClient(options.Value);
@@ -50,24 +53,31 @@ public sealed class CosmosContainerProviderTests
         [Substitute] ICosmosContainerRegistry containerRegistry,
         string providerName)
     {
+        // Arrange
         clientProvider
             .GetClient(options.Value)
             .Returns(cosmosClient);
+
         cosmosClient
-            .GetContainer(default, default)
+            .GetContainer(databaseId: null, containerId: null)
             .ReturnsForAnyArgs(container);
+
         provider
             .IsForType(typeof(string))
             .Returns(true);
+
         provider
             .ContainerName
             .Returns(providerName);
+
         provider
             .Options
             .Returns(options.Value);
+
         containerRegistry
             .DefaultOptions
             .Returns(options.Value);
+
         containerRegistry
             .GetContainerForType<string>()
             .Returns(provider);
@@ -76,10 +86,10 @@ public sealed class CosmosContainerProviderTests
             clientProvider,
             containerRegistry);
 
-        sut.GetContainer<string>()
-            .Should()
-            .Be(container);
+        // Act & assert
+        sut.GetContainer<string>().Should().Be(container);
 
+        // Assert
         containerRegistry
             .Received(1)
             .GetContainerForType<string>();
@@ -102,22 +112,27 @@ public sealed class CosmosContainerProviderTests
         OptionsWrapper<CosmosOptions> options,
         [Substitute] ICosmosContainerNameProvider nameProvider)
     {
+        // Arrange
         clientProvider
             .GetClient(options.Value)
             .Returns(cosmosClient);
+
         nameProvider
             .IsForType(typeof(CosmosContainerProviderTests))
             .Returns(false);
+
         var containerRegistry = new CosmosContainerRegistry(options, new[] { nameProvider });
 
         var sut = new CosmosContainerProvider(
             clientProvider,
             containerRegistry);
 
+        // Act & assert
         new Action(() => sut.GetContainer<CosmosContainerProviderTests>())
             .Should()
             .ThrowExactly<NotSupportedException>();
 
+        // Assert
         cosmosClient
             .DidNotReceive()
             .GetContainer(Arg.Any<string>(), Arg.Any<string>());
@@ -132,12 +147,15 @@ public sealed class CosmosContainerProviderTests
         [Substitute] ICosmosContainerRegistry containerRegistry,
         string containerName)
     {
+        // Arrange
         clientProvider
             .GetBulkClient(options.Value)
             .Returns(cosmosClient);
+
         cosmosClient
-            .GetContainer(default, default)
+            .GetContainer(databaseId: null, containerId: null)
             .ReturnsForAnyArgs(container);
+
         containerRegistry
             .DefaultOptions
             .Returns(options.Value);
@@ -146,10 +164,10 @@ public sealed class CosmosContainerProviderTests
             clientProvider,
             containerRegistry);
 
-        sut.GetContainer(containerName, allowBulk: true)
-            .Should()
-            .Be(container);
+        // Act & assert
+        sut.GetContainer(containerName, allowBulk: true).Should().Be(container);
 
+        // Assert
         clientProvider
             .Received(1)
             .GetBulkClient(options.Value);
@@ -170,31 +188,37 @@ public sealed class CosmosContainerProviderTests
         [Substitute] Container container,
         string providerName)
     {
+        // Arrange
         clientProvider
             .GetBulkClient(options.Value)
             .Returns(cosmosClient);
+
         cosmosClient
-            .GetContainer(default, default)
+            .GetContainer(databaseId: null, containerId: null)
             .ReturnsForAnyArgs(container);
+
         provider
             .IsForType(typeof(string))
             .Returns(true);
+
         provider
             .ContainerName
             .Returns(providerName);
+
         provider
             .Options
             .Returns(options.Value);
+
         var containerRegistry = new CosmosContainerRegistry(options, new[] { provider });
 
         var sut = new CosmosContainerProvider(
             clientProvider,
             containerRegistry);
 
-        sut.GetContainer<string>(allowBulk: true)
-            .Should()
-            .Be(container);
+        // Act & assert
+        sut.GetContainer<string>(allowBulk: true).Should().Be(container);
 
+        // Assert
         clientProvider
             .Received(1)
             .GetBulkClient(options.Value);
@@ -213,22 +237,27 @@ public sealed class CosmosContainerProviderTests
         OptionsWrapper<CosmosOptions> options,
         [Substitute] ICosmosContainerNameProvider nameProvider)
     {
+        // Arrange
         clientProvider
             .GetBulkClient(options.Value)
             .Returns(cosmosClient);
+
         nameProvider
             .IsForType(typeof(CosmosContainerProviderTests))
             .Returns(false);
+
         var containerRegistry = new CosmosContainerRegistry(options, new[] { nameProvider });
 
         var sut = new CosmosContainerProvider(
             clientProvider,
             containerRegistry);
 
+        // Act & assert
         new Action(() => sut.GetContainer<CosmosContainerProviderTests>(allowBulk: true))
             .Should()
             .ThrowExactly<NotSupportedException>();
 
+        // Assert
         cosmosClient
             .DidNotReceive()
             .GetContainer(Arg.Any<string>(), Arg.Any<string>());

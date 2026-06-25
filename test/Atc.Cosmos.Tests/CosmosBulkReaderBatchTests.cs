@@ -2,7 +2,6 @@ namespace Atc.Cosmos.Tests;
 
 public sealed class CosmosBulkReaderBatchTests
 {
-    private readonly ItemResponse<Record> itemResponse;
     private readonly FeedIterator<Record> feedIterator;
     private readonly FeedResponse<Record> feedResponse;
     private readonly Record record;
@@ -14,31 +13,35 @@ public sealed class CosmosBulkReaderBatchTests
     {
         var fixture = FixtureFactory.Create();
         record = fixture.Create<Record>();
-        itemResponse = Substitute.For<ItemResponse<Record>>();
+        var itemResponse = Substitute.For<ItemResponse<Record>>();
+
         itemResponse
             .Resource
             .Returns(record);
 
         feedResponse = Substitute.For<FeedResponse<Record>>();
         feedIterator = Substitute.For<FeedIterator<Record>>();
+
         feedIterator
-            .ReadNextAsync(default)
+            .ReadNextAsync(CancellationToken.None)
             .ReturnsForAnyArgs(feedResponse);
 
         container = Substitute.For<Container>();
+
         container
-            .ReadItemAsync<Record>(default, default, default)
+            .ReadItemAsync<Record>(id: null, partitionKey: default, requestOptions: null)
             .ReturnsForAnyArgs(itemResponse);
 
         container
-            .GetItemQueryIterator<Record>(default(QueryDefinition), default)
+            .GetItemQueryIterator<Record>(queryDefinition: null, continuationToken: null)
             .ReturnsForAnyArgs(feedIterator);
 
         container
-            .GetItemQueryIterator<Record>(default(string), default)
+            .GetItemQueryIterator<Record>(queryText: null, continuationToken: null)
             .ReturnsForAnyArgs(feedIterator);
 
         containerProvider = Substitute.For<ICosmosContainerProvider>();
+
         containerProvider
             .GetContainer<Record>(allowBulk: true)
             .Returns(container, null);
@@ -55,8 +58,10 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchReadAllAsync(partitionKey, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(allowBulk: true);
@@ -67,23 +72,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(false);
 
+        // Act
         var response = await sut
             .BatchReadAllAsync(partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(1)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(0)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .BeEmpty();
+        response.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -91,24 +97,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(true, false);
 
+        // Act
         var response = await sut
             .BatchReadAllAsync(partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .First()
-            .Should()
-            .BeEmpty();
+        response.First().Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -116,34 +122,30 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator
             .HasMoreResults
             .Returns(true, false);
 
-        feedResponse
-            .GetEnumerator()
-            .Returns(new List<Record> { record }.GetEnumerator());
+        using var enumerator = feedResponse.GetEnumerator();
+        enumerator.Returns(new List<Record> { record }.GetEnumerator());
 
+        // Act
         var response = await sut
             .BatchReadAllAsync(partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .NotBeEmpty();
-
-        response[0]
-            .First()
-            .Should()
-            .Be(record);
+        response.Should().NotBeEmpty();
+        response[0].First().Should().Be(record);
     }
 
     [Theory, AutoNSubstituteData]
@@ -152,8 +154,10 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchQueryAsync(query, partitionKey, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(allowBulk: true);
@@ -165,21 +169,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(false);
 
-        var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(1)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(0)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .BeEmpty();
+        response.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -188,22 +195,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(true, false);
 
-        var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .First()
-            .Should()
-            .BeEmpty();
+        response.First().Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -212,32 +221,30 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator
             .HasMoreResults
             .Returns(true, false);
 
-        feedResponse
-            .GetEnumerator()
-            .Returns(new List<Record> { record }.GetEnumerator());
+        using var enumerator = feedResponse.GetEnumerator();
+        enumerator.Returns(new List<Record> { record }.GetEnumerator());
 
-        var response = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .NotBeEmpty();
-
-        response[0]
-            .First()
-            .Should()
-            .Be(record);
+        response.Should().NotBeEmpty();
+        response[0].First().Should().Be(record);
     }
 
     [Theory, AutoNSubstituteData]
@@ -246,14 +253,13 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchReadAllAsync(partitionKey, cancellationToken).ToArrayAsync(cancellationToken);
         _ = sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
         _ = sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
 
-        container
-            .ReceivedCalls()
-            .Should()
-            .HaveCount(3);
+        // Assert
+        container.ReceivedCalls().Should().HaveCount(3);
     }
 
     [Theory, AutoNSubstituteData]
@@ -262,8 +268,10 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(allowBulk: true);
@@ -275,21 +283,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(false);
 
-        var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(1)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(0)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .BeEmpty();
+        response.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -298,22 +309,24 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(true, false);
 
-        var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .First()
-            .Should()
-            .BeEmpty();
+        response.First().Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -322,32 +335,30 @@ public sealed class CosmosBulkReaderBatchTests
         string partitionKey,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator
             .HasMoreResults
             .Returns(true, false);
 
-        feedResponse
-            .GetEnumerator()
-            .Returns(new List<Record> { record }.GetEnumerator());
+        using var enumerator = feedResponse.GetEnumerator();
+        enumerator.Returns(new List<Record> { record }.GetEnumerator());
 
-        var response = await sut.BatchQueryAsync<Record>(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchQueryAsync<Record>(query, partitionKey, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .NotBeEmpty();
-
-        response[0]
-            .First()
-            .Should()
-            .Be(record);
+        response.Should().NotBeEmpty();
+        response[0].First().Should().Be(record);
     }
 
     [Theory, AutoNSubstituteData]
@@ -355,8 +366,10 @@ public sealed class CosmosBulkReaderBatchTests
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchCrossPartitionQueryAsync(query, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(allowBulk: true);
@@ -367,8 +380,10 @@ public sealed class CosmosBulkReaderBatchTests
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
 
+        // Assert
         container
             .Received(1)
             .GetItemQueryIterator<Record>(query, requestOptions: null);
@@ -379,21 +394,24 @@ public sealed class CosmosBulkReaderBatchTests
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(false);
 
-        var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchCrossPartitionQueryAsync(query, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(1)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(0)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .BeEmpty();
+        response.Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -401,22 +419,24 @@ public sealed class CosmosBulkReaderBatchTests
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator.HasMoreResults.Returns(true, false);
 
-        var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchCrossPartitionQueryAsync(query, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .First()
-            .Should()
-            .BeEmpty();
+        response.First().Should().BeEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -424,31 +444,29 @@ public sealed class CosmosBulkReaderBatchTests
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
+        // Arrange
         feedIterator
             .HasMoreResults
             .Returns(true, false);
 
-        feedResponse
-            .GetEnumerator()
-            .Returns(new List<Record> { record }.GetEnumerator());
+        using var enumerator = feedResponse.GetEnumerator();
+        enumerator.Returns(new List<Record> { record }.GetEnumerator());
 
-        var response = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+        // Act
+        var response = await sut
+            .BatchCrossPartitionQueryAsync(query, cancellationToken)
+            .ToListAsync(cancellationToken);
 
+        // Assert
         _ = feedIterator
             .Received(2)
             .HasMoreResults;
 
         _ = feedIterator
             .Received(1)
-            .ReadNextAsync(default);
+            .ReadNextAsync(CancellationToken.None);
 
-        response
-            .Should()
-            .NotBeEmpty();
-
-        response[0]
-            .First()
-            .Should()
-            .Be(record);
+        response.Should().NotBeEmpty();
+        response[0].First().Should().Be(record);
     }
 }

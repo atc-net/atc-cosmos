@@ -7,6 +7,7 @@ public sealed class CosmosContainerRegistryTests
     public CosmosContainerRegistryTests()
     {
         var fixture = FixtureFactory.Create();
+
         cosmosOptions = new CosmosOptions
         {
             AccountEndpoint = fixture.Create<Uri>().AbsoluteUri,
@@ -19,9 +20,11 @@ public sealed class CosmosContainerRegistryTests
     [Fact]
     public void ShouldThrow_When_TokenCredential_And_AccountKey_IsMissing()
     {
+        // Arrange
         cosmosOptions.Credential = null;
         cosmosOptions.AccountKey = string.Empty;
 
+        // Act & assert
         FluentActions.Invoking(
             () => new CosmosContainerRegistry(
                 Options.Create(cosmosOptions),
@@ -33,8 +36,10 @@ public sealed class CosmosContainerRegistryTests
     [Fact]
     public void ShouldThrow_When_No_AccountEndpoint_IsConfigured()
     {
+        // Arrange
         cosmosOptions.AccountEndpoint = string.Empty;
 
+        // Act & assert
         FluentActions.Invoking(
             () => new CosmosContainerRegistry(
                 Options.Create(cosmosOptions),
@@ -46,8 +51,10 @@ public sealed class CosmosContainerRegistryTests
     [Fact]
     public void ShouldThrow_When_No_DatabaseName_IsConfigured()
     {
+        // Arrange
         cosmosOptions.DatabaseName = string.Empty;
 
+        // Act & assert
         FluentActions.Invoking(
             () => new CosmosContainerRegistry(
                 Options.Create(cosmosOptions),
@@ -61,6 +68,7 @@ public sealed class CosmosContainerRegistryTests
         OptionsWrapper<CosmosOptions> options,
         [Substitute] ICosmosContainerNameProvider nameProvider)
     {
+        // Arrange
         nameProvider
             .IsForType(typeof(CosmosContainerProviderTests))
             .Returns(false);
@@ -69,6 +77,7 @@ public sealed class CosmosContainerRegistryTests
             options,
             new[] { nameProvider });
 
+        // Act & assert
         new Action(() => sut.GetContainerForType<CosmosContainerProviderTests>())
             .Should()
             .ThrowExactly<NotSupportedException>();

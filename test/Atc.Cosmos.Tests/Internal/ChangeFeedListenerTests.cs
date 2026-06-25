@@ -26,8 +26,9 @@ public sealed class ChangeFeedListenerTests
         processor = Substitute.For<RecordProcessor>();
         changeFeed = Substitute.For<ChangeFeedProcessor>();
         factory = Substitute.For<IChangeFeedFactory>();
+
         factory
-            .Create<Record>(default, (Container.ChangesHandler<Record>)default)
+            .Create(default, (Container.ChangesHandler<Record>)default)
             .ReturnsForAnyArgs(changeFeed);
 
         sut = new ChangeFeedListener<Record, RecordProcessor>(
@@ -39,6 +40,7 @@ public sealed class ChangeFeedListenerTests
     [Fact]
     public void Should_Create_ChangeFeedProcessor_Using_Factory()
     {
+        // Assert
         factory
             .Received(1)
             .Create<Record>(
@@ -54,6 +56,7 @@ public sealed class ChangeFeedListenerTests
         string[] partitionKeys,
         CancellationToken cancellationToken)
     {
+        // Arrange
         for (var i = 0; i < partitionKeys.Length; i++)
         {
             foreach (var record in records[i])
@@ -66,6 +69,7 @@ public sealed class ChangeFeedListenerTests
             .ReceivedCallWithArgument<
                 Container.ChangesHandler<Record>>();
 
+        // Act
         await onChanges.Invoke(
             records
                 .SelectMany(a => a)
@@ -73,6 +77,7 @@ public sealed class ChangeFeedListenerTests
                 .ToArray(),
             cancellationToken);
 
+        // Assert
         foreach (var pk in partitionKeys)
         {
             _ = processor
@@ -94,8 +99,10 @@ public sealed class ChangeFeedListenerTests
     public async Task StartAsync_Should_Start_ChangeFeedProcessor(
             CancellationToken cancellationToken)
     {
+        // Act
         await sut.StartAsync(cancellationToken);
 
+        // Assert
         _ = changeFeed
             .Received(1)
             .StartAsync();
@@ -105,8 +112,10 @@ public sealed class ChangeFeedListenerTests
     public async Task StopAsync_Should_Stop_ChangeFeedProcessor(
             CancellationToken cancellationToken)
     {
+        // Act
         await sut.StopAsync(cancellationToken);
 
+        // Assert
         _ = changeFeed
             .Received(1)
             .StopAsync();
