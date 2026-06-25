@@ -8,8 +8,10 @@ public sealed class LeasesContainerInitializerTests
         Database database,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.InitializeAsync(database, cancellationToken);
 
+        // Assert
         _ = database
             .Received(1)
             .CreateContainerIfNotExistsAsync(
@@ -21,21 +23,10 @@ public sealed class LeasesContainerInitializerTests
         var options = database
             .ReceivedCallWithArgument<ContainerProperties>();
 
-        options.IndexingPolicy.Automatic
-            .Should()
-            .BeTrue();
-        options.IndexingPolicy.IndexingMode
-            .Should()
-            .Be(IndexingMode.Consistent);
-        options.IndexingPolicy.ExcludedPaths
-            .Should()
-            .ContainEquivalentOf(new ExcludedPath { Path = "/*" });
-
-        options.Id
-            .Should()
-            .Be("leases");
-        options.PartitionKeyPath
-            .Should()
-            .Be("/id");
+        options.IndexingPolicy.Automatic.Should().BeTrue();
+        options.IndexingPolicy.IndexingMode.Should().Be(IndexingMode.Consistent);
+        options.IndexingPolicy.ExcludedPaths.Should().ContainEquivalentOf(new ExcludedPath { Path = "/*" });
+        options.Id.Should().Be("leases");
+        options.PartitionKeyPath.Should().Be("/id");
     }
 }

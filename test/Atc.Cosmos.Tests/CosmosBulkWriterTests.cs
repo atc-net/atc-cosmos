@@ -5,7 +5,6 @@ public sealed class CosmosBulkWriterTests
     private readonly Record record;
     private readonly Container container;
     private readonly ICosmosContainerProvider containerProvider;
-    private readonly IJsonCosmosSerializer serializer;
     private readonly CosmosBulkWriter<Record> sut;
 
     public CosmosBulkWriterTests()
@@ -15,25 +14,30 @@ public sealed class CosmosBulkWriterTests
         container = Substitute.For<Container>();
 
         containerProvider = Substitute.For<ICosmosContainerProvider>();
+
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container, null);
 
         var response = Substitute.For<ItemResponse<object>>();
         response.Resource.Returns(new Fixture().Create<string>());
+
         container
-            .CreateItemAsync<object>(default, default, default, default)
-            .ReturnsForAnyArgs(response);
-        container
-            .ReplaceItemAsync<object>(default, default, default, default, default)
-            .ReturnsForAnyArgs(response);
-        container
-            .UpsertItemAsync<object>(default, default, default, default)
+            .CreateItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
 
-        serializer = Substitute.For<IJsonCosmosSerializer>();
+        container
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(response);
+
+        container
+            .UpsertItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(response);
+
+        var serializer = Substitute.For<IJsonCosmosSerializer>();
+
         serializer
-            .FromString<Record>(default)
+            .FromString<Record>(json: Arg.Any<string>())
             .ReturnsForAnyArgs(new Fixture().Create<Record>());
 
         sut = new CosmosBulkWriter<Record>(containerProvider);
@@ -47,8 +51,10 @@ public sealed class CosmosBulkWriterTests
     public async Task WriteAsync_Uses_The_Right_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.WriteAsync(record, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(
@@ -59,12 +65,15 @@ public sealed class CosmosBulkWriterTests
     public async Task WriteAsync_UpsertItem_In_Container(
         CancellationToken cancellationToken)
     {
+        // Arrange
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container);
 
+        // Act
         await sut.WriteAsync(record, cancellationToken);
 
+        // Assert
         await container
             .Received(1)
             .UpsertItemAsync<object>(
@@ -78,8 +87,10 @@ public sealed class CosmosBulkWriterTests
     public async Task CreateAsync_Calls_CreateItem_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.CreateAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -93,8 +104,10 @@ public sealed class CosmosBulkWriterTests
     public async Task ReplaceAsync_Calls_ReplaceItemAsync_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.ReplaceAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -103,7 +116,7 @@ public sealed class CosmosBulkWriterTests
                 new PartitionKey(record.Pk),
                 Arg.Is<ItemRequestOptions>(o =>
                     o.EnableContentResponseOnWrite == false &&
-                    o.IfMatchEtag == ((ICosmosResource)record).ETag),
+                    o.IfMatchEtag == record.ETag),
                 cancellationToken);
     }
 
@@ -111,6 +124,7 @@ public sealed class CosmosBulkWriterTests
     public void Multiple_Operations_Uses_Same_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.CreateAsync(record, cancellationToken);
@@ -118,18 +132,18 @@ public sealed class CosmosBulkWriterTests
         _ = sut.ReplaceAsync(record, cancellationToken);
         _ = sut.ReplaceAsync(record, cancellationToken);
 
-        container
-            .ReceivedCalls()
-            .Should()
-            .HaveCount(6);
+        // Assert
+        container.ReceivedCalls().Should().HaveCount(6);
     }
 
     [Theory, AutoNSubstituteData]
     public async Task DeleteAsync_Calls_DeleteItemAsync_On_Container(
        CancellationToken cancellationToken)
     {
+        // Act
         await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .DeleteItemAsync<object>(

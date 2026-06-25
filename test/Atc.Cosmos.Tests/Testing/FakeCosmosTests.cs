@@ -5,6 +5,7 @@ public sealed class FakeCosmosTests
     [Theory, AutoNSubstituteData]
     public void Should_Have_Reader(FakeCosmos<Record> sut)
     {
+        // Assert
         sut.Reader.Should().NotBeNull();
         sut.Reader.Documents.Should().BeSameAs(sut.Documents);
         sut.Reader.QueryResults.Should().BeSameAs(sut.QueryResults);
@@ -13,6 +14,7 @@ public sealed class FakeCosmosTests
     [Theory, AutoNSubstituteData]
     public void Should_Have_Writer(FakeCosmos<Record> sut)
     {
+        // Assert
         sut.Writer.Should().NotBeNull();
         sut.Writer.Documents.Should().BeSameAs(sut.Documents);
     }
@@ -23,6 +25,7 @@ public sealed class FakeCosmosTests
         FakeCosmos<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.Reader.Should().BeSameAs(sut);
     }
 
@@ -32,6 +35,7 @@ public sealed class FakeCosmosTests
         FakeCosmos<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.BulkReader.Should().BeSameAs(sut);
     }
 
@@ -41,6 +45,7 @@ public sealed class FakeCosmosTests
         FakeCosmos<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.Writer.Should().BeSameAs(sut);
     }
 
@@ -50,6 +55,7 @@ public sealed class FakeCosmosTests
         FakeCosmos<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.BulkWriter.Should().BeSameAs(sut);
     }
 
@@ -61,18 +67,36 @@ public sealed class FakeCosmosTests
         string partitionKey,
         QueryDefinition query)
     {
+        // Arrange
         var sutReader = (ICosmosReader<Record>)sut;
+
+        // Act
         _ = sutReader.FindAsync(documentId, partitionKey);
         _ = sutReader.ReadAsync(documentId, partitionKey);
         sutReader.ReadAllAsync(partitionKey);
         sutReader.QueryAsync(query, partitionKey);
         sutReader.QueryAsync<RecordAggregate>(query, partitionKey);
 
-        _ = reader.Received(1).FindAsync(documentId, partitionKey);
-        _ = reader.Received(1).ReadAsync(documentId, partitionKey);
-        reader.Received(1).ReadAllAsync(partitionKey);
-        reader.Received(1).QueryAsync(query, partitionKey);
-        reader.Received(1).QueryAsync<RecordAggregate>(query, partitionKey);
+        // Assert
+        _ = reader
+            .Received(1)
+            .FindAsync(documentId, partitionKey);
+
+        _ = reader
+            .Received(1)
+            .ReadAsync(documentId, partitionKey);
+
+        reader
+            .Received(1)
+            .ReadAllAsync(partitionKey);
+
+        reader
+            .Received(1)
+            .QueryAsync(query, partitionKey);
+
+        reader
+            .Received(1)
+            .QueryAsync<RecordAggregate>(query, partitionKey);
     }
 
     [Theory, AutoNSubstituteData]
@@ -86,7 +110,10 @@ public sealed class FakeCosmosTests
         Func<Record, Task> updateDocumentAsync,
         Func<Record> getDefaultDocument)
     {
+        // Arrange
         var sutWriter = (ICosmosWriter<Record>)sut;
+
+        // Act
         _ = sutWriter.CreateAsync(document);
         _ = sutWriter.WriteAsync(document);
         _ = sutWriter.ReplaceAsync(document);
@@ -96,14 +123,38 @@ public sealed class FakeCosmosTests
         _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocument);
         _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync);
 
-        _ = writer.Received(1).CreateAsync(document);
-        _ = writer.Received(1).WriteAsync(document);
-        _ = writer.Received(1).ReplaceAsync(document);
-        _ = writer.Received(1).DeleteAsync(documentId, partitionKey);
-        _ = writer.Received(1).UpdateAsync(documentId, partitionKey, updateDocument);
-        _ = writer.Received(1).UpdateAsync(documentId, partitionKey, updateDocumentAsync);
-        _ = writer.Received(1).UpdateOrCreateAsync(getDefaultDocument, updateDocument);
-        _ = writer.Received(1).UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync);
+        // Assert
+        _ = writer
+            .Received(1)
+            .CreateAsync(document);
+
+        _ = writer
+            .Received(1)
+            .WriteAsync(document);
+
+        _ = writer
+            .Received(1)
+            .ReplaceAsync(document);
+
+        _ = writer
+            .Received(1)
+            .DeleteAsync(documentId, partitionKey);
+
+        _ = writer
+            .Received(1)
+            .UpdateAsync(documentId, partitionKey, updateDocument);
+
+        _ = writer
+            .Received(1)
+            .UpdateAsync(documentId, partitionKey, updateDocumentAsync);
+
+        _ = writer
+            .Received(1)
+            .UpdateOrCreateAsync(getDefaultDocument, updateDocument);
+
+        _ = writer
+            .Received(1)
+            .UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync);
     }
 
     [Theory, AutoNSubstituteData]
@@ -114,18 +165,36 @@ public sealed class FakeCosmosTests
         string partitionKey,
         QueryDefinition query)
     {
+        // Arrange
         var sutReader = (ICosmosBulkReader<Record>)sut;
+
+        // Act
         _ = sutReader.FindAsync(documentId, partitionKey);
         _ = sutReader.ReadAsync(documentId, partitionKey);
         sutReader.ReadAllAsync(partitionKey);
         sutReader.QueryAsync(query, partitionKey);
         sutReader.QueryAsync<RecordAggregate>(query, partitionKey);
 
-        _ = reader.Received(1).FindAsync(documentId, partitionKey);
-        _ = reader.Received(1).ReadAsync(documentId, partitionKey);
-        reader.Received(1).ReadAllAsync(partitionKey);
-        reader.Received(1).QueryAsync(query, partitionKey);
-        reader.Received(1).QueryAsync<RecordAggregate>(query, partitionKey);
+        // Assert
+        _ = reader
+            .Received(1)
+            .FindAsync(documentId, partitionKey);
+
+        _ = reader
+            .Received(1)
+            .ReadAsync(documentId, partitionKey);
+
+        reader
+            .Received(1)
+            .ReadAllAsync(partitionKey);
+
+        reader
+            .Received(1)
+            .QueryAsync(query, partitionKey);
+
+        reader
+            .Received(1)
+            .QueryAsync<RecordAggregate>(query, partitionKey);
     }
 
     [Theory, AutoNSubstituteData]
@@ -136,15 +205,30 @@ public sealed class FakeCosmosTests
         string documentId,
         string partitionKey)
     {
+        // Arrange
         var sutWriter = (ICosmosBulkWriter<Record>)sut;
+
+        // Act
         _ = sutWriter.CreateAsync(document);
         _ = sutWriter.WriteAsync(document);
         _ = sutWriter.ReplaceAsync(document);
         _ = sutWriter.DeleteAsync(documentId, partitionKey);
 
-        _ = writer.Received(1).CreateAsync(document);
-        _ = writer.Received(1).WriteAsync(document);
-        _ = writer.Received(1).ReplaceAsync(document);
-        _ = writer.Received(1).DeleteAsync(documentId, partitionKey);
+        // Assert
+        _ = writer
+            .Received(1)
+            .CreateAsync(document);
+
+        _ = writer
+            .Received(1)
+            .WriteAsync(document);
+
+        _ = writer
+            .Received(1)
+            .ReplaceAsync(document);
+
+        _ = writer
+            .Received(1)
+            .DeleteAsync(documentId, partitionKey);
     }
 }

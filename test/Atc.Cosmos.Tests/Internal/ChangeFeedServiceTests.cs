@@ -15,16 +15,16 @@ public sealed class ChangeFeedServiceTests
 
     [Fact]
     public void Should_Implement_IHostedService()
-        => sut
-            .Should()
-            .BeAssignableTo<IHostedService>();
+        => sut.Should().BeAssignableTo<IHostedService>();
 
     [Theory, AutoNSubstituteData]
     public async Task StartAsync_Should_Call_Start_On_Listeners(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.StartAsync(cancellationToken);
 
+        // Assert
         foreach (var listener in listeners)
         {
             _ = listener
@@ -37,8 +37,10 @@ public sealed class ChangeFeedServiceTests
     public async Task StopAsync_Should_Call_Stop_On_Listeners(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.StopAsync(cancellationToken);
 
+        // Assert
         foreach (var listener in listeners)
         {
             _ = listener

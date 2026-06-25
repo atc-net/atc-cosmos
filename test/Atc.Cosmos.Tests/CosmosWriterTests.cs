@@ -6,7 +6,6 @@ public sealed class CosmosWriterTests
     private readonly Container container;
     private readonly ICosmosContainerProvider containerProvider;
     private readonly ICosmosReader<Record> reader;
-    private readonly IJsonCosmosSerializer serializer;
     private readonly CosmosWriter<Record> sut;
 
     public CosmosWriterTests()
@@ -16,39 +15,47 @@ public sealed class CosmosWriterTests
         container = Substitute.For<Container>();
 
         containerProvider = Substitute.For<ICosmosContainerProvider>();
+
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container, null);
 
         var response = Substitute.For<ItemResponse<object>>();
         response.Resource.Returns(new Fixture().Create<string>());
+
         container
-            .CreateItemAsync<object>(default, default, default, default)
+            .CreateItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .ReplaceItemAsync<object>(default, default, default, default, default)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .UpsertItemAsync<object>(default, default, default, default)
+            .UpsertItemAsync<object>(item: null, partitionKey: null, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(response);
+
         container
-            .PatchItemAsync<object>(default, default, default, default)
+            .PatchItemAsync<object>(id: null, partitionKey: default, patchOperations: null, requestOptions: null)
             .ReturnsForAnyArgs(response);
 
         var responseMessage = Substitute.For<ResponseMessage>();
         responseMessage.StatusCode.Returns(HttpStatusCode.Accepted);
+
         container
-            .DeleteAllItemsByPartitionKeyStreamAsync(default, default, default)
+            .DeleteAllItemsByPartitionKeyStreamAsync(partitionKey: default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(responseMessage);
 
         reader = Substitute.For<ICosmosReader<Record>>();
+
         reader
-            .ReadAsync(default, default, default)
+            .ReadAsync(documentId: null, partitionKey: null, CancellationToken.None)
             .ReturnsForAnyArgs(record);
 
-        serializer = Substitute.For<IJsonCosmosSerializer>();
+        var serializer = Substitute.For<IJsonCosmosSerializer>();
+
         serializer
-            .FromString<Record>(default)
+            .FromString<Record>(Arg.Any<string>())
             .ReturnsForAnyArgs(new Fixture().Create<Record>());
 
         sut = new CosmosWriter<Record>(containerProvider, reader, serializer);
@@ -62,8 +69,10 @@ public sealed class CosmosWriterTests
     public async Task WriteAsync_Uses_The_Right_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.WriteAsync(record, cancellationToken);
 
+        // Assert
         containerProvider
             .Received(1)
             .GetContainer<Record>(
@@ -74,12 +83,15 @@ public sealed class CosmosWriterTests
     public async Task WriteAsync_UpsertItem_In_Container(
         CancellationToken cancellationToken)
     {
+        // Arrange
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container);
 
+        // Act
         await sut.WriteAsync(record, cancellationToken);
 
+        // Assert
         await container
             .Received(1)
             .UpsertItemAsync<object>(
@@ -93,12 +105,15 @@ public sealed class CosmosWriterTests
     public async Task WriteWithNoResponseAsync_UpsertItem_In_Container(
         CancellationToken cancellationToken)
     {
+        // Arrange
         containerProvider
             .GetContainer<Record>()
             .ReturnsForAnyArgs(container);
 
+        // Act
         await sut.WriteWithNoResponseAsync(record, cancellationToken);
 
+        // Assert
         await container
             .Received(1)
             .UpsertItemAsync<object>(
@@ -112,8 +127,10 @@ public sealed class CosmosWriterTests
     public async Task CreateAsync_Calls_CreateItem_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.CreateAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -127,8 +144,10 @@ public sealed class CosmosWriterTests
     public async Task CreateWithNoResponseAsync_Calls_CreateItem_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.CreateWithNoResponseAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -142,8 +161,10 @@ public sealed class CosmosWriterTests
     public async Task ReplaceAsync_Calls_ReplaceItemAsync_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.ReplaceAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -158,8 +179,10 @@ public sealed class CosmosWriterTests
     public async Task ReplaceWithNoResponseAsync_Calls_ReplaceItemAsync_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.ReplaceWithNoResponseAsync(record, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -177,6 +200,7 @@ public sealed class CosmosWriterTests
     public void Multiple_Operations_Uses_Same_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.WriteAsync(record, cancellationToken);
         _ = sut.CreateAsync(record, cancellationToken);
@@ -184,18 +208,18 @@ public sealed class CosmosWriterTests
         _ = sut.ReplaceAsync(record, cancellationToken);
         _ = sut.ReplaceAsync(record, cancellationToken);
 
-        container
-            .ReceivedCalls()
-            .Should()
-            .HaveCount(6);
+        // Assert
+        container.ReceivedCalls().Should().HaveCount(6);
     }
 
     [Theory, AutoNSubstituteData]
     public async Task DeleteAsync_Calls_DeleteItemAsync_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.DeleteAsync(record.Id, record.Pk, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .DeleteItemAsync<object>(
@@ -209,14 +233,14 @@ public sealed class CosmosWriterTests
     public async Task Should_Return_True_When_Trying_To_Delete_Existing_Resource(
         CancellationToken cancellationToken)
     {
+        // Act
         var deleted = await sut.TryDeleteAsync(
             record.Id,
             record.Pk,
             cancellationToken);
 
-        deleted
-            .Should()
-            .BeTrue();
+        // Assert
+        deleted.Should().BeTrue();
 
         _ = container
             .Received(1)
@@ -231,19 +255,20 @@ public sealed class CosmosWriterTests
     public async Task Should_Return_False_When_Trying_To_Delete_NonExisting_Resource(
         CancellationToken cancellationToken)
     {
+        // Arrange
         container
-            .DeleteItemAsync<object>(default, default, default, default)
+            .DeleteItemAsync<object>(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs<ItemResponse<object>>(
                 r => throw new CosmosException("fake", HttpStatusCode.NotFound, 0, "1", 1));
 
+        // Act
         var deleted = await sut.TryDeleteAsync(
             record.Id,
             record.Pk,
             cancellationToken);
 
-        deleted
-            .Should()
-            .BeFalse();
+        // Assert
+        deleted.Should().BeFalse();
 
         _ = container
             .Received(1)
@@ -258,8 +283,10 @@ public sealed class CosmosWriterTests
     public async Task DeletePartitionAsync_Calls_DeleteAllItemsByPartitionKeyStreamAsync_On_Container(
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.DeletePartitionAsync(record.Pk, cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .DeleteAllItemsByPartitionKeyStreamAsync(
@@ -272,11 +299,14 @@ public sealed class CosmosWriterTests
     public async Task DeletePartitionAsync_Throws_CosmosException_If_ResponseMessage_Is_Not_Successful(
         CancellationToken cancellationToken)
     {
+        // Arrange
         using var responseMessage = new ResponseMessage(HttpStatusCode.BadRequest);
+
         container
             .DeleteAllItemsByPartitionKeyStreamAsync(default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(responseMessage);
 
+        // Act & assert
         Func<Task> act = () => sut.DeletePartitionAsync(record.Pk, cancellationToken);
         await act.Should().ThrowAsync<CosmosException>();
     }
@@ -289,6 +319,7 @@ public sealed class CosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -296,6 +327,7 @@ public sealed class CosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         _ = reader
             .Received(1)
             .ReadAsync(
@@ -312,6 +344,7 @@ public sealed class CosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -319,6 +352,7 @@ public sealed class CosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(record);
@@ -332,6 +366,7 @@ public sealed class CosmosWriterTests
         int retries,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateAsync(
             documentId,
             partitionKey,
@@ -339,6 +374,7 @@ public sealed class CosmosWriterTests
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
@@ -357,12 +393,14 @@ public sealed class CosmosWriterTests
         Record defaultDocument,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = reader
             .Received(1)
             .FindAsync(
@@ -379,16 +417,19 @@ public sealed class CosmosWriterTests
         Record foundResource,
         CancellationToken cancellationToken)
     {
+        // Arrange
         reader
-            .FindAsync(default, default, default)
+            .FindAsync(documentId: null, partitionKey: null, CancellationToken.None)
             .ReturnsForAnyArgs(foundResource);
 
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(foundResource);
@@ -401,12 +442,14 @@ public sealed class CosmosWriterTests
         Record defaultDocument,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(defaultDocument);
@@ -421,24 +464,28 @@ public sealed class CosmosWriterTests
         string etag,
         CancellationToken cancellationToken)
     {
-        ((ICosmosResource)foundResource).ETag = etag;
+        // Arrange
+        foundResource.ETag = etag;
+
         reader
-            .FindAsync(default, default, default)
+            .FindAsync(documentId: null, partitionKey: null, CancellationToken.None)
             .ReturnsForAnyArgs(foundResource);
 
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .ReplaceItemAsync<object>(
                 foundResource,
                 foundResource.Id,
                 new PartitionKey(foundResource.Pk),
-                Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == ((ICosmosResource)foundResource).ETag),
+                Arg.Is<ItemRequestOptions>(o => o.IfMatchEtag == foundResource.ETag),
                 cancellationToken);
     }
 
@@ -449,13 +496,17 @@ public sealed class CosmosWriterTests
         Record defaultDocument,
         CancellationToken cancellationToken)
     {
-        ((ICosmosResource)defaultDocument).ETag = null;
+        // Arrange
+        defaultDocument.ETag = null;
+
+        // Act
         await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument,
             retries,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .CreateItemAsync<object>(
@@ -471,6 +522,7 @@ public sealed class CosmosWriterTests
         string filterPredicate,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.PatchAsync(
             record.Id,
             record.Pk,
@@ -478,6 +530,7 @@ public sealed class CosmosWriterTests
             filterPredicate,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .PatchItemAsync<object>(
@@ -494,6 +547,7 @@ public sealed class CosmosWriterTests
         string filterPredicate,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.PatchWithNoResponseAsync(
             record.Id,
             record.Pk,
@@ -501,6 +555,7 @@ public sealed class CosmosWriterTests
             filterPredicate,
             cancellationToken);
 
+        // Assert
         _ = container
             .Received(1)
             .PatchItemAsync<object>(
@@ -510,4 +565,113 @@ public sealed class CosmosWriterTests
                 Arg.Is<PatchItemRequestOptions>(o => o.PriorityLevel == PriorityLevel.High),
                 cancellationToken);
     }
+
+    [Theory, AutoNSubstituteData]
+    public async Task UpdateAsync_Retries_On_PreconditionFailed_And_Rethrows_When_Retries_Exhausted(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        container
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromException<ItemResponse<object>>(CosmosError(HttpStatusCode.PreconditionFailed)));
+
+        var act = () => sut.UpdateAsync(
+            documentId,
+            partitionKey,
+            updateDocument: _ => { },
+            retries: 2,
+            cancellationToken);
+
+        // Act & assert
+        await act.Should().ThrowAsync<CosmosException>();
+
+        _ = container
+            .ReceivedWithAnyArgs(2)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None);
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task UpdateAsync_Retries_On_PreconditionFailed_Then_Succeeds(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        var response = Substitute.For<ItemResponse<object>>();
+        response.Resource.Returns(new Fixture().Create<string>());
+
+        container
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(
+                Task.FromException<ItemResponse<object>>(CosmosError(HttpStatusCode.PreconditionFailed)),
+                Task.FromResult(response));
+
+        var act = () => sut.UpdateAsync(
+            documentId,
+            partitionKey,
+            updateDocument: _ => { },
+            retries: 2,
+            cancellationToken);
+
+        // Act & assert
+        await act.Should().NotThrowAsync();
+
+        _ = container
+            .ReceivedWithAnyArgs(2)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None);
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task UpdateAsync_Does_Not_Retry_On_Unrelated_CosmosException(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        container
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromException<ItemResponse<object>>(CosmosError(HttpStatusCode.NotFound)));
+
+        var act = () => sut.UpdateAsync(
+            documentId,
+            partitionKey,
+            updateDocument: _ => { },
+            retries: 5,
+            cancellationToken);
+
+        // Act & assert
+        await act.Should().ThrowAsync<CosmosException>();
+
+        _ = container
+            .ReceivedWithAnyArgs(1)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None);
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task UpdateOrCreateAsync_Retries_On_Conflict_And_Rethrows_When_Retries_Exhausted(
+        CancellationToken cancellationToken)
+    {
+        // Arrange (record has an ETag, so the writer takes the Replace path)
+        container
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromException<ItemResponse<object>>(CosmosError(HttpStatusCode.Conflict)));
+
+        var act = () => sut.UpdateOrCreateAsync(
+            () => record,
+            updateDocument: _ => { },
+            retries: 2,
+            cancellationToken);
+
+        // Act & assert
+        await act.Should().ThrowAsync<CosmosException>();
+
+        _ = container
+            .ReceivedWithAnyArgs(2)
+            .ReplaceItemAsync<object>(item: null, id: null, partitionKey: null, requestOptions: null, CancellationToken.None);
+    }
+
+    private static CosmosException CosmosError(HttpStatusCode statusCode)
+        => new("fake", statusCode, subStatusCode: 0, activityId: "1", requestCharge: 1);
 }

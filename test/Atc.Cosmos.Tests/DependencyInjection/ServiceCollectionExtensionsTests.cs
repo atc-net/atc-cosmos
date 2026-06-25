@@ -19,6 +19,7 @@ public sealed class ServiceCollectionExtensionsTests
         serializer = Substitute.For<IJsonCosmosSerializer>();
 
         provider = Substitute.For<IServiceProvider>();
+
         provider
             .GetService(typeof(IOptions<CosmosOptions>))
             .Returns(options);
@@ -31,22 +32,13 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void ConfigureCosmos_Calls_Builder_With_CosmosBuilder()
     {
-        // TODO: remove this as it's only here to show how to use the builder API
-        services.ConfigureCosmos(
-            options.Value,
-            builder =>
-            {
-                var newCosmosOptions = new CosmosOptions();
-                builder // default database
-                    .AddContainer<Record>("MyContainer")
-                    .ForDatabase(newCosmosOptions) // additional database
-                        .AddContainer<Record<int>>("MyContainer2")
-                        .AddContainer<Record<string>>("MyContainer3");
-            });
-
+        // Act
         services.ConfigureCosmos(builder);
 
-        builder.Received(1).Invoke(Arg.Any<CosmosBuilder>());
+        // Assert
+        builder
+            .Received(1)
+            .Invoke(Arg.Any<CosmosBuilder>());
     }
 
     [Theory]
@@ -63,8 +55,10 @@ public sealed class ServiceCollectionExtensionsTests
     [InlineData(typeof(ICosmosWriterFactory))]
     public void ConfigureCosmos_Adds_Dependencies(Type serviceType)
     {
+        // Act
         services.ConfigureCosmos(builder);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -75,8 +69,10 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void ConfigureCosmos_Registers_CosmosOptions_If_Passed_In_By_Value()
     {
+        // Act
         services.ConfigureCosmos(options.Value, builder);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -86,8 +82,10 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void ConfigureCosmos_Registers_CosmosOptions_If_Passed_In_By_Function()
     {
+        // Act
         services.ConfigureCosmos(s => options.Value, builder);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -97,8 +95,10 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void ConfigureCosmos_Does_Not_Register_CosmosOptions_If_Not_Passed_In()
     {
+        // Act
         services.ConfigureCosmos(builder);
 
+        // Assert
         services
             .DidNotReceive()
             .Add(Arg.Is<ServiceDescriptor>(s

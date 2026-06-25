@@ -7,16 +7,17 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Act
         var result = await sut.CreateAsync(record);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
                 record,
                 o => o.Excluding(d => d.ETag));
-        sut.Documents
-            .Should()
-            .ContainEquivalentOf(result);
+
+        sut.Documents.Should().ContainEquivalentOf(result);
     }
 
     [Theory, AutoNSubstituteData]
@@ -24,13 +25,14 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         record.ETag = null;
 
+        // Act
         var result = await sut.CreateAsync(record);
 
-        result.ETag
-            .Should()
-            .NotBeNullOrEmpty();
+        // Assert
+        result.ETag.Should().NotBeNullOrEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -38,8 +40,10 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         sut.Documents.Add(record);
 
+        // Act & assert
         return Awaiting(() => sut.CreateAsync(record))
             .Should()
             .ThrowAsync<CosmosException>()
@@ -51,11 +55,11 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Act
         var result = await sut.WriteAsync(record);
 
-        sut.Documents
-            .Should()
-            .ContainEquivalentOf(result);
+        // Assert
+        sut.Documents.Should().ContainEquivalentOf(result);
 
         result
             .Should()
@@ -69,13 +73,14 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         record.ETag = null;
 
+        // Act
         var result = await sut.WriteAsync(record);
 
-        result.ETag
-            .Should()
-            .NotBeNullOrEmpty();
+        // Assert
+        result.ETag.Should().NotBeNullOrEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -83,25 +88,26 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         var existingDocument = new Record
         {
             Id = record.Id,
             Pk = record.Pk,
         };
+
         sut.Documents.Add(existingDocument);
 
+        // Act
         var result = await sut.WriteAsync(record);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
                 record,
                 o => o.Excluding(d => d.ETag));
-        sut.Documents
-            .Should()
-            .NotContain(existingDocument)
-            .And
-            .ContainEquivalentOf(result);
+
+        sut.Documents.Should().NotContain(existingDocument).And.ContainEquivalentOf(result);
     }
 
     [Theory, AutoNSubstituteData]
@@ -118,26 +124,27 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         var existingDocument = new Record
         {
             Id = record.Id,
             Pk = record.Pk,
             ETag = record.ETag,
         };
+
         sut.Documents.Add(existingDocument);
 
+        // Act
         var result = await sut.ReplaceAsync(record);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
                 record,
                 o => o.Excluding(d => d.ETag));
-        sut.Documents
-            .Should()
-            .NotContain(existingDocument)
-            .And
-            .ContainEquivalentOf(result);
+
+        sut.Documents.Should().NotContain(existingDocument).And.ContainEquivalentOf(result);
     }
 
     [Theory, AutoNSubstituteData]
@@ -146,14 +153,17 @@ public sealed class FakeCosmosWriterTests
        Record record,
        string differentETag)
     {
+        // Arrange
         var existingDocument = new Record
         {
             Id = record.Id,
             Pk = record.Pk,
             ETag = differentETag,
         };
+
         sut.Documents.Add(existingDocument);
 
+        // Act & assert
         return Awaiting(() => sut.ReplaceAsync(record))
             .Should()
             .ThrowAsync<CosmosException>()
@@ -165,6 +175,7 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         sut.Documents.Add(new Record
         {
             Id = record.Id,
@@ -173,11 +184,11 @@ public sealed class FakeCosmosWriterTests
 
         record.ETag = null;
 
+        // Act
         var result = await sut.ReplaceAsync(record);
 
-        result.ETag
-            .Should()
-            .NotBeNullOrEmpty();
+        // Assert
+        result.ETag.Should().NotBeNullOrEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -195,18 +206,20 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         Record record)
     {
+        // Arrange
         var existingDocument = new Record
         {
             Id = record.Id,
             Pk = record.Pk,
         };
+
         sut.Documents.Add(existingDocument);
 
+        // Act
         await sut.DeleteAsync(record.Id, record.Pk);
 
-        sut.Documents
-            .Should()
-            .NotContain(existingDocument);
+        // Assert
+        sut.Documents.Should().NotContain(existingDocument);
     }
 
     [Theory, AutoNSubstituteData]
@@ -216,34 +229,36 @@ public sealed class FakeCosmosWriterTests
         Record record2,
         Record record3)
     {
+        // Arrange
         var existingDocument1 = new Record
         {
             Id = record1.Id,
             Pk = record1.Pk,
         };
+
         sut.Documents.Add(existingDocument1);
+
         var existingDocument2 = new Record
         {
             Id = record2.Id,
             Pk = record1.Pk,
         };
+
         sut.Documents.Add(existingDocument2);
+
         var existingDocument3 = new Record
         {
             Id = record3.Id,
             Pk = record3.Pk,
         };
+
         sut.Documents.Add(existingDocument3);
 
+        // Act
         await sut.DeletePartitionAsync(record1.Pk);
 
-        sut.Documents
-            .Should()
-            .NotContain(existingDocument1)
-            .And
-            .NotContain(existingDocument2)
-            .And
-            .Contain(existingDocument3);
+        // Assert
+        sut.Documents.Should().NotContain(existingDocument1).And.NotContain(existingDocument2).And.Contain(existingDocument3);
     }
 
     [Theory, AutoNSubstituteData]
@@ -266,18 +281,22 @@ public sealed class FakeCosmosWriterTests
          Record record,
          [Substitute] Action<Record> updateDocument)
     {
+        // Arrange
         sut.Documents.Add(record);
 
+        // Act
         var result = await sut.UpdateAsync(
             record.Id,
             record.Pk,
             updateDocument);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
                 record,
                 o => o.Excluding(d => d.ETag));
+
         updateDocument
             .Received(1)
             .Invoke(result);
@@ -289,14 +308,17 @@ public sealed class FakeCosmosWriterTests
          Record record,
          string newData)
     {
+        // Arrange
         record.ETag = null;
         sut.Documents.Add(record);
 
+        // Act
         var result = await sut.UpdateAsync(
             record.Id,
             record.Pk,
             d => d.Data = newData);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
@@ -308,9 +330,7 @@ public sealed class FakeCosmosWriterTests
                 },
                 o => o.Excluding(r => r.ETag));
 
-        result.ETag
-            .Should()
-            .NotBeNullOrEmpty();
+        result.ETag.Should().NotBeNullOrEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -320,12 +340,15 @@ public sealed class FakeCosmosWriterTests
          [Substitute] Func<Record> getDefaultDocument,
          [Substitute] Action<Record> updateDocument)
     {
+        // Arrange
         getDefaultDocument
             .Invoke()
             .Returns(defaultDocument);
 
+        // Act
         await sut.UpdateOrCreateAsync(getDefaultDocument, updateDocument);
 
+        // Assert
         getDefaultDocument
             .Received(1)
             .Invoke();
@@ -337,15 +360,18 @@ public sealed class FakeCosmosWriterTests
          Record defaultDocument,
          [Substitute] Action<Record> updateDocument)
     {
+        // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
                 defaultDocument,
                 o => o.Excluding(d => d.ETag));
+
         updateDocument
             .Received(1)
             .Invoke(result);
@@ -357,13 +383,13 @@ public sealed class FakeCosmosWriterTests
          Record defaultDocument,
          [Substitute] Action<Record> updateDocument)
     {
+        // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument);
 
-        sut.Documents
-            .Should()
-            .ContainEquivalentOf(result);
+        // Assert
+        sut.Documents.Should().ContainEquivalentOf(result);
 
         result
             .Should()
@@ -378,17 +404,21 @@ public sealed class FakeCosmosWriterTests
          Record existingDocument,
          [Substitute] Action<Record> updateDocument)
     {
+        // Arrange
         sut.Documents.Add(existingDocument);
+
         var defaultDocument = new Record
         {
             Id = existingDocument.Id,
             Pk = existingDocument.Pk,
         };
 
+        // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             updateDocument);
 
+        // Assert
         updateDocument
             .Received(1)
             .Invoke(result);
@@ -406,18 +436,22 @@ public sealed class FakeCosmosWriterTests
          Record document,
          string newData)
     {
+        // Arrange
         document.ETag = null;
         sut.Documents.Add(document);
+
         var defaultDocument = new Record
         {
             Id = document.Id,
             Pk = document.Pk,
         };
 
+        // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
             d => d.Data = newData);
 
+        // Assert
         result
             .Should()
             .BeEquivalentTo(
@@ -429,9 +463,7 @@ public sealed class FakeCosmosWriterTests
                 },
                 o => o.Excluding(r => r.ETag));
 
-        result.ETag
-            .Should()
-            .NotBeNullOrEmpty();
+        result.ETag.Should().NotBeNullOrEmpty();
     }
 
     [Theory, AutoNSubstituteData]
@@ -440,6 +472,7 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.Writer.Should().BeSameAs(sut);
     }
 
@@ -449,6 +482,7 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         TestCosmosService<Record> service)
     {
+        // Act & assert
         service.BulkWriter.Should().BeSameAs(sut);
     }
 }

@@ -4,7 +4,7 @@ public sealed class CosmosContainerNameProviderTests
 {
     [Theory, AutoNSubstituteData]
     public void Returns_Correct_ContainerName_For_Type([Frozen] string name)
-        => new CosmosContainerNameProvider<Record>(name, null)
+        => new CosmosContainerNameProvider<Record>(name, options: null)
             .ContainerName
             .Should()
             .Be(name);
@@ -20,14 +20,14 @@ public sealed class CosmosContainerNameProviderTests
 
     [Fact]
     public void Returns_Correct_Match_For_Type()
-        => new CosmosContainerNameProvider<Record>("name", null)
+        => new CosmosContainerNameProvider<Record>("name", options: null)
             .IsForType(typeof(Record))
             .Should()
             .BeTrue();
 
     [Fact]
     public void Returns_False_For_Incorrect_Type()
-        => new CosmosContainerNameProvider<Record>("name", null)
+        => new CosmosContainerNameProvider<Record>("name", options: null)
             .IsForType(typeof(string))
             .Should()
             .BeFalse();

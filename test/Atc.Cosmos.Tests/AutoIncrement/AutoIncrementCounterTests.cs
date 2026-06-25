@@ -4,9 +4,7 @@ public sealed class AutoIncrementCounterTests
 {
     [Theory, AutoData]
     public void Implements_ICosmosResource(AutoIncrementCounter sut)
-        => sut
-            .Should()
-            .BeAssignableTo<CosmosResource>();
+        => sut.Should().BeAssignableTo<CosmosResource>();
 
     [Theory, AutoData]
     public void DocumentId_Should_Be_CounterName(AutoIncrementCounter sut)

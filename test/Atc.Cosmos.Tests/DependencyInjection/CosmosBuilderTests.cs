@@ -17,8 +17,10 @@ public sealed class CosmosBuilderTests
         string name,
         [Substitute] Action<ICosmosContainerBuilder> builder)
     {
+        // Act
         sut.AddContainer(name, builder);
 
+        // Assert
         builder
             .Received(1)
             .Invoke(Arg.Is<ICosmosContainerBuilder>(b
@@ -33,8 +35,10 @@ public sealed class CosmosBuilderTests
         CosmosBuilder sut,
         string name)
     {
+        // Act
         sut.AddContainer<Record>(name);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -53,13 +57,16 @@ public sealed class CosmosBuilderTests
         string name,
         [Substitute] Action<ICosmosContainerBuilder> builder)
     {
+        // Act
         sut.AddContainer<RecordInitializer>(name, builder);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
                 => s.ServiceType == typeof(RecordInitializer)
                 && s.ImplementationType == typeof(RecordInitializer)));
+
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -73,8 +80,10 @@ public sealed class CosmosBuilderTests
         string name,
         [Substitute] Action<ICosmosContainerBuilder> builder)
     {
+        // Act
         sut.AddContainer<RecordInitializer>(name, builder);
 
+        // Assert
         builder
             .Received(1)
             .Invoke(Arg.Is<ICosmosContainerBuilder>(b
@@ -88,13 +97,16 @@ public sealed class CosmosBuilderTests
         CosmosBuilder sut,
         string name)
     {
+        // Act
         sut.AddContainer<RecordInitializer, Record>(name);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
                 => s.ServiceType == typeof(RecordInitializer)
                 && s.ImplementationType == typeof(RecordInitializer)));
+
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -108,8 +120,10 @@ public sealed class CosmosBuilderTests
         CosmosBuilder sut,
         string name)
     {
+        // Act
         sut.AddContainer<RecordInitializer, Record>(name);
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s
@@ -126,8 +140,10 @@ public sealed class CosmosBuilderTests
         [Frozen] IServiceCollection services,
         CosmosBuilder sut)
     {
+        // Act
         sut.UseHostedService();
 
+        // Assert
         services
             .Received(1)
             .Add(Arg.Is<ServiceDescriptor>(s

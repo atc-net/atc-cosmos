@@ -8,8 +8,10 @@ public sealed class AutoIncrementCounterInitializerTests
         AutoIncrementCounterInitializer sut,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.InitializeAsync(database, cancellationToken);
 
+        // Assert
         await database
             .Received(1)
             .CreateContainerIfNotExistsAsync(
@@ -25,12 +27,14 @@ public sealed class AutoIncrementCounterInitializerTests
         AutoIncrementCounterInitializer sut,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.InitializeAsync(database, cancellationToken);
 
+        // Assert
         await database
             .Received(1)
             .CreateContainerIfNotExistsAsync(
-                Arg.Is<ContainerProperties>(p => p.IndexingPolicy.ExcludedPaths.Any(p => p.Path == "/*")),
+                Arg.Is<ContainerProperties>(p => p.IndexingPolicy.ExcludedPaths.Any(e => e.Path == "/*")),
                 Arg.Any<int?>(),
                 Arg.Any<RequestOptions>(),
                 Arg.Any<CancellationToken>());
@@ -42,8 +46,10 @@ public sealed class AutoIncrementCounterInitializerTests
         AutoIncrementCounterInitializer sut,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.InitializeAsync(database, cancellationToken);
 
+        // Assert
         await database
             .Received(1)
             .CreateContainerIfNotExistsAsync(
@@ -54,13 +60,15 @@ public sealed class AutoIncrementCounterInitializerTests
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task Should_Use_Consistant_IndexingMode(
+    public async Task Should_Use_Consistent_IndexingMode(
         [Substitute] Database database,
         AutoIncrementCounterInitializer sut,
         CancellationToken cancellationToken)
     {
+        // Act
         await sut.InitializeAsync(database, cancellationToken);
 
+        // Assert
         await database
             .Received(1)
             .CreateContainerIfNotExistsAsync(
