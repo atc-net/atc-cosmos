@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Atc.Cosmos</PackageId>
-    <PackageTags>cosmos;cosmos-sql;netcore;repository</PackageTags>
+    <PackageTags>cosmos;cosmosdb;azure;nosql;document-database;repository</PackageTags>
     <Description>Library for configuring containers in Cosmos and providing an easy way to read and write document resources.</Description>
   </PropertyGroup>
 
