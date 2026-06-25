@@ -1,17 +1,8 @@
 namespace Atc.Cosmos.Testing;
 
-[SuppressMessage(
-   "Design",
-   "MA0016:Prefer return collection abstraction instead of implementation",
-   Justification = "By design")]
-[SuppressMessage(
-   "Design",
-   "CA1002:Do not expose generic lists",
-   Justification = "By design")]
-[SuppressMessage(
-   "Usage",
-   "CA2227:Collection properties should be read only",
-   Justification = "By design")]
+[SuppressMessage("Design", "MA0016:Prefer return collection abstraction instead of implementation", Justification = "By design")]
+[SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "By design")]
+[SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "By design")]
 public sealed class FakeCosmos<T> :
     ICosmosReader<T>,
     ICosmosWriter<T>,
@@ -55,10 +46,7 @@ public sealed class FakeCosmos<T> :
     public List<object> QueryResults
     {
         get => Reader.QueryResults;
-        set
-        {
-            Reader.QueryResults = value;
-        }
+        set => Reader.QueryResults = value;
     }
 
     public FakeCosmosReader<T> Reader { get; }
@@ -155,7 +143,7 @@ public sealed class FakeCosmos<T> :
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => ((ICosmosReader<T>)Reader)
             .PagedQueryAsync(
@@ -216,7 +204,7 @@ public sealed class FakeCosmos<T> :
     public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => ((ICosmosReader<T>)Reader)
             .CrossPartitionPagedQueryAsync(

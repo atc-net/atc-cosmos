@@ -1,21 +1,11 @@
-namespace Atc.Cosmos;
+namespace Atc.Cosmos.Internal;
 
-public class LowPriorityCosmosWriterFactory : ILowPriorityCosmosWriterFactory
+public class LowPriorityCosmosWriterFactory(
+    ICosmosContainerProvider provider,
+    ILowPriorityCosmosReaderFactory factory,
+    IJsonCosmosSerializer serializer)
+    : ILowPriorityCosmosWriterFactory
 {
-    private readonly ICosmosContainerProvider provider;
-    private readonly ILowPriorityCosmosReaderFactory factory;
-    private readonly IJsonCosmosSerializer serializer;
-
-    public LowPriorityCosmosWriterFactory(
-        ICosmosContainerProvider provider,
-        ILowPriorityCosmosReaderFactory factory,
-        IJsonCosmosSerializer serializer)
-    {
-        this.provider = provider;
-        this.factory = factory;
-        this.serializer = serializer;
-    }
-
     public ILowPriorityCosmosWriter<TResource> CreateWriter<TResource>()
         where TResource : class, ICosmosResource
         => new LowPriorityCosmosWriter<TResource>(
@@ -25,5 +15,5 @@ public class LowPriorityCosmosWriterFactory : ILowPriorityCosmosWriterFactory
 
     public ILowPriorityCosmosBulkWriter<TResource> CreateBulkWriter<TResource>()
         where TResource : class, ICosmosResource
-        => new LowPriorityCosmosBulkWriter<TResource>(provider, serializer);
+        => new LowPriorityCosmosBulkWriter<TResource>(provider);
 }

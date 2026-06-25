@@ -1,12 +1,8 @@
 namespace Atc.Cosmos.Internal;
 
-public class ChangeFeedService : IHostedService
+public class ChangeFeedService(IEnumerable<IChangeFeedListener> listeners)
+    : IHostedService
 {
-    private readonly IEnumerable<IChangeFeedListener> listeners;
-
-    public ChangeFeedService(IEnumerable<IChangeFeedListener> listeners)
-        => this.listeners = listeners;
-
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var tasks = listeners

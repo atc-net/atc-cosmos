@@ -1,18 +1,10 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosContainerProvider : ICosmosContainerProvider
+public class CosmosContainerProvider(
+    ICosmosClientProvider clientProvider,
+    ICosmosContainerRegistry registry)
+    : ICosmosContainerProvider
 {
-    private readonly ICosmosClientProvider clientProvider;
-    private readonly ICosmosContainerRegistry registry;
-
-    public CosmosContainerProvider(
-        ICosmosClientProvider clientProvider,
-        ICosmosContainerRegistry registry)
-    {
-        this.clientProvider = clientProvider;
-        this.registry = registry;
-    }
-
     public Container GetContainer<T>(bool allowBulk = false)
     {
         var container = registry.GetContainerForType<T>();

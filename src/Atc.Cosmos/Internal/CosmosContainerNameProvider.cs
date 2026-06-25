@@ -1,22 +1,14 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosContainerNameProvider : ICosmosContainerNameProvider
+public class CosmosContainerNameProvider(
+    Type containerType,
+    string containerName,
+    CosmosOptions? options)
+    : ICosmosContainerNameProvider
 {
-    private readonly Type containerType;
+    public CosmosOptions? Options { get; set; } = options;
 
-    public CosmosContainerNameProvider(
-        Type resourceType,
-        string containerName,
-        CosmosOptions? options)
-    {
-        containerType = resourceType;
-        ContainerName = containerName;
-        Options = options;
-    }
-
-    public CosmosOptions? Options { get; set; }
-
-    public string ContainerName { get; }
+    public string ContainerName { get; } = containerName;
 
     public bool IsForType(Type resourceType)
     {

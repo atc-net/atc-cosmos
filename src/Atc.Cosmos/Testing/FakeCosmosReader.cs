@@ -11,18 +11,9 @@ namespace Atc.Cosmos.Testing;
 /// The type of <see cref="ICosmosResource"/>
 /// to be read by this reader.
 /// </typeparam>
-[SuppressMessage(
-    "Design",
-    "MA0016:Prefer return collection abstraction instead of implementation",
-    Justification = "By design")]
-[SuppressMessage(
-    "Design",
-    "CA1002:Do not expose generic lists",
-    Justification = "By design")]
-[SuppressMessage(
-    "Usage",
-    "CA2227:Collection properties should be read only",
-    Justification = "By design")]
+[SuppressMessage("Design", "MA0016:Prefer return collection abstraction instead of implementation", Justification = "By design")]
+[SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "By design")]
+[SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "By design")]
 public class FakeCosmosReader<T> :
     ICosmosReader<T>,
     ICosmosBulkReader<T>
@@ -35,22 +26,18 @@ public class FakeCosmosReader<T> :
     }
 
     public FakeCosmosReader(JsonSerializerOptions options)
-    {
-        this.options = options;
-    }
+        => this.options = options;
 
     /// <summary>
     /// Gets or sets the list of documents to return by the fake reader.
     /// </summary>
-    public List<T> Documents { get; set; }
-        = new List<T>();
+    public List<T> Documents { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the list of custom results to be returned by the
     /// <see cref="QueryAsync{TResult}(QueryDefinition, string, CancellationToken)"/> method.
     /// </summary>
-    public List<object> QueryResults { get; set; }
-        = new List<object>();
+    public List<object> QueryResults { get; set; } = [];
 
     public virtual Task<T?> FindAsync(
         string documentId,
@@ -125,7 +112,7 @@ public class FakeCosmosReader<T> :
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => PagedQueryAsync<T>(
             query,
@@ -138,7 +125,7 @@ public class FakeCosmosReader<T> :
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var startIndex = GetStartIndex(continuationToken);
@@ -160,7 +147,7 @@ public class FakeCosmosReader<T> :
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var startIndex = GetStartIndex(continuationToken);
@@ -202,7 +189,7 @@ public class FakeCosmosReader<T> :
     public virtual Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => CrossPartitionPagedQueryAsync<T>(
             query,
@@ -213,7 +200,7 @@ public class FakeCosmosReader<T> :
     public virtual Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var startIndex = GetStartIndex(continuationToken);
@@ -234,7 +221,7 @@ public class FakeCosmosReader<T> :
     public virtual Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var startIndex = GetStartIndex(continuationToken);
@@ -279,7 +266,8 @@ public class FakeCosmosReader<T> :
     {
         var queryResults = QueryAsync(queryBuilder, partitionKey, cancellationToken);
         var buffer = new List<TResult>();
-        await foreach (var result in queryResults.WithCancellation(cancellationToken))
+
+        await foreach (var result in queryResults)
         {
             buffer.Add(result);
             if (buffer.Count == 3)
@@ -315,7 +303,7 @@ public class FakeCosmosReader<T> :
     {
         var queryResults = CrossPartitionQueryAsync(queryBuilder, cancellationToken);
         var buffer = new List<TResult>();
-        await foreach (var result in queryResults.WithCancellation(cancellationToken))
+        await foreach (var result in queryResults)
         {
             buffer.Add(result);
             if (buffer.Count == 3)

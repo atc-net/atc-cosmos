@@ -109,7 +109,7 @@ public interface ICosmosBulkReader<T>
     public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -124,7 +124,7 @@ public interface ICosmosBulkReader<T>
     public Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -9,7 +9,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
     public CosmosBulkReader(ICosmosContainerProvider containerProvider)
     {
 #pragma warning disable IDE0003
-        this.container = containerProvider.GetContainer<T>(allowBulk: true);
+        container = containerProvider.GetContainer<T>(allowBulk: true);
 #pragma warning restore IDE0003
     }
 
@@ -113,7 +113,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => PagedQueryAsync<T>(
             query,
@@ -126,7 +126,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
         QueryDefinition query,
         string partitionKey,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var reader = container.GetItemQueryIterator<TResult>(
@@ -181,14 +181,14 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
     public Task<PagedResult<T>> CrossPartitionPagedQueryAsync(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
         => CrossPartitionPagedQueryAsync<T>(query, pageSize, continuationToken, cancellationToken);
 
     public async Task<PagedResult<TResult>> CrossPartitionPagedQueryAsync<TResult>(
         QueryDefinition query,
         int? pageSize,
-        string? continuationToken = default,
+        string? continuationToken = null,
         CancellationToken cancellationToken = default)
     {
         var reader = container.GetItemQueryIterator<TResult>(

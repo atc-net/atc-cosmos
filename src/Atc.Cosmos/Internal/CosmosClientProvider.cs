@@ -1,21 +1,12 @@
 namespace Atc.Cosmos.Internal;
 
-public sealed class CosmosClientProvider : IDisposable, ICosmosClientProvider
+public sealed class CosmosClientProvider(
+    IOptions<CosmosClientOptions> cosmosClientOptions,
+    IJsonCosmosSerializer serializer)
+    : IDisposable, ICosmosClientProvider
 {
-    private readonly IOptions<CosmosClientOptions> cosmosClientOptions;
-    private readonly IJsonCosmosSerializer serializer;
-    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache;
-    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache;
-
-    public CosmosClientProvider(
-        IOptions<CosmosClientOptions> cosmosClientOptions,
-        IJsonCosmosSerializer serializer)
-    {
-        this.cosmosClientOptions = cosmosClientOptions;
-        this.serializer = serializer;
-        cosmosClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
-        cosmosBulkClientCache = new ConcurrentDictionary<CosmosOptions, CosmosClient>();
-    }
+    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosClientCache = new();
+    private readonly ConcurrentDictionary<CosmosOptions, CosmosClient> cosmosBulkClientCache = new();
 
     public CosmosClient GetClient(CosmosOptions options)
         => cosmosClientCache.AddOrUpdate(options, o => CreateClient(o, allowBulk: false), (o, c) => c);

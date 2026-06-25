@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         CosmosOptions options,
         Action<ICosmosBuilder> builder)
         => services
-            .ConfigureCosmos(s => options, builder);
+            .ConfigureCosmos(_ => options, builder);
 
     /// <summary>
     /// Configures Cosmos by allowing the caller to access the

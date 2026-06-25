@@ -5,7 +5,7 @@ public static class ResponseMessageExtensions
     public static async Task ProcessResponseMessage(
         this Task<ResponseMessage> responseMessage)
     {
-        using ResponseMessage message = await responseMessage.ConfigureAwait(false);
+        using var message = await responseMessage.ConfigureAwait(false);
         message.EnsureSuccessStatusCode();
     }
 }

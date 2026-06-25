@@ -35,6 +35,5 @@ public class ChangeFeedProcessorOptions
     /// Default value is 1.
     public int MaxDegreeOfParallelism { get; set; } = 1;
 
-    public static ChangeFeedProcessorOptions Default()
-        => new ChangeFeedProcessorOptions();
+    public static ChangeFeedProcessorOptions Default() => new();
 }
