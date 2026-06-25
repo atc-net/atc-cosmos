@@ -1,14 +1,14 @@
 namespace Atc.Cosmos.Internal;
 
-public class CosmosSerializerAdapter : CosmosLinqSerializer
+public class CosmosSerializerAdapter(
+    IJsonCosmosSerializer serializer)
+    : CosmosLinqSerializer
 {
-    public CosmosSerializerAdapter(IJsonCosmosSerializer serializer)
-    {
-        Serializer = serializer;
-    }
+    public IJsonCosmosSerializer Serializer { get; } = serializer;
 
-    public IJsonCosmosSerializer Serializer { get; }
-
+    // CosmosSerializer.FromStream<T> returns plain T, so the override must
+    // keep [MaybeNull] rather than T? (an unconstrained T? would be read as
+    // Nullable<T> and fail to match the base signature).
     [return: MaybeNull]
     public override T FromStream<T>(Stream stream)
         => Serializer.FromStream<T>(stream);
