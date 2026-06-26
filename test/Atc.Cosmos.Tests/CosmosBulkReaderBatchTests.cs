@@ -248,15 +248,15 @@ public sealed class CosmosBulkReaderBatchTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void Multiple_Operations_Uses_Same_Container(
+    public async Task Multiple_Operations_Uses_Same_Container(
         QueryDefinition query,
         string partitionKey,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut.BatchReadAllAsync(partitionKey, cancellationToken).ToArrayAsync(cancellationToken);
-        _ = sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
-        _ = sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
+        _ = await sut.BatchReadAllAsync(partitionKey, cancellationToken).ToArrayAsync(cancellationToken);
+        _ = await sut.BatchQueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        _ = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToListAsync(cancellationToken);
 
         // Assert
         container.ReceivedCalls().Should().HaveCount(3);
@@ -376,12 +376,12 @@ public sealed class CosmosBulkReaderBatchTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
+    public async Task CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
+        _ = await sut.BatchCrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
 
         // Assert
         container

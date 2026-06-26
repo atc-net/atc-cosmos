@@ -17,13 +17,13 @@ public sealed class JsonCosmosSerializerTests
 
     [Fact]
     public void ToStream_ShouldThrow_When_Stream_IsNull()
-        => Invoking(() => sut.ToStream<Record>(input: null))
+        => FluentActions.Invoking(() => sut.ToStream<Record>(input: null))
             .Should()
             .Throw<ArgumentNullException>();
 
     [Fact]
     public void ToStream_ShouldThrow_When_Object_IsNull()
-        => Invoking(() => sut.ToStream<Record>(input: null))
+        => FluentActions.Invoking(() => sut.ToStream<Record>(input: null))
             .Should()
             .Throw<ArgumentNullException>();
 
@@ -77,7 +77,7 @@ public sealed class JsonCosmosSerializerTests
 
     [Fact]
     public void FromStream_ShouldThrow_If_Stream_IsNull()
-        => Invoking(() => sut.FromStream<Record>(stream: null))
+        => FluentActions.Invoking(() => sut.FromStream<Record>(stream: null))
             .Should()
             .Throw<ArgumentNullException>();
 

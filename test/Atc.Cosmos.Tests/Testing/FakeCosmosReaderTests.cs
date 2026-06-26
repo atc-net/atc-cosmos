@@ -13,7 +13,8 @@ public sealed class FakeCosmosReaderTests
         // Act
         var result = await sut.FindAsync(
             record.Id,
-            record.Pk);
+            record.Pk,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -30,7 +31,8 @@ public sealed class FakeCosmosReaderTests
         // Act
         var result = await sut.FindAsync(
             record.Id,
-            record.Pk);
+            record.Pk,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -47,7 +49,8 @@ public sealed class FakeCosmosReaderTests
         // Act
         var result = await sut.ReadAsync(
             record.Id,
-            record.Pk);
+            record.Pk,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -61,7 +64,7 @@ public sealed class FakeCosmosReaderTests
         FakeCosmosReader<Record> sut,
         string documentId,
         string partitionKey)
-        => Awaiting(() => sut.ReadAsync(documentId, partitionKey))
+        => FluentActions.Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
@@ -76,8 +79,8 @@ public sealed class FakeCosmosReaderTests
 
         // Act
         var results = await sut
-            .ReadAllAsync(partitionKey)
-            .ToListAsync();
+            .ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEquivalentTo(sut.Documents);
@@ -90,8 +93,8 @@ public sealed class FakeCosmosReaderTests
     {
         // Act
         var results = await sut
-            .ReadAllAsync(partitionKey)
-            .ToListAsync();
+            .ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEmpty();
@@ -111,8 +114,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync(
                 query,
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEquivalentTo(queryResults);
@@ -132,8 +136,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => true),
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEquivalentTo(sut.Documents);
@@ -152,8 +157,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => true),
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEmpty();
@@ -173,8 +179,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync(
                 x => x.Where(_ => false),
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEmpty();
@@ -194,8 +201,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync<RecordAggregate>(
                 query,
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEquivalentTo(queryResults);
@@ -215,8 +223,9 @@ public sealed class FakeCosmosReaderTests
         var results = await sut
             .QueryAsync<RecordAggregate>(
                 query,
-                partitionKey)
-            .ToListAsync();
+                partitionKey,
+                cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         results.Should().BeEmpty();
@@ -237,14 +246,16 @@ public sealed class FakeCosmosReaderTests
             .PagedQueryAsync(
                 query,
                 partitionKey,
-                1);
+                1,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var page2 = await sut
             .PagedQueryAsync(
                 query,
                 partitionKey,
                 1,
-                page1.ContinuationToken);
+                page1.ContinuationToken,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         page1.Items.Should().BeEquivalentTo([queryResults[0]]);
@@ -267,14 +278,16 @@ public sealed class FakeCosmosReaderTests
             .PagedQueryAsync(
                 x => x.Where(_ => true),
                 partitionKey,
-                1);
+                1,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var page2 = await sut
             .PagedQueryAsync(
                 x => x.Where(_ => true),
                 partitionKey,
                 1,
-                page1.ContinuationToken);
+                page1.ContinuationToken,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         page1.Items.Should().BeEquivalentTo([recordsForQuery[0]]);
@@ -296,14 +309,16 @@ public sealed class FakeCosmosReaderTests
             .PagedQueryAsync<RecordAggregate>(
                 query,
                 partitionKey,
-                1);
+                1,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var page2 = await sut
             .PagedQueryAsync<RecordAggregate>(
                 query,
                 partitionKey,
                 1,
-                page1.ContinuationToken);
+                page1.ContinuationToken,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         page1.Items.Should().BeEquivalentTo([queryResults[0]]);
@@ -316,8 +331,8 @@ public sealed class FakeCosmosReaderTests
     {
         // Act
         var result = await sut
-            .CrossPartitionQueryAsync(x => x.Where(_ => true))
-            .ToListAsync();
+            .CrossPartitionQueryAsync(x => x.Where(_ => true), cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeEquivalentTo(sut.Documents);
@@ -334,7 +349,7 @@ public sealed class FakeCosmosReaderTests
         // Act & assert
         while (requiredDocuments.Count > 0)
         {
-            var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken);
+            var result = await sut.CrossPartitionPagedQueryAsync(x => x.Where(_ => true), 1, continuationToken, cancellationToken: TestContext.Current.CancellationToken);
             continuationToken = result.ContinuationToken;
             requiredDocuments.Should().Contain(result.Items);
             requiredDocuments.Remove(result.Items[0]);
@@ -353,8 +368,8 @@ public sealed class FakeCosmosReaderTests
 
         // Act
         var result = await sut
-            .BatchQueryAsync(x => x.Where(_ => true), partitionKey)
-            .ToListAsync();
+            .BatchQueryAsync(x => x.Where(_ => true), partitionKey, cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result[0].Should().HaveCount(3); // Fake implementation of BatchQueryAsync will return batches of size 3
@@ -373,8 +388,8 @@ public sealed class FakeCosmosReaderTests
 
         // Act
         var result = await sut
-            .BatchCrossPartitionQueryAsync(x => x.Where(_ => true))
-            .ToListAsync();
+            .BatchCrossPartitionQueryAsync(x => x.Where(_ => true), cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result[0].Should().HaveCount(3); // Fake implementation of BatchCrossPartitionQueryAsync will return batches of size 3

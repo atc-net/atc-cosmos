@@ -113,7 +113,7 @@ public sealed class CosmosBulkReaderTests
             .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
 
         // Act & assert
-        return Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
+        return FluentActions.Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
             .Should()
             .ThrowAsync<CosmosException>();
     }
@@ -386,7 +386,7 @@ public sealed class CosmosBulkReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void Multiple_Operations_Uses_Same_Container(
+    public async Task Multiple_Operations_Uses_Same_Container(
         QueryDefinition query,
         string documentId,
         string partitionKey,
@@ -397,8 +397,8 @@ public sealed class CosmosBulkReaderTests
         _ = sut.ReadAsync(documentId, partitionKey, cancellationToken);
         _ = sut.FindAsync(documentId, partitionKey, cancellationToken);
         _ = sut.FindAsync(documentId, partitionKey, cancellationToken);
-        _ = sut.QueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
-        _ = sut.QueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        _ = await sut.QueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
+        _ = await sut.QueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
 
         // Assert
         container.ReceivedCalls().Should().HaveCount(6);
@@ -518,12 +518,12 @@ public sealed class CosmosBulkReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
+    public async Task CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut.CrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
+        _ = await sut.CrossPartitionQueryAsync(query, cancellationToken).ToArrayAsync(cancellationToken);
 
         // Assert
         container
