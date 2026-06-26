@@ -122,7 +122,7 @@ public sealed class CosmosReaderTests
             .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
 
         // Act & assert
-        return Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
+        return FluentActions.Awaiting(() => sut.ReadAsync(documentId, partitionKey, cancellationToken))
             .Should()
             .ThrowAsync<CosmosException>();
     }
@@ -396,7 +396,7 @@ public sealed class CosmosReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void Multiple_Operations_Uses_Same_Container(
+    public async Task Multiple_Operations_Uses_Same_Container(
         QueryDefinition query,
         string documentId,
         string partitionKey,
@@ -408,11 +408,11 @@ public sealed class CosmosReaderTests
         _ = sut.FindAsync(documentId, partitionKey, cancellationToken);
         _ = sut.FindAsync(documentId, partitionKey, cancellationToken);
 
-        _ = sut
+        _ = await sut
             .QueryAsync(query, partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
-        _ = sut
+        _ = await sut
             .QueryAsync(query, partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
@@ -754,12 +754,12 @@ public sealed class CosmosReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
+    public async Task CrossPartitionQueryAsync_Does_Not_Specify_QueryRequestOptions(
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut
+        _ = await sut
             .CrossPartitionQueryAsync(query, cancellationToken)
             .ToArrayAsync(cancellationToken);
 

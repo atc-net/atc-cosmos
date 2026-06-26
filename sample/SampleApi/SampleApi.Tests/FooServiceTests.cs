@@ -11,7 +11,7 @@ public sealed class FooServiceTests
     {
         fakeCosmos.Documents.Add(resource);
 
-        (await sut.FindAsync(resource.Id)).Should().NotBeNull();
+        (await sut.FindAsync(resource.Id, TestContext.Current.CancellationToken)).Should().NotBeNull();
     }
 
     [Theory]
@@ -23,7 +23,7 @@ public sealed class FooServiceTests
     {
         var count = fakeCosmos.Documents.Count;
 
-        await sut.UpsertAsync(data: data);
+        await sut.UpsertAsync(data: data, cancellationToken: TestContext.Current.CancellationToken);
 
         fakeCosmos.Documents.Should().HaveCount(count + 1);
     }
@@ -38,7 +38,7 @@ public sealed class FooServiceTests
     {
         fakeCosmos.Documents.Add(resource);
 
-        await sut.UpsertAsync(resource.Id, data);
+        await sut.UpsertAsync(resource.Id, data, TestContext.Current.CancellationToken);
 
         fakeCosmos
             .Documents

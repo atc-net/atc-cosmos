@@ -249,21 +249,21 @@ public sealed class CosmosReaderBatchTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void Multiple_Operations_Uses_Same_Container(
+    public async Task Multiple_Operations_Uses_Same_Container(
         QueryDefinition query,
         string partitionKey,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut
+        _ = await sut
             .BatchReadAllAsync(partitionKey, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        _ = sut
+        _ = await sut
             .BatchQueryAsync(query, partitionKey, cancellationToken)
             .ToListAsync(cancellationToken);
 
-        _ = sut
+        _ = await sut
             .BatchCrossPartitionQueryAsync(query, cancellationToken)
             .ToListAsync(cancellationToken);
 
@@ -385,12 +385,12 @@ public sealed class CosmosReaderBatchTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void CrossPartitionQueryAsync_Uses_QueryRequestOptions_With_PriorityLevel_High(
+    public async Task CrossPartitionQueryAsync_Uses_QueryRequestOptions_With_PriorityLevel_High(
         QueryDefinition query,
         CancellationToken cancellationToken)
     {
         // Act
-        _ = sut
+        _ = await sut
             .BatchCrossPartitionQueryAsync(query, cancellationToken)
             .ToArrayAsync(cancellationToken);
 

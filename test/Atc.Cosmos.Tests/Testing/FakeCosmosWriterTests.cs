@@ -8,7 +8,7 @@ public sealed class FakeCosmosWriterTests
         Record record)
     {
         // Act
-        var result = await sut.CreateAsync(record);
+        var result = await sut.CreateAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -29,7 +29,7 @@ public sealed class FakeCosmosWriterTests
         record.ETag = null;
 
         // Act
-        var result = await sut.CreateAsync(record);
+        var result = await sut.CreateAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ETag.Should().NotBeNullOrEmpty();
@@ -44,7 +44,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(record);
 
         // Act & assert
-        return Awaiting(() => sut.CreateAsync(record))
+        return FluentActions.Awaiting(() => sut.CreateAsync(record, cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.Conflict);
@@ -56,7 +56,7 @@ public sealed class FakeCosmosWriterTests
         Record record)
     {
         // Act
-        var result = await sut.WriteAsync(record);
+        var result = await sut.WriteAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         sut.Documents.Should().ContainEquivalentOf(result);
@@ -77,7 +77,7 @@ public sealed class FakeCosmosWriterTests
         record.ETag = null;
 
         // Act
-        var result = await sut.WriteAsync(record);
+        var result = await sut.WriteAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ETag.Should().NotBeNullOrEmpty();
@@ -98,7 +98,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(existingDocument);
 
         // Act
-        var result = await sut.WriteAsync(record);
+        var result = await sut.WriteAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -114,7 +114,7 @@ public sealed class FakeCosmosWriterTests
     public Task ReplaceAsync_Should_Throw_If_Document_Does_Not_Exists(
         FakeCosmosWriter<Record> sut,
         Record record)
-        => Awaiting(() => sut.ReplaceAsync(record))
+        => FluentActions.Awaiting(() => sut.ReplaceAsync(record, cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
@@ -135,7 +135,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(existingDocument);
 
         // Act
-        var result = await sut.ReplaceAsync(record);
+        var result = await sut.ReplaceAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -164,7 +164,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(existingDocument);
 
         // Act & assert
-        return Awaiting(() => sut.ReplaceAsync(record))
+        return FluentActions.Awaiting(() => sut.ReplaceAsync(record, cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.PreconditionFailed);
@@ -185,7 +185,7 @@ public sealed class FakeCosmosWriterTests
         record.ETag = null;
 
         // Act
-        var result = await sut.ReplaceAsync(record);
+        var result = await sut.ReplaceAsync(record, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.ETag.Should().NotBeNullOrEmpty();
@@ -196,7 +196,7 @@ public sealed class FakeCosmosWriterTests
         FakeCosmosWriter<Record> sut,
         string documentId,
         string partitionKey)
-        => Awaiting(() => sut.DeleteAsync(documentId, partitionKey))
+        => FluentActions.Awaiting(() => sut.DeleteAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
@@ -216,7 +216,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(existingDocument);
 
         // Act
-        await sut.DeleteAsync(record.Id, record.Pk);
+        await sut.DeleteAsync(record.Id, record.Pk, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         sut.Documents.Should().NotContain(existingDocument);
@@ -255,7 +255,7 @@ public sealed class FakeCosmosWriterTests
         sut.Documents.Add(existingDocument3);
 
         // Act
-        await sut.DeletePartitionAsync(record1.Pk);
+        await sut.DeletePartitionAsync(record1.Pk, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         sut.Documents.Should().NotContain(existingDocument1).And.NotContain(existingDocument2).And.Contain(existingDocument3);
@@ -266,11 +266,12 @@ public sealed class FakeCosmosWriterTests
          FakeCosmosWriter<Record> sut,
          string documentId,
          string partitionKey)
-        => Awaiting(() => sut
+        => FluentActions.Awaiting(() => sut
                 .UpdateAsync(
                     documentId,
                     partitionKey,
-                    _ => { }))
+                    _ => { },
+                    cancellationToken: TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<CosmosException>()
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
@@ -288,7 +289,8 @@ public sealed class FakeCosmosWriterTests
         var result = await sut.UpdateAsync(
             record.Id,
             record.Pk,
-            updateDocument);
+            updateDocument,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -316,7 +318,8 @@ public sealed class FakeCosmosWriterTests
         var result = await sut.UpdateAsync(
             record.Id,
             record.Pk,
-            d => d.Data = newData);
+            d => d.Data = newData,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -346,7 +349,7 @@ public sealed class FakeCosmosWriterTests
             .Returns(defaultDocument);
 
         // Act
-        await sut.UpdateOrCreateAsync(getDefaultDocument, updateDocument);
+        await sut.UpdateOrCreateAsync(getDefaultDocument, updateDocument, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         getDefaultDocument
@@ -363,7 +366,8 @@ public sealed class FakeCosmosWriterTests
         // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
-            updateDocument);
+            updateDocument,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result
@@ -386,7 +390,8 @@ public sealed class FakeCosmosWriterTests
         // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
-            updateDocument);
+            updateDocument,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         sut.Documents.Should().ContainEquivalentOf(result);
@@ -416,7 +421,8 @@ public sealed class FakeCosmosWriterTests
         // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
-            updateDocument);
+            updateDocument,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         updateDocument
@@ -449,7 +455,8 @@ public sealed class FakeCosmosWriterTests
         // Act
         var result = await sut.UpdateOrCreateAsync(
             () => defaultDocument,
-            d => d.Data = newData);
+            d => d.Data = newData,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result

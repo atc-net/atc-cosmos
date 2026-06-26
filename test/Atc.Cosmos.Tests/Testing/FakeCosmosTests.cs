@@ -71,32 +71,32 @@ public sealed class FakeCosmosTests
         var sutReader = (ICosmosReader<Record>)sut;
 
         // Act
-        _ = sutReader.FindAsync(documentId, partitionKey);
-        _ = sutReader.ReadAsync(documentId, partitionKey);
-        sutReader.ReadAllAsync(partitionKey);
-        sutReader.QueryAsync(query, partitionKey);
-        sutReader.QueryAsync<RecordAggregate>(query, partitionKey);
+        _ = sutReader.FindAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutReader.ReadAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.QueryAsync(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.QueryAsync<RecordAggregate>(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _ = reader
             .Received(1)
-            .FindAsync(documentId, partitionKey);
+            .FindAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = reader
             .Received(1)
-            .ReadAsync(documentId, partitionKey);
+            .ReadAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .ReadAllAsync(partitionKey);
+            .ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .QueryAsync(query, partitionKey);
+            .QueryAsync(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .QueryAsync<RecordAggregate>(query, partitionKey);
+            .QueryAsync<RecordAggregate>(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Theory, AutoNSubstituteData]
@@ -114,47 +114,47 @@ public sealed class FakeCosmosTests
         var sutWriter = (ICosmosWriter<Record>)sut;
 
         // Act
-        _ = sutWriter.CreateAsync(document);
-        _ = sutWriter.WriteAsync(document);
-        _ = sutWriter.ReplaceAsync(document);
-        _ = sutWriter.DeleteAsync(documentId, partitionKey);
-        _ = sutWriter.UpdateAsync(documentId, partitionKey, updateDocument);
-        _ = sutWriter.UpdateAsync(documentId, partitionKey, updateDocumentAsync);
-        _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocument);
-        _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync);
+        _ = sutWriter.CreateAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.WriteAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.ReplaceAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.DeleteAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.UpdateAsync(documentId, partitionKey, updateDocument, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.UpdateAsync(documentId, partitionKey, updateDocumentAsync, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocument, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _ = writer
             .Received(1)
-            .CreateAsync(document);
+            .CreateAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .WriteAsync(document);
+            .WriteAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .ReplaceAsync(document);
+            .ReplaceAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .DeleteAsync(documentId, partitionKey);
+            .DeleteAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .UpdateAsync(documentId, partitionKey, updateDocument);
+            .UpdateAsync(documentId, partitionKey, updateDocument, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .UpdateAsync(documentId, partitionKey, updateDocumentAsync);
+            .UpdateAsync(documentId, partitionKey, updateDocumentAsync, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .UpdateOrCreateAsync(getDefaultDocument, updateDocument);
+            .UpdateOrCreateAsync(getDefaultDocument, updateDocument, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync);
+            .UpdateOrCreateAsync(getDefaultDocument, updateDocumentAsync, cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Theory, AutoNSubstituteData]
@@ -169,32 +169,32 @@ public sealed class FakeCosmosTests
         var sutReader = (ICosmosBulkReader<Record>)sut;
 
         // Act
-        _ = sutReader.FindAsync(documentId, partitionKey);
-        _ = sutReader.ReadAsync(documentId, partitionKey);
-        sutReader.ReadAllAsync(partitionKey);
-        sutReader.QueryAsync(query, partitionKey);
-        sutReader.QueryAsync<RecordAggregate>(query, partitionKey);
+        _ = sutReader.FindAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutReader.ReadAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.QueryAsync(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
+        sutReader.QueryAsync<RecordAggregate>(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _ = reader
             .Received(1)
-            .FindAsync(documentId, partitionKey);
+            .FindAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = reader
             .Received(1)
-            .ReadAsync(documentId, partitionKey);
+            .ReadAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .ReadAllAsync(partitionKey);
+            .ReadAllAsync(partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .QueryAsync(query, partitionKey);
+            .QueryAsync(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         reader
             .Received(1)
-            .QueryAsync<RecordAggregate>(query, partitionKey);
+            .QueryAsync<RecordAggregate>(query, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Theory, AutoNSubstituteData]
@@ -209,26 +209,26 @@ public sealed class FakeCosmosTests
         var sutWriter = (ICosmosBulkWriter<Record>)sut;
 
         // Act
-        _ = sutWriter.CreateAsync(document);
-        _ = sutWriter.WriteAsync(document);
-        _ = sutWriter.ReplaceAsync(document);
-        _ = sutWriter.DeleteAsync(documentId, partitionKey);
+        _ = sutWriter.CreateAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.WriteAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.ReplaceAsync(document, cancellationToken: TestContext.Current.CancellationToken);
+        _ = sutWriter.DeleteAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _ = writer
             .Received(1)
-            .CreateAsync(document);
+            .CreateAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .WriteAsync(document);
+            .WriteAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .ReplaceAsync(document);
+            .ReplaceAsync(document, cancellationToken: TestContext.Current.CancellationToken);
 
         _ = writer
             .Received(1)
-            .DeleteAsync(documentId, partitionKey);
+            .DeleteAsync(documentId, partitionKey, cancellationToken: TestContext.Current.CancellationToken);
     }
 }
