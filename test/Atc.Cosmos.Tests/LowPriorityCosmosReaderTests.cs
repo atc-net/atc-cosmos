@@ -9,6 +9,7 @@ public sealed class LowPriorityCosmosReaderTests
     private readonly Record record;
     private readonly Container container;
     private readonly ICosmosContainerProvider containerProvider;
+    private readonly StreamReadStub<Record> streamRead;
     private readonly LowPriorityCosmosReader<Record> sut;
 
     public LowPriorityCosmosReaderTests()
@@ -54,6 +55,8 @@ public sealed class LowPriorityCosmosReaderTests
             .GetCosmosOptions<Record>()
             .Returns(options);
 
+        streamRead = new StreamReadStub<Record>(container, record);
+
         sut = new LowPriorityCosmosReader<Record>(containerProvider);
     }
 
@@ -89,6 +92,25 @@ public sealed class LowPriorityCosmosReaderTests
         _ = container
             .Received(1)
             .ReadItemAsync<Record>(
+                documentId,
+                new PartitionKey(partitionKey),
+                Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.Low),
+                cancellationToken);
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task FindAsync_Reads_Item_In_Container_Using_PriorityLevel_Low(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Act
+        await sut.FindAsync(documentId, partitionKey, cancellationToken);
+
+        // Assert
+        _ = container
+            .Received(1)
+            .ReadItemStreamAsync(
                 documentId,
                 new PartitionKey(partitionKey),
                 Arg.Is<ItemRequestOptions>(c => c.PriorityLevel == PriorityLevel.Low),
@@ -143,6 +165,22 @@ public sealed class LowPriorityCosmosReaderTests
 
     [Theory, AutoNSubstituteData]
     public async Task FindAsync_Returns_Default_When_Record_Is_Not_Found(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        streamRead.StatusCode = HttpStatusCode.NotFound;
+
+        // Act
+        var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
+
+        // Assert
+        response.Should().BeNull();
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task FindAsync_Returns_Default_When_Container_Throws(
         CosmosException exception,
         string documentId,
         string partitionKey,
@@ -150,8 +188,8 @@ public sealed class LowPriorityCosmosReaderTests
     {
         // Arrange
         container
-            .ReadItemAsync<Record>(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
-            .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
+            .ReadItemStreamAsync(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromException<ResponseMessage>(exception));
 
         // Act
         var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
@@ -375,13 +413,7 @@ public sealed class LowPriorityCosmosReaderTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        itemResponse
-            .ETag
-            .Returns(etag);
-
-        itemResponse
-            .Resource
-            .Returns(record);
+        streamRead.ETag = etag;
 
         // Act
         var result = await sut.FindAsync(documentId, partitionKey, cancellationToken);
@@ -416,7 +448,11 @@ public sealed class LowPriorityCosmosReaderTests
             .ToListAsync(cancellationToken);
 
         // Assert
-        container.ReceivedCalls().Should().HaveCount(6);
+        container
+            .ReceivedCalls()
+            .Where(c => c.GetMethodInfo().Name != "get_Database")
+            .Should()
+            .HaveCount(6);
     }
 
     [Theory, AutoNSubstituteData]

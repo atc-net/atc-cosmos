@@ -8,6 +8,7 @@ public sealed class CosmosBulkReaderTests
     private readonly Record record;
     private readonly Container container;
     private readonly ICosmosContainerProvider containerProvider;
+    private readonly StreamReadStub<Record> streamRead;
     private readonly CosmosBulkReader<Record> sut;
 
     public CosmosBulkReaderTests()
@@ -45,6 +46,8 @@ public sealed class CosmosBulkReaderTests
         containerProvider
             .GetContainer<Record>(allowBulk: true)
             .Returns(container, null);
+
+        streamRead = new StreamReadStub<Record>(container, record);
 
         sut = new CosmosBulkReader<Record>(containerProvider);
     }
@@ -135,6 +138,22 @@ public sealed class CosmosBulkReaderTests
 
     [Theory, AutoNSubstituteData]
     public async Task FindAsync_Returns_Default_When_Record_Is_Not_Found(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        streamRead.StatusCode = HttpStatusCode.NotFound;
+
+        // Act
+        var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
+
+        // Assert
+        response.Should().BeNull();
+    }
+
+    [Theory, AutoNSubstituteData]
+    public async Task FindAsync_Returns_Default_When_Container_Throws(
         CosmosException exception,
         string documentId,
         string partitionKey,
@@ -142,8 +161,8 @@ public sealed class CosmosBulkReaderTests
     {
         // Arrange
         container
-            .ReadItemAsync<Record>(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
-            .ReturnsForAnyArgs(Task.FromException<ItemResponse<Record>>(exception));
+            .ReadItemStreamAsync(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromException<ResponseMessage>(exception));
 
         // Act
         var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
@@ -367,13 +386,7 @@ public sealed class CosmosBulkReaderTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        itemResponse
-            .ETag
-            .Returns(etag);
-
-        itemResponse
-            .Resource
-            .Returns(record);
+        streamRead.ETag = etag;
 
         // Act
         var result = await sut.FindAsync(documentId, partitionKey, cancellationToken);
@@ -401,7 +414,11 @@ public sealed class CosmosBulkReaderTests
         _ = await sut.QueryAsync(query, partitionKey, cancellationToken).ToListAsync(cancellationToken);
 
         // Assert
-        container.ReceivedCalls().Should().HaveCount(6);
+        container
+            .ReceivedCalls()
+            .Where(c => c.GetMethodInfo().Name != "get_Database")
+            .Should()
+            .HaveCount(6);
     }
 
     [Theory, AutoNSubstituteData]
