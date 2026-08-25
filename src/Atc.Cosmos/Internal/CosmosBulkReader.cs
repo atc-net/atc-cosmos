@@ -7,11 +7,7 @@ public class CosmosBulkReader<T> : ICosmosBulkReader<T>
     private readonly Container container;
 
     public CosmosBulkReader(ICosmosContainerProvider containerProvider)
-    {
-#pragma warning disable IDE0003
-        container = containerProvider.GetContainer<T>(allowBulk: true);
-#pragma warning restore IDE0003
-    }
+        => container = containerProvider.GetContainer<T>(allowBulk: true);
 
     protected virtual PriorityLevel PriorityLevel => PriorityLevel.High;
 
