@@ -173,9 +173,13 @@ public class CosmosWriter<T>(
         int retries = 0,
         CancellationToken cancellationToken = default)
     {
+        // Retry loop for optimistic concurrency: exits via return on success or throw when
+        // retries are exhausted. Cancellation is checked up-front per iteration and the token
+        // is passed to every awaited Cosmos call, so while(true) is intentional.
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 var document = await reader
@@ -195,7 +199,7 @@ public class CosmosWriter<T>(
                     .ConfigureAwait(false);
             }
             catch (CosmosException ex)
-             when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+                when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 if (--retries <= 0)
                 {
@@ -223,9 +227,13 @@ public class CosmosWriter<T>(
         int retries = 0,
         CancellationToken cancellationToken = default)
     {
+        // Retry loop for optimistic concurrency: exits via return on success or throw when
+        // retries are exhausted. Cancellation is checked up-front per iteration and the token
+        // is passed to every awaited Cosmos call, so while(true) is intentional.
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 var defaultDocument = getDefaultDocument();
@@ -255,16 +263,14 @@ public class CosmosWriter<T>(
                         document,
                         cancellationToken).ConfigureAwait(false);
                 }
-                else
-                {
-                    return await ReplaceAsync(
-                        document,
-                        cancellationToken).ConfigureAwait(false);
-                }
+
+                return await ReplaceAsync(
+                    document,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (CosmosException ex)
-             when (ex.StatusCode == HttpStatusCode.PreconditionFailed ||
-                   ex.StatusCode == HttpStatusCode.Conflict)
+                when (ex.StatusCode == HttpStatusCode.PreconditionFailed ||
+                      ex.StatusCode == HttpStatusCode.Conflict)
             {
                 if (--retries <= 0)
                 {
