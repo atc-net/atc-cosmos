@@ -132,7 +132,7 @@ public class CosmosWriter<T>(
                 .ConfigureAwait(false);
         }
         catch (CosmosException ex)
-         when (ex.StatusCode == HttpStatusCode.NotFound)
+         when (ex.StatusCode is HttpStatusCode.NotFound)
         {
             return false;
         }
@@ -199,7 +199,7 @@ public class CosmosWriter<T>(
                     .ConfigureAwait(false);
             }
             catch (CosmosException ex)
-                when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+                when (ex.StatusCode is HttpStatusCode.PreconditionFailed)
             {
                 if (--retries <= 0)
                 {
@@ -269,8 +269,8 @@ public class CosmosWriter<T>(
                     cancellationToken).ConfigureAwait(false);
             }
             catch (CosmosException ex)
-                when (ex.StatusCode == HttpStatusCode.PreconditionFailed ||
-                      ex.StatusCode == HttpStatusCode.Conflict)
+                when (ex.StatusCode is HttpStatusCode.PreconditionFailed or
+                      HttpStatusCode.Conflict)
             {
                 if (--retries <= 0)
                 {

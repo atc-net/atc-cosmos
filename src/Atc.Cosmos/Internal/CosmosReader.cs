@@ -53,7 +53,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
             return null;
         }
