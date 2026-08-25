@@ -42,36 +42,28 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
         // Read as a stream so a missing document is just a 404 response instead of a
         // thrown exception. Throwing on the not-found path is expensive and fills the
         // debug output with exceptions that were never actually a problem.
-        try
-        {
-            using var response = await container
-                .ReadItemStreamAsync(
-                    documentId,
-                    new PartitionKey(partitionKey),
-                    new ItemRequestOptions
-                    {
-                        PriorityLevel = PriorityLevel,
-                    },
-                    cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+        using var response = await container
+            .ReadItemStreamAsync(
+                documentId,
+                new PartitionKey(partitionKey),
+                new ItemRequestOptions
+                {
+                    PriorityLevel = PriorityLevel,
+                },
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            var resource = Serializer.FromStream<T>(response.Content);
-            if (resource is not null)
-            {
-                resource.ETag = response.Headers.ETag;
-            }
-
-            return resource;
-        }
-        catch (CosmosException)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }
+
+        response.EnsureSuccessStatusCode();
+
+        var resource = Serializer.FromStream<T>(response.Content);
+        resource?.ETag = response.Headers.ETag;
+
+        return resource;
     }
 
     public async IAsyncEnumerable<T> ReadAllAsync(
@@ -91,6 +83,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
             var documents = await reader
                 .ReadNextAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             foreach (var document in documents)
             {
                 yield return document;
@@ -131,6 +124,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
             var documents = await reader
                 .ReadNextAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             foreach (var document in documents)
             {
                 yield return document;
@@ -180,7 +174,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
 
         return new PagedResult<TResult>
         {
-            Items = result.ToArray(),
+            Items = [.. result],
             ContinuationToken = result.ContinuationToken,
         };
     }
@@ -214,6 +208,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
             var documents = await reader
                 .ReadNextAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             foreach (var document in documents)
             {
                 yield return document;
@@ -262,7 +257,7 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
 
         return new PagedResult<TResult>
         {
-            Items = result.ToArray(),
+            Items = [.. result],
             ContinuationToken = result.ContinuationToken,
         };
     }
@@ -373,11 +368,10 @@ public class CosmosReader<T>(ICosmosContainerProvider containerProvider)
 
     private QueryDefinition QueryBuilderToQueryDefinition<TResult>(
         Func<IQueryable<T>, IQueryable<TResult>> queryBuilder)
-        => queryBuilder(
-                container.GetItemLinqQueryable<T>(
-                    requestOptions: new QueryRequestOptions
-                    {
-                        PriorityLevel = PriorityLevel,
-                    }))
+        => queryBuilder(container.GetItemLinqQueryable<T>(
+                requestOptions: new QueryRequestOptions
+                {
+                    PriorityLevel = PriorityLevel,
+                }))
             .ToQueryDefinition();
 }

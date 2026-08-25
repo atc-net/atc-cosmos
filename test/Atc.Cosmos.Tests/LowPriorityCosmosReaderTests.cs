@@ -180,7 +180,7 @@ public sealed class LowPriorityCosmosReaderTests
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task FindAsync_Returns_Default_When_Container_Throws(
+    public Task FindAsync_Throws_When_Container_Throws(
         CosmosException exception,
         string documentId,
         string partitionKey,
@@ -191,11 +191,25 @@ public sealed class LowPriorityCosmosReaderTests
             .ReadItemStreamAsync(id: null, partitionKey: default, requestOptions: null, CancellationToken.None)
             .ReturnsForAnyArgs(Task.FromException<ResponseMessage>(exception));
 
-        // Act
-        var response = await sut.FindAsync(documentId, partitionKey, cancellationToken);
+        // Act & Assert
+        return FluentActions.Awaiting(() => sut.FindAsync(documentId, partitionKey, cancellationToken))
+            .Should()
+            .ThrowAsync<CosmosException>();
+    }
 
-        // Assert
-        response.Should().BeNull();
+    [Theory, AutoNSubstituteData]
+    public Task FindAsync_Throws_On_Non_Success_Status(
+        string documentId,
+        string partitionKey,
+        CancellationToken cancellationToken)
+    {
+        // Arrange
+        streamRead.StatusCode = HttpStatusCode.TooManyRequests;
+
+        // Act & Assert
+        return FluentActions.Awaiting(() => sut.FindAsync(documentId, partitionKey, cancellationToken))
+            .Should()
+            .ThrowAsync<CosmosException>();
     }
 
     [Theory, AutoNSubstituteData]
