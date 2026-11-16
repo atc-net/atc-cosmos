@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework />
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <PackageId>Atc.Cosmos.Functions.Testing</PackageId>
+    <PackageTags>cosmos;cosmosdb;azure;azure-functions;change-feed;testing</PackageTags>
+    <Description>Test helpers that verify Azure Functions Cosmos DB triggers can read the documents Atc.Cosmos writes.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.CosmosDB" Version="4.16.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Atc.Cosmos\Atc.Cosmos.csproj" />
+  </ItemGroup>
+
+</Project>

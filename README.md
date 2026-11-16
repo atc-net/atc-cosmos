@@ -19,6 +19,7 @@ A .NET library for configuring containers in Azure Cosmos DB and providing an ea
   - [Delete by Partition Key](#delete-by-partition-key)
   - [Priority Based Execution](#priority-based-execution)
   - [Unit Testing](#unit-testing)
+  - [Testing Azure Functions Cosmos DB Triggers](#testing-azure-functions-cosmos-db-triggers)
   - [Sample](#sample)
   - [Requirements](#requirements)
   - [How to contribute](#how-to-contribute)
@@ -37,6 +38,7 @@ A .NET library for configuring containers in Azure Cosmos DB and providing an ea
 - **Delete by partition key** — bulk delete all documents in a partition
 - **Multi-database support** — connect to multiple Cosmos DB databases from a single application
 - **Unit testing fakes** — `FakeCosmos<T>` for testing without a real Cosmos DB instance
+- **Azure Functions trigger verification** — `Atc.Cosmos.Functions.Testing` checks that Cosmos DB triggers can read the documents the library writes
 - **System.Text.Json** — serialization using `System.Text.Json` with configurable `JsonSerializerOptions`
 
 ## Installation
@@ -232,6 +234,76 @@ public async Task Should_Update_Cosmos_With_NewData(
         .Be(newData);
 }
 ```
+
+## Testing Azure Functions Cosmos DB Triggers
+
+Atc.Cosmos writes documents with `CosmosOptions.SerializerOptions`, but an Azure Functions `[CosmosDBTrigger]` reads the change feed with the Functions worker's serializer (`WorkerOptions.Serializer`), unless the parameter has an `[InputConverter]`. When the two differ, the trigger fails before the function body runs. For example, an enum stored as text cannot be read by the worker's default serializer:
+
+```text
+FunctionInputConverterException: ... The JSON value could not be converted to MyEnum. Path: $[0].type
+```
+
+The `Atc.Cosmos.Functions.Testing` package finds every Cosmos DB trigger in a Functions assembly and verifies it in a unit test:
+
+```bash
+dotnet add package Atc.Cosmos.Functions.Testing
+```
+
+| Class | Description |
+|-------|-------------|
+| [`CosmosTriggerDiscovery`](src/Atc.Cosmos.Functions.Testing/CosmosTriggerDiscovery.cs) | Finds the functions with a `[CosmosDBTrigger]` parameter of type `IReadOnlyList<T>`, `IEnumerable<T>`, `T[]` or another collection of `T` |
+| [`CosmosTriggerBindingVerifier`](src/Atc.Cosmos.Functions.Testing/CosmosTriggerBindingVerifier.cs) | Writes a sample document like Atc.Cosmos does, reads it like the Functions worker does, and compares the two |
+
+The verifier builds its services on top of the Functions worker defaults (`AddFunctionsWorkerDefaults`), so a trigger without configuration fails the same way it does at runtime. Register the application's own services in `configureServices`: the `CosmosOptions`, the `WorkerOptions` and the dependencies of any input converters.
+
+```csharp
+public sealed class CosmosTriggerBindingTests
+{
+    private static readonly Assembly FunctionsAssembly = typeof(MyChangeFeedFunction).Assembly;
+
+    public static TheoryData<string> FunctionNames
+        => new(CosmosTriggerDiscovery.Find(FunctionsAssembly).Select(x => x.FunctionName));
+
+    [Fact]
+    public void Find_Should_Discover_Cosmos_Triggers()
+        => CosmosTriggerDiscovery
+            .Find(FunctionsAssembly)
+            .Should()
+            .NotBeEmpty();
+
+    [Theory]
+    [MemberData(nameof(FunctionNames))]
+    public async Task Cosmos_Trigger_Should_Read_Documents_Written_By_Atc_Cosmos(string functionName)
+    {
+        // Arrange
+        var fixture = new Fixture();
+        var sut = new CosmosTriggerBindingVerifier(
+            services => services
+                .ConfigureMyCosmos()
+                .ConfigureMyWorkerSerializer(),
+            type => new SpecimenContext(fixture).Resolve(type));
+
+        // Act
+        var actual = await sut.VerifyAsync(FunctionsAssembly, functionName, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.IsSuccess
+            .Should()
+            .BeTrue(actual.Message);
+    }
+}
+```
+
+When the verification fails, `Message` names the function, the document type and the cause, and `WrittenJson` holds the change feed batch as Atc.Cosmos writes it. To fix a failing trigger, use the Cosmos serializer options for the worker:
+
+```csharp
+builder.Services.Configure<WorkerOptions>(
+    options => options.Serializer = new JsonObjectSerializer(jsonSerializerOptions));
+```
+
+or add an `[InputConverter]` that deserializes the batch with the same options.
+
+> **Note:** There is no function invocation during verification, so the `ConverterContext` passed to an input converter has no `FunctionContext`. Converters that only read `Source` and `TargetType` are supported.
 
 ## Sample
 
