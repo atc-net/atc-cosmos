@@ -12,8 +12,10 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Atc.Cosmos/Atc.Cosmos.csproj" />
+    <Project Path="src/Atc.Cosmos.Functions.Testing/Atc.Cosmos.Functions.Testing.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Atc.Cosmos.Functions.Testing.Tests/Atc.Cosmos.Functions.Testing.Tests.csproj" />
     <Project Path="test/Atc.Cosmos.Tests/Atc.Cosmos.Tests.csproj" />
   </Folder>
 </Solution>
