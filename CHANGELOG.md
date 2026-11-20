@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/atc-net/atc-cosmos/compare/v2.0.0...v2.1.0) (2026-11-20)
+
+
+### New features
+
+* **functions-testing:** verify that cosmos db triggers can read documents written by atc.cosmos ([71807dc](https://github.com/atc-net/atc-cosmos/commit/71807dcdda0e873db54e192938bd49b73acaec1a))
+
 ## [2.0.0](https://github.com/atc-net/atc-cosmos/compare/v1.1.46...v2.0.0) (2026-08-25)
 
 
